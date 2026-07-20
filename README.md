@@ -4,7 +4,11 @@ Dashboard completa per dominare le aste di fantacalcio Serie A: motore di consig
 
 ## Come si usa
 
-Basta aprire **`index.html`** nel browser (doppio clic): nessuna installazione, nessun server. I tuoi dati (voti, obiettivi, rosa, acquisti) restano salvati nel browser (localStorage).
+**Online:** https://miramira-hub.github.io/fantahq/ — sempre aggiornato a ogni push, apribile e "installabile" sul telefono.
+
+**Offline:** apri **`index.html`** nel browser (doppio clic): nessuna installazione, nessun server.
+
+I tuoi dati (leghe, voti, obiettivi, rosa, acquisti) restano salvati solo nel tuo browser (localStorage): nessuno li vede, nemmeno con il sito pubblico. Per passarli da PC a telefono usa il **codice di sincronizzazione** nel tab Listone.
 
 ## Cosa fa
 
