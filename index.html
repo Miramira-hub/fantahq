@@ -1281,43 +1281,57 @@ const DEPT_LABEL={dif:"difesa", cen:"centrocampo", att:"attacco"};
 function deptPlayers(players, dep){
   return players.filter(p=>DEPT[dep].includes(p.role)).map(p=>({p,e:advice(kbFor(p)).exp||0})).sort((a,b)=>b.e-a.e);
 }
+/* Scambi che RISPETTANO i ruoli: pacchetto 2-per-2 complementare.
+   Cedo (il mio forte del reparto surplus + un mio scarso del reparto need)
+   e ricevo (il loro forte del reparto need + un loro riempitivo del reparto surplus):
+   i conteggi per ruolo restano identici e il valore si compensa. */
+const DEPT_ROLE={dif:"D", cen:"C", att:"A"};
 function tradeIdeas(){
   const my=mine();
-  const rivals=state.managers.map(m=>({m, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})).filter(r=>r.players.length>=5);
-  if(my.length<5 || !rivals.length) return [];
+  const rivals=state.managers.map(m=>({m, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})).filter(r=>r.players.length>=8);
+  if(my.length<8 || !rivals.length) return [];
   const ms=deptStars(my);
   const deps=["dif","cen","att"];
   const need=deps.slice().sort((a,b)=>ms[a]-ms[b])[0];
   const surplus=deps.slice().sort((a,b)=>ms[b]-ms[a])[0];
-  if(need===surplus || ms[surplus]-ms[need]<1) return [];   // squadra equilibrata: nessuno spunto forte
-  const md=x=>x.e - ROLE_MEAN[x.p.role];                     // valore sopra/sotto la media del ruolo
-  const giveList=deptPlayers(my,surplus).filter(x=>x.e>0 && x.p.role!=="P");  // non si cede il portiere
-  if(!giveList.length) return [];
+  if(need===surplus || ms[surplus]-ms[need]<1) return [];
+  const needRole=DEPT_ROLE[need], surRole=DEPT_ROLE[surplus];
+  const val=x=> x.e>0 ? x.e : (ROLE_MEAN[x.p.role]-0.3);      // stima per i giocatori senza FM (riempitivi)
+  const byRole=(players,role)=>players.map(p=>({p,e:advice(kbFor(p)).exp||0})).filter(x=>x.p.role===role);
+  const myWeak=byRole(my,needRole).sort((a,b)=>val(a)-val(b))[0];                // il mio scarso del reparto da rinforzare
+  if(!myWeak) return [];
   const ideas=[];
   for(const {m,players} of rivals){
     const rs=deptStars(players);
-    const get=deptPlayers(players,need).filter(x=>x.e>0 && x.p.role!=="P")[0];
+    if(rs[need] < ms[need]+1) continue;                                            // loro nettamente più forti dove mi serve
+    const get=byRole(players,needRole).filter(x=>x.e>0).sort((a,b)=>b.e-a.e)[0];    // il loro forte che voglio
     if(!get) continue;
-    // offro il giocatore del mio reparto forte di valore più vicino a quello che chiedo (scambio equo)
-    const give=giveList.slice().sort((a,b)=>Math.abs(md(a)-md(get))-Math.abs(md(b)-md(get)))[0];
-    const score=rs[need] + (5-rs[surplus]);                  // forte dove mi serve + debole dove sono forte
-    ideas.push({m, need, surplus, give, get, rNeed:rs[need], rSur:rs[surplus], score});
+    // offro l'attaccante/pezzo forte del mio reparto in eccesso di VALORE PIÙ VICINO a chi chiedo (scambio equo, non regalo il fuoriclasse)
+    const myStrong=byRole(my,surRole).filter(x=>x.e>0).sort((a,b)=>Math.abs(val(a)-val(get))-Math.abs(val(b)-val(get)))[0];
+    const getFiller=byRole(players,surRole).sort((a,b)=>val(a)-val(b))[0];          // un loro riempitivo per coprire il ruolo ceduto
+    if(!myStrong||!getFiller) continue;
+    if(Math.abs(val(myStrong)-val(get))>0.85) continue;                            // i due pezzi forti devono valere circa uguale
+    const giveTot=val(myStrong)+val(myWeak), getTot=val(get)+val(getFiller);
+    if(Math.abs(giveTot-getTot)>1.3) continue;                                      // pacchetto ~equo per il rivale
+    ideas.push({m, need, surplus, myStrong, myWeak, get, getFiller, rNeed:rs[need], score: rs[need]+(5-rs[surplus])});
   }
   return ideas.sort((a,b)=>b.score-a.score).slice(0,3);
 }
 function tradeIdeasHtml(){
   const ideas=tradeIdeas();
   if(!mine().length || !state.managers.length) return "";
+  const nm=x=>`<b>${esc(x.p.name)}</b> <span class="team">(${x.p.role}${x.e>0?", FM "+fmt1(x.e):""})</span>`;
   const body = ideas.length ? ideas.map(x=>`<div class="alert">
       <span class="role ${x.get.p.role}">${x.get.p.role}</span>
       <div class="txt">Con <b>${esc(x.m.name)}</b>: tu sei forte in <b>${DEPT_LABEL[x.surplus]}</b> e scoperto in <b>${DEPT_LABEL[x.need]}</b>, loro il contrario (${DEPT_LABEL[x.need]} ${starStr(x.rNeed)}).<br>
-        Idea: offri <b>${esc(x.give.p.name)}</b> <span class="team">(${x.give.p.role}, FM ${fmt1(x.give.e)})</span> e chiedi <b>${esc(x.get.p.name)}</b> <span class="team">(${x.get.p.role}, FM ${fmt1(x.get.e)})</span>.</div>
+        <b>Offri:</b> ${nm(x.myStrong)} + ${nm(x.myWeak)} &nbsp;⇄&nbsp; <b>Ricevi:</b> ${nm(x.get)} + ${nm(x.getFiller)}.<br>
+        <span class="help">Ruoli coperti (dai 1${x.surplus===x.need?"":" "+x.myStrong.p.role}+1${x.myWeak.p.role}, ricevi 1${x.get.p.role}+1${x.getFiller.p.role}), valore compensato. Migliori in ${DEPT_LABEL[x.need]}.</span></div>
       <button class="btn sm" data-open2="${x.get.p.id}">Scheda</button>
     </div>`).join("")
-    : '<div class="empty">Nessuno spunto forte: la tua rosa è abbastanza equilibrata tra i reparti, oppure mancano le rose dei rivali (importale in Rosa).</div>';
+    : '<div class="empty">Nessuno spunto forte ora: rosa equilibrata tra i reparti, oppure mancano le rose dei rivali (importale in Rosa).</div>';
   return `<div class="card">
     <h2>Spunti di scambio con i rivali</h2>
-    <p class="sub">Incrocio i reparti forti/deboli della tua squadra con quelli dei rivali: trovo chi ha bisogno di ciò che ti avanza e ha ciò che ti manca. Sono spunti da negoziare, non offerte automatiche.</p>
+    <p class="sub">Pacchetti <b>2-per-2 che rispettano i ruoli</b>: cedi il tuo pezzo forte dove hai abbondanza + un tuo scarso dove ti serve, e ricevi il loro forte dove ti serve + un riempitivo per coprire il ruolo ceduto. I conteggi per reparto restano identici e il valore si compensa. Spunti da negoziare.</p>
     ${body}
   </div>`;
 }
