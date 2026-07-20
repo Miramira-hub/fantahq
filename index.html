@@ -202,6 +202,7 @@
       <div class="hstat"><div class="l">Slot liberi</div><div class="v" id="hSlots">–</div></div>
       <div class="hstat"><div class="l">Max offerta</div><div class="v" id="hMax">–</div></div>
     </div>
+    <button id="themeBtn" class="btn sm" title="Tema chiaro/scuro">◐</button>
   </div>
   <nav class="tabs" id="tabs"></nav>
 </header>
@@ -262,12 +263,12 @@ function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
   return { v:2, official:false, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52} },
-    players, teamsDiff:{}, lineup:{ module:"3-4-3" } };
+    players, teamsDiff:{}, avail:{}, lineup:{ module:"3-4-3" } };
 }
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ state = JSON.parse(raw); return; }
+    if(raw){ state = JSON.parse(raw); state.avail = state.avail||{}; return; }
     const old = localStorage.getItem(OLDKEY);
     if(old){
       const st = JSON.parse(old);
@@ -431,6 +432,36 @@ function importListone(text){
   return rows.length;
 }
 
+/* ================= sincronizzazione dispositivi ================= */
+function syncCode(){
+  const payload = { v:1, official:state.official, settings:state.settings, teamsDiff:state.teamsDiff,
+    avail:state.avail||{}, lineup:state.lineup,
+    players: state.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid]) };
+  return "FHQ1." + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+function loadSyncCode(code){
+  code = (code||"").trim();
+  if(!code.startsWith("FHQ1.")) return "Codice non valido: deve iniziare con FHQ1.";
+  try{
+    const payload = JSON.parse(decodeURIComponent(escape(atob(code.slice(5)))));
+    if(!Array.isArray(payload.players) || !payload.players.length) throw 0;
+    state = freshState();
+    state.official = !!payload.official;
+    state.settings = payload.settings||state.settings;
+    state.teamsDiff = payload.teamsDiff||{};
+    state.avail = payload.avail||{};
+    state.lineup = payload.lineup||state.lineup;
+    state.players = payload.players.map((a,i)=>{
+      const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
+      p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
+      return p;
+    });
+    state.nextId = state.players.length+1;
+    save();
+    return null;
+  }catch(e){ return "Codice non leggibile: ricopialo per intero."; }
+}
+
 /* ================= tab: CONSIGLI ================= */
 function vConsigli(){
   const groups = {};
@@ -561,8 +592,16 @@ function vListone(){
     <textarea class="paste" id="pasteArea" placeholder="Incolla qui le righe copiate dal file quotazioni…&#10;Funziona anche il formato semplice:  P&#9;Sommer&#9;Inter&#9;16"></textarea>
     <div class="footactions" style="margin-top:10px">
       <button class="btn pri" id="doImport">Importa</button>
+      <label class="btn" style="display:inline-block">Carica file CSV/TXT<input type="file" id="impCsv" accept=".csv,.tsv,.txt" style="display:none"></label>
       <span class="help">Colonne riconosciute: <code>R · Nome · Squadra · Qt.A … FVM</code> (tab, punto e virgola o virgola). Voti e obiettivi vengono conservati.</span>
     </div>
+    <h3 class="sec">Sincronizza PC ↔ telefono</h3>
+    <p class="help" style="margin:0 0 8px">I tuoi dati (rosa, voti, obiettivi) vivono solo su questo dispositivo. Per portarli altrove: genera il codice, invialo all'altro dispositivo (es. messaggio a te stesso) e lì incollalo e premi Carica.</p>
+    <div class="footactions">
+      <button class="btn pri" id="genSync">Genera e copia codice</button>
+      <button class="btn" id="applySync">Carica codice incollato</button>
+    </div>
+    <textarea class="paste" id="syncArea" style="margin-top:8px;min-height:70px" placeholder="Il codice generato appare qui — oppure incolla un codice ricevuto e premi 'Carica codice incollato'."></textarea>
     <h3 class="sec">Backup e dati</h3>
     <div class="footactions">
       <button class="btn" id="expJson">Esporta backup (JSON)</button>
@@ -622,6 +661,11 @@ function vStrategia(){
       <thead><tr><th>R</th><th>Reparto</th><th class="r">Crediti</th><th>Suggerimento per slot</th></tr></thead>
       <tbody>${perSlot}</tbody>
     </table></div>
+  </div>
+  <div class="card">
+    <h2>Obiettivi automatici</h2>
+    <p class="sub">Il motore segna ★ i migliori candidati liberi per ogni reparto (slot + 2 riserve; i tuoi ★ esistenti restano). Poi rifinisci a mano nel Listone.</p>
+    <button class="btn pri" id="genTargets">★ Genera obiettivi dal motore</button>
   </div>`;
 }
 
@@ -737,25 +781,31 @@ function vFormazione(){
   const need = {P:1, ...mod};
   const myTeams = [...new Set(my.map(p=>p.team))].sort();
   const score = p=>{
+    const av = (state.avail||{})[p.id]||"ok";
+    if(av==="out") return -99;
     const k = kbFor(p), a = advice(k);
     const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
     const diff = state.teamsDiff[p.team] ?? 3;
-    return base + (3-diff)*0.35;
+    return base + (3-diff)*0.35 - (av==="dubbio"?1.2:0);
   };
   const sections = ROLES.map(r=>{
     const list = my.filter(p=>p.role===r).map(p=>({p, sc:score(p)})).sort((a,b)=>b.sc-a.sc);
-    const rows = list.map((x,i)=>`
-      <div class="xirow ${i<need[r]?"tit":""}">
+    const rows = list.map((x,i)=>{
+      const av = (state.avail||{})[x.p.id]||"ok";
+      const tit = i<need[r] && x.sc>-50;
+      return `
+      <div class="xirow ${tit?"tit":""}">
         ${roleChip(r)}<span class="nm">${esc(x.p.name)} <span class="team">${esc(x.p.team)} · avv. ${"●".repeat(state.teamsDiff[x.p.team]??3)}</span></span>
-        <span class="sc">${x.sc.toFixed(1)}</span>
-        ${i<need[r]?'<span class="badge mine">TITOLARE</span>':`<span class="badge">panchina ${i-need[r]+1}</span>`}
-      </div>`).join("");
+        <select data-avail="${x.p.id}" title="Disponibilità">${[["ok","✓ gioca"],["dubbio","? dubbio"],["out","✗ out"]].map(([v,l])=>`<option value="${v}" ${av===v?"selected":""}>${l}</option>`).join("")}</select>
+        <span class="sc">${x.sc<=-50?"—":x.sc.toFixed(1)}</span>
+        ${tit?'<span class="badge mine">TITOLARE</span>':av==="out"?'<span class="badge gone">out</span>':`<span class="badge">panchina ${i-need[r]+1}</span>`}
+      </div>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} — servono ${need[r]}</h3><div class="xi">${rows||'<div class="empty">Nessuno in rosa.</div>'}</div>`;
   }).join("");
   return `
   <div class="card">
     <h2>Formazione consigliata</h2>
-    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per la difficoltà dell'avversario. Verifica sempre le probabili formazioni prima di confermare.</p>
+    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per difficoltà dell'avversario e disponibilità (✓/?/✗). Segna "out" infortunati e squalificati: escono dai titolari. Verifica sempre le probabili formazioni.</p>
     <div class="toolbar"><label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option ${state.lineup.module===m?"selected":""}>${m}</option>`).join("")}</select></label></div>
     ${sections}
   </div>
@@ -887,8 +937,43 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn");
   if(!t) return;
+  if(t.id==="themeBtn"){
+    const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    const next = cur==="dark"?"light":"dark";
+    document.documentElement.dataset.theme = next;
+    try{ localStorage.setItem("fantahq_theme", next); }catch(_){}
+    return;
+  }
+  if(t.id==="genSync"){
+    const code = syncCode();
+    const ta = $("#syncArea"); ta.value = code; ta.focus(); ta.select();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=>toast("Codice copiato: incollalo sull'altro dispositivo")).catch(()=>toast("Codice generato: copialo dal riquadro"));
+    } else { try{ document.execCommand("copy"); toast("Codice copiato"); }catch(_){ toast("Codice generato: copialo dal riquadro"); } }
+    return;
+  }
+  if(t.id==="applySync"){
+    const err = loadSyncCode($("#syncArea").value);
+    if(err) toast(err); else { undoStack=[]; toast("Dati sincronizzati su questo dispositivo"); render(); }
+    return;
+  }
+  if(t.id==="genTargets"){
+    const added = {P:0,D:0,C:0,A:0};
+    for(const r of ROLES){
+      const already = state.players.filter(p=>p.role===r&&p.target).length;
+      const room = Math.max(0, state.settings.slots[r]+2-already);
+      const cands = state.players.filter(p=>p.role===r&&p.status==="free"&&!p.target)
+        .map(p=>({p,a:advice(kbFor(p))}))
+        .filter(x=>["must","target","safe","bet"].includes(x.a.tier))
+        .sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
+      for(const x of cands.slice(0,room)){ x.p.target=true; added[r]++; }
+    }
+    save(); render();
+    toast(`Obiettivi ★ aggiunti — ${ROLES.map(r=>r+":"+added[r]).join(" ")}`);
+    return;
+  }
   if(t.dataset.open!==undefined && !t.dataset.tab){
     const id = +t.dataset.open;
     if(ui.tab==="consigli"){ ui.tab="listone"; ui.openId=id; ui.search=""; ui.role=""; ui.limit=500; }
@@ -965,6 +1050,15 @@ document.addEventListener("change", e=>{
   if(el.dataset.split){ state.settings.split[el.dataset.split]=Math.max(0,Math.min(100,+el.value||0)); save(); render(); return; }
   if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
   if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
+  if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
+  if(el.id==="impCsv"){
+    const f = el.files[0]; if(!f) return;
+    f.text().then(txt=>{
+      const n = importListone(txt);
+      if(n){ toast(`Importati ${n} giocatori dal file`); render(); } else toast("Nessuna riga riconosciuta nel file");
+    });
+    return;
+  }
   if(el.dataset.trade){
     const [side,id] = el.dataset.trade.split(":");
     const arr = side==="give"?ui.tradeGive:ui.tradeGet;
@@ -991,6 +1085,7 @@ function redrawKeepFocus(el){
   if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} }
 }
 
+try{ const th = localStorage.getItem("fantahq_theme"); if(th) document.documentElement.dataset.theme = th; }catch(_){}
 load();
 render();
 </script>
