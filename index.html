@@ -282,15 +282,25 @@ const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r
   rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16] }));
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
+/* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
+const sigToks = name=>norm(name).split(" ").filter(w=>w.length>=3);
+const KBSIG = KBI.map(k=>({k, toks:sigToks(k.n)}));
 const KBCACHE = new Map();
+/* Il listone ufficiale scrive "Cognome I." (es. "Paz N.") mentre il DB può avere
+   "Nome Cognome" (es. "Nico Paz"): abbino per token di cognome condiviso + ruolo,
+   disambiguando per squadra quando ci sono più candidati. */
 function kbFor(p){
-  const key = norm(p.name)+"|"+p.role;
+  const key = norm(p.name)+"|"+p.role+"|"+norm(p.team);
   if(KBCACHE.has(key)) return KBCACHE.get(key);
-  let k = KBMAP.get(key) || null;
+  let k = KBMAP.get(norm(p.name)+"|"+p.role) || null;
   if(!k){
-    const toks = norm(p.name).split(" ").filter(w=>w.length>=4);
-    const cands = KBI.filter(x=>x.r===p.role && toks.some(w=>norm(x.n).includes(w)));
-    k = cands.length===1 ? cands[0] : null;
+    const qt = sigToks(p.name);
+    const cands = KBSIG.filter(x=>x.k.r===p.role && x.toks.some(w=>qt.includes(w))).map(x=>x.k);
+    if(cands.length===1) k = cands[0];
+    else if(cands.length>1){
+      const sameTeam = cands.filter(x=>norm(x.t)===norm(p.team));
+      k = sameTeam.length===1 ? sameTeam[0] : null;
+    }
   }
   KBCACHE.set(key, k);
   return k;
@@ -791,7 +801,7 @@ function gkPairsHtml(){
     ${pairs.map(({pr,second,why})=>`<div class="alert" style="border-color:var(--rP)">
       <span class="role P">P</span>
       <div class="txt"><b>${esc(pr.p.name)}</b> <span class="team">${esc(pr.p.team)}</span> (FM att. ${fmt1(pr.a.exp)}, quota ${pr.p.qta}) <b>+</b> <b>${esc(second.p.name)}</b> <span class="team">${esc(second.p.team)}</span> (quota ${second.p.qta}) — ${why}.</div>
-      <button class="btn sm" data-open="${pr.p.id}">Scheda</button>
+      <button class="btn sm" data-open2="${pr.p.id}">Scheda</button>
     </div>`).join("")}
   </div>`;
 }
@@ -1265,6 +1275,53 @@ function teamStrengthHtml(){
   </div>`;
 }
 
+/* ================= spunti di scambio con i rivali ================= */
+const DEPT={dif:["P","D"], cen:["C"], att:["A"]};
+const DEPT_LABEL={dif:"difesa", cen:"centrocampo", att:"attacco"};
+function deptPlayers(players, dep){
+  return players.filter(p=>DEPT[dep].includes(p.role)).map(p=>({p,e:advice(kbFor(p)).exp||0})).sort((a,b)=>b.e-a.e);
+}
+function tradeIdeas(){
+  const my=mine();
+  const rivals=state.managers.map(m=>({m, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})).filter(r=>r.players.length>=5);
+  if(my.length<5 || !rivals.length) return [];
+  const ms=deptStars(my);
+  const deps=["dif","cen","att"];
+  const need=deps.slice().sort((a,b)=>ms[a]-ms[b])[0];
+  const surplus=deps.slice().sort((a,b)=>ms[b]-ms[a])[0];
+  if(need===surplus || ms[surplus]-ms[need]<1) return [];   // squadra equilibrata: nessuno spunto forte
+  const md=x=>x.e - ROLE_MEAN[x.p.role];                     // valore sopra/sotto la media del ruolo
+  const giveList=deptPlayers(my,surplus).filter(x=>x.e>0 && x.p.role!=="P");  // non si cede il portiere
+  if(!giveList.length) return [];
+  const ideas=[];
+  for(const {m,players} of rivals){
+    const rs=deptStars(players);
+    const get=deptPlayers(players,need).filter(x=>x.e>0 && x.p.role!=="P")[0];
+    if(!get) continue;
+    // offro il giocatore del mio reparto forte di valore più vicino a quello che chiedo (scambio equo)
+    const give=giveList.slice().sort((a,b)=>Math.abs(md(a)-md(get))-Math.abs(md(b)-md(get)))[0];
+    const score=rs[need] + (5-rs[surplus]);                  // forte dove mi serve + debole dove sono forte
+    ideas.push({m, need, surplus, give, get, rNeed:rs[need], rSur:rs[surplus], score});
+  }
+  return ideas.sort((a,b)=>b.score-a.score).slice(0,3);
+}
+function tradeIdeasHtml(){
+  const ideas=tradeIdeas();
+  if(!mine().length || !state.managers.length) return "";
+  const body = ideas.length ? ideas.map(x=>`<div class="alert">
+      <span class="role ${x.get.p.role}">${x.get.p.role}</span>
+      <div class="txt">Con <b>${esc(x.m.name)}</b>: tu sei forte in <b>${DEPT_LABEL[x.surplus]}</b> e scoperto in <b>${DEPT_LABEL[x.need]}</b>, loro il contrario (${DEPT_LABEL[x.need]} ${starStr(x.rNeed)}).<br>
+        Idea: offri <b>${esc(x.give.p.name)}</b> <span class="team">(${x.give.p.role}, FM ${fmt1(x.give.e)})</span> e chiedi <b>${esc(x.get.p.name)}</b> <span class="team">(${x.get.p.role}, FM ${fmt1(x.get.e)})</span>.</div>
+      <button class="btn sm" data-open2="${x.get.p.id}">Scheda</button>
+    </div>`).join("")
+    : '<div class="empty">Nessuno spunto forte: la tua rosa è abbastanza equilibrata tra i reparti, oppure mancano le rose dei rivali (importale in Rosa).</div>';
+  return `<div class="card">
+    <h2>Spunti di scambio con i rivali</h2>
+    <p class="sub">Incrocio i reparti forti/deboli della tua squadra con quelli dei rivali: trovo chi ha bisogno di ciò che ti avanza e ha ciò che ti manca. Sono spunti da negoziare, non offerte automatiche.</p>
+    ${body}
+  </div>`;
+}
+
 /* ================= tab: ROSA ================= */
 function roseImportHtml(){
   const claim = state.managers.length ? `
@@ -1427,6 +1484,7 @@ function vScambi(){
     </div>
     ${verdict || '<div class="empty">Seleziona almeno un giocatore per lato.</div>'}
   </div>
+  ${tradeIdeasHtml()}
   ${repairHtml()}`;
 }
 function repairHtml(){
@@ -1436,7 +1494,7 @@ function repairHtml(){
   const body = sugg.length ? sugg.map(({r,worst,best,delta})=>`<div class="alert warn">
       ${roleChip(r)}
       <div class="txt">Svincola <b>${esc(worst.p.name)}</b> <span class="team">${esc(worst.p.team)}</span> (FM att. ${fmt1(worst.a.exp)}) → prendi <b>${esc(best.p.name)}</b> <span class="team">${esc(best.p.team)}</span> (FM att. ${fmt1(best.a.exp)}, <b>libero</b>). Miglioramento <b>+${delta.toFixed(2)}</b> di FM attesa.</div>
-      <button class="btn sm" data-open="${best.p.id}">Scheda</button>
+      <button class="btn sm" data-open2="${best.p.id}">Scheda</button>
     </div>`).join("")
     : '<div class="empty">Nessun upgrade evidente tra gli svincolati: la tua rosa è già competitiva reparto per reparto.</div>';
   return `<div class="card">
