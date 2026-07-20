@@ -554,7 +554,7 @@ function parseListone(text){
     if(i<toks.length && MANTRA.test(toks[i]) && toks.length>i+2) i++;
     const name = toks[i], team = toks[i+1];
     if(!name || !team || /^\d+$/.test(name) || /^\d+$/.test(team)) continue;
-    const id = (ri>0 && /^\d+$/.test(toks[ri-1])) ? toks[ri-1] : "";   // codice ufficiale del calciatore (colonna prima del ruolo)
+    const id = /^\d+$/.test(toks[0]) ? toks[0] : ((ri>0 && /^\d+$/.test(toks[ri-1])) ? toks[ri-1] : "");   // codice ufficiale: di norma è la prima colonna (#/Id)
     const nums = toks.slice(i+2).map(Number).filter(n=>!isNaN(n));
     if(!nums.length) continue;
     const qta = nums[0];
@@ -580,37 +580,34 @@ function importListone(text){
   return rows.length;
 }
 
-/* ================= export CSV rose (per Leghe Fantacalcio) ================= */
+/* ================= export CSV rose (formato Leghe Fantacalcio) =================
+   Formato reale: blocchi separati da una riga "$,$,$", righe "Fantasquadra,Id,Costo".
+   Conta solo il codice Id del calciatore (viene dal listone ufficiale importato). */
 function downloadFile(name, text, mime){
-  const blob = new Blob(["﻿"+text], {type:(mime||"text/csv")+";charset=utf-8"});
+  const blob = new Blob([text], {type:(mime||"text/csv")+";charset=utf-8"});
   const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
   URL.revokeObjectURL(a.href);
 }
-const csvCell = v=>{ const s=String(v==null?"":v); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
 function myTeamName(){ return (state.settings.myTeam||"").trim() || "La mia squadra"; }
 function exportRoseCsv(all){
-  const SEP = ";";
-  const head = (all ? ["Fantasquadra","Id","R","Calciatore","Squadra","Costo"] : ["Id","R","Calciatore","Squadra","Costo"]);
-  let list, withMissingId=0;
-  if(all){
-    list = state.players.filter(p=>p.status==="mine" || (p.status==="gone"));
-  } else {
-    list = mine();
+  const clean = t=>String(t||"").replace(/,/g," ").trim();      // niente virgole nei nomi
+  const byRole = (a,b)=>ROLES.indexOf(a.role)-ROLES.indexOf(b.role) || (b.paid||0)-(a.paid||0);
+  const teams = all
+    ? [{name:myTeamName(), players:mine()}].concat(state.managers.map(m=>({name:m.name, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})))
+    : [{name:myTeamName(), players:mine()}];
+  let count=0, missing=0;
+  const lines=[];
+  for(const t of teams){
+    lines.push("$,$,$");
+    for(const p of t.players.slice().sort(byRole)){
+      if(!p.extId){ missing++; continue; }
+      lines.push([clean(t.name), p.extId, p.paid||0].join(","));
+      count++;
+    }
   }
-  list = list.slice().sort((a,b)=> (a.status===b.status?0:a.status==="mine"?-1:1) || ROLES.indexOf(a.role)-ROLES.indexOf(b.role) || b.paid-a.paid);
-  const lines = [head.join(SEP)];
-  for(const p of list){
-    if(!p.extId) withMissingId++;
-    const team = p.status==="mine" ? myTeamName() : managerName(p.owner);
-    const cells = all
-      ? [team, p.extId||"", p.role, p.name, p.team, p.paid||0]
-      : [p.extId||"", p.role, p.name, p.team, p.paid||0];
-    lines.push(cells.map(csvCell).join(SEP));
-  }
-  if(!list.length) return {count:0};
-  const fname = `fantahq-rose-${(all?"tutte":norm(myTeamName()).replace(/\s+/g,"-"))||"mia"}.csv`;
-  downloadFile(fname, lines.join("\r\n"));
-  return {count:list.length, withMissingId, fname};
+  if(!count) return {count:0, missing};
+  downloadFile(`fantahq-rose-${all?"tutte":"mia"}.csv`, lines.join("\r\n"));
+  return {count, missing};
 }
 
 /* ================= sincronizzazione dispositivi ================= */
@@ -1107,7 +1104,7 @@ function vRosa(){
   <div class="card"><h2>Rosa completa</h2>${sections}</div>
   <div class="card">
     <h2>Esporta le rose per la lega (CSV)</h2>
-    <p class="sub">Scarica un CSV con giocatori e prezzi da caricare su Leghe Fantacalcio (Admin → Gestione rose → Importa). Il file usa il separatore <code>;</code> ed è modificabile in Excel.</p>
+    <p class="sub">Scarica il file rose nel formato di Leghe Fantacalcio (Admin → Gestione rose → Importa): blocchi <code>$,$,$</code> con righe <code>Fantasquadra,Id,Costo</code>. "Tutte le rose" mette te + i rivali che hai tracciato in Asta.</p>
     <div class="toolbar">
       <label>Nome della mia fantasquadra <input type="text" id="myTeamName" value="${esc(state.settings.myTeam||"")}" placeholder="La mia squadra" style="width:180px" maxlength="40"></label>
     </div>
@@ -1115,7 +1112,7 @@ function vRosa(){
       <button class="btn pri" id="csvMine">Scarica CSV della mia rosa</button>
       <button class="btn" id="csvAll">Scarica CSV di tutte le rose</button>
     </div>
-    <p class="help" style="margin-top:10px"><b>Per un import perfetto serve il codice Id ufficiale dei calciatori:</b> importa prima il <b>listone ufficiale</b> (tab Listone) — FantaHQ lo memorizza e lo mette nel CSV. Senza, il file esce senza Id e sulla piattaforma potresti dover associare qualche giocatore a mano. Il formato esatto varia un po' tra le piattaforme: se la tua chiede colonne diverse, mandami una riga del loro file di esempio e te lo adatto.</p>
+    <p class="help" style="margin-top:10px"><b>Indispensabile il codice Id ufficiale:</b> questo formato usa solo l'Id del calciatore, quindi devi aver importato il <b>listone ufficiale</b> (tab Listone) — FantaHQ ne memorizza l'Id (prima colonna <code>#</code>) e lo scrive nel CSV. Senza listone importato i giocatori vengono saltati e l'app te lo segnala.</p>
   </div>`;
 }
 
@@ -1355,8 +1352,11 @@ document.addEventListener("click", e=>{
   if(!t) return;
   if(t.id==="csvMine"||t.id==="csvAll"){
     const res = exportRoseCsv(t.id==="csvAll");
-    if(!res.count){ toast("Nessun giocatore da esportare: registra prima gli acquisti"); return; }
-    toast(`CSV scaricato: ${res.count} giocatori${res.withMissingId?` (${res.withMissingId} senza Id ufficiale)`:""}`);
+    if(!res.count){
+      toast(res.missing ? "Servono i codici Id: importa prima il listone ufficiale" : "Nessun acquisto registrato da esportare");
+      return;
+    }
+    toast(`CSV scaricato: ${res.count} giocatori${res.missing?` · ${res.missing} saltati (senza Id: reimporta il listone ufficiale)`:""}`);
     return;
   }
   if(t.id==="fastToggle"){ ui.fast=!ui.fast; ui.astaSel=null; render(); return; }
