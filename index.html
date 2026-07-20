@@ -271,18 +271,30 @@ function mkPlayer(id,name,team,role,qta,fvm,kbi){
 function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
   return { official:false, nextId:players.length+1,
-    settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52} },
+    settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"} },
     players, teamsDiff:{}, avail:{}, lineup:{ module:"3-4-3" } };
 }
 function normState(st){                 // ripara uno state caricato da vecchi salvataggi
   st = st || freshState();
   st.settings = st.settings || freshState().settings;
+  st.settings.rules = st.settings.rules || {modDef:"no"};
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
   st.nextId = st.nextId || (Math.max(0,...st.players.map(p=>p.id||0))+1);
   return st;
 }
+/* Come il regolamento della lega sposta il valore dei reparti:
+   no      = niente modificatore difesa -> conta solo bonus: portiere/difesa pesano meno, spingi C/A
+   dif4    = modificatore sui 4 migliori difensori (portiere escluso) -> i difensori regolari valgono di più
+   reparto = modificatore su portiere + difensori -> anche un ottimo portiere diventa prezioso */
+const RULE_MULT = {
+  no:      {P:-0.14, D:-0.05, C:0, A:0.03},
+  dif4:    {P:-0.04, D:0.16,  C:0, A:0},
+  reparto: {P:0.22,  D:0.16,  C:0, A:0}
+};
+const RULE_LABEL = { no:"Nessun modificatore difesa", dif4:"Modificatore sui 4 difensori", reparto:"Modificatore difensori + portiere" };
+function ruleMod(){ return (state && state.settings && state.settings.rules && state.settings.rules.modDef) || "no"; }
 const uid = ()=> "l" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36);
 function freshLeague(name){ return { name: name || "Lega 1", state: freshState() }; }
 function newStore(firstLeague){
@@ -360,6 +372,7 @@ function expFM(k){
   if(k.age>=38) v -= 0.25; else if(k.age>=35) v -= 0.15; else if(k.age<=21) v += 0.05;
   if(k.inj>=3) v -= 0.20; else if(k.inj===2) v -= 0.10;
   if(k.newT) v -= 0.08;
+  v += (RULE_MULT[ruleMod()]||RULE_MULT.no)[k.r] || 0;   // regolamento della lega (modificatore difesa)
   return v;
 }
 function affOf(k){ return Math.max(0, Math.min(100, k.tit - k.inj*8 - k.unc*10)); }
@@ -577,6 +590,7 @@ function vConsigli(){
   <div class="card">
     <h2>Chi prendere all'asta — il verdetto del motore</h2>
     <p class="sub">Classifica calcolata su: fantamedia 2025-26 reale, minuti giocati, rigori, squadra e allenatore 2026-27, età, infortuni, titolarità attesa e situazioni di mercato. Dati aggiornati al <b>${DATA_DATE}</b>. Clicca un nome per aprire la scheda nel Listone.</p>
+    <p class="sub" style="margin-top:-6px">Regolamento di <b>${esc(currentLeague().name)}</b>: <span class="kchip ${ruleMod()==="no"?"":"good"}">${RULE_LABEL[ruleMod()]}</span> — i consigli si adattano. Cambialo in <b>Strategia</b>.</p>
     <div class="toolbar">
       <button class="fchip ${ui.consRole===""?"on":""}" data-crole="">Tutti</button>
       ${ROLES.map(r=>`<button class="fchip ${ui.consRole===r?"on":""}" data-crole="${r}">${ROLE_NAMES[r]}</button>`).join("")}
@@ -724,6 +738,21 @@ function vStrategia(){
       <label>Crediti totali <input type="number" id="setBudget" min="50" value="${s.budget}" style="width:90px"></label>
       ${ROLES.map(r=>`<label>${r} <input type="number" min="0" max="15" data-slot="${r}" value="${s.slots[r]}" style="width:58px"></label>`).join("")}
     </div>
+    <div class="toolbar">
+      <label>Modificatore difesa
+        <select id="ruleMod" style="min-width:230px">
+          <option value="no" ${ruleMod()==="no"?"selected":""}>Assente — conta solo il bonus</option>
+          <option value="dif4" ${ruleMod()==="dif4"?"selected":""}>Sui 4 difensori (portiere escluso)</option>
+          <option value="reparto" ${ruleMod()==="reparto"?"selected":""}>Difensori + portiere</option>
+        </select>
+      </label>
+    </div>
+    <p class="help">${ruleMod()==="no"
+      ? "Senza modificatore i punti li fanno bonus e assist: il motore <b>alza centrocampo e attacco</b> e tiene bassi portiere e difesa (ti basta che giochino)."
+      : ruleMod()==="dif4"
+      ? "Con il modificatore sui 4 difensori il motore <b>valorizza i difensori titolari e regolari</b> (media voto alta), non solo quelli da bonus."
+      : "Con il modificatore su difensori + portiere il motore <b>valorizza anche un ottimo portiere</b> e i difensori da media voto alta."}
+      ${ruleMod()!=="no"?` <button class="btn sm" data-preset="modificatore">Applica ripartizione difesa</button>`:""}</p>
   </div>
   <div class="card">
     <h2>Ripartizione del budget</h2>
@@ -1018,6 +1047,7 @@ function vGuida(){
 <li><b>Squadra e allenatore 2026-27</b>: giocare nell'Inter di Chivu o nella Roma offensiva di Gasperini vale bonus; una neopromossa toglie.</li>
 <li><b>Rigori</b>: il rigorista designato vale +, il secondo tiratore un po' meno.</li>
 <li><b>Età, infortuni, titolarità</b> e <b>situazioni di mercato</b> (es. Leao in uscita, Vlahovic svincolato) che congelano il giudizio.</li>
+<li><b>Regolamento della tua lega</b> (impostalo in Strategia): col <b>modificatore difesa</b> il motore alza il valore di difensori regolari e — se conta il portiere — dei buoni portieri; senza modificatore li abbassa e spinge su centrocampo e attacco. Ogni lega ha il suo regolamento, quindi gli stessi giocatori possono avere consigli diversi nelle tue due leghe.</li>
 </ul>
 <p>Le categorie: <b>Da prendere</b> (top affidabili), <b>Obiettivo</b> (ottimo rapporto resa/prezzo), <b>Scommessa</b> (upside alto, rischio alto), <b>Usato sicuro</b> (rendimento noto, niente sorprese), <b>Da monitorare</b> (talento vero ma situazione aperta: ricontrolla le notizie prima dell'asta), <b>Da evitare</b> (costa più di quel che rende).</p>
 <p>Il tuo <b>voto personale</b> nel Listone sovrascrive il motore nella formazione: tu conosci la tua lega meglio di qualsiasi algoritmo.</p>`],
@@ -1084,9 +1114,10 @@ document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle");
   if(!t) return;
   if(t.id==="newLeagueBtn" || t.id==="addLeague2"){
-    const name = prompt("Nome della nuova lega:", "Lega "+(store.order.length+1));
-    if(name!==null){ createLeague(name); ui.tab="strategia"; toast("Lega creata"); render(); }
-    return;
+    createLeague("");                       // nome di default "Lega N", si rinomina nel campo qui sotto
+    ui.tab="strategia"; render();
+    const nf = $("#leagueName"); if(nf){ nf.focus(); nf.select(); }
+    toast("Lega creata — scrivi qui il nome"); return;
   }
   if(t.id==="delLeague"){
     if(store.order.length<=1){ toast("Deve restare almeno una lega"); return; }
@@ -1209,6 +1240,7 @@ document.addEventListener("change", e=>{
   if(el.dataset.slot){ state.settings.slots[el.dataset.slot]=Math.max(0,Math.min(15,+el.value||0)); save(); render(); return; }
   if(el.dataset.split){ state.settings.split[el.dataset.split]=Math.max(0,Math.min(100,+el.value||0)); save(); render(); return; }
   if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
+  if(el.id==="ruleMod"){ state.settings.rules=state.settings.rules||{}; state.settings.rules.modDef=el.value; save(); toast("Regolamento aggiornato: consigli ricalcolati"); render(); return; }
   if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
   if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
   if(el.id==="impCsv"){
