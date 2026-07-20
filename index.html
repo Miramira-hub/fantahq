@@ -1233,6 +1233,38 @@ function vAsta(){
   </div>`;
 }
 
+/* ================= forza squadre: stelle 1-5 per reparto ================= */
+function deptStars(players){
+  const pick=(role,n)=>players.filter(p=>p.role===role).map(p=>({p,e:advice(kbFor(p)).exp})).filter(x=>x.e!=null).sort((a,b)=>b.e-a.e).slice(0,n);
+  const avgDelta=arr=>arr.length?arr.reduce((s,x)=>s+(x.e-ROLE_MEAN[x.p.role]),0)/arr.length:null;
+  const star=d=> d==null?0 : d>=0.75?5 : d>=0.38?4 : d>=0.02?3 : d>=-0.35?2 : 1;
+  const dif=avgDelta([...pick("P",1),...pick("D",3)]);
+  const cen=avgDelta(pick("C",4));
+  const att=avgDelta(pick("A",3));
+  return { dif:star(dif), cen:star(cen), att:star(att) };
+}
+const starStr=n=> n ? `<span style="color:var(--gold);letter-spacing:1px">${"★".repeat(n)}<span style="color:var(--border)">${"☆".repeat(5-n)}</span></span>` : '<span class="team">—</span>';
+function teamStrengthHtml(){
+  const teams=[{name:myTeamName(), players:mine(), me:true}]
+    .concat(state.managers.map(m=>({name:m.name, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})));
+  const withPlayers=teams.filter(t=>t.players.length);
+  if(withPlayers.length<=1 && !mine().length) return "";
+  const rows=withPlayers.map(t=>{
+    const s=deptStars(t.players);
+    return `<tr>
+      <td>${t.me?'<b>'+esc(t.name)+'</b> <span class="badge mine">TU</span>':esc(t.name)}</td>
+      <td>${starStr(s.dif)}</td><td>${starStr(s.cen)}</td><td>${starStr(s.att)}</td>
+      <td class="r num">${t.players.length}</td></tr>`;
+  }).join("");
+  return `<div class="card">
+    <h2>Forza delle squadre — ⭐ per reparto</h2>
+    <p class="sub">Valutazione 1-5 stelle sui titolari di ogni reparto (Difesa include il portiere). Dopo aver importato le rose di tutti, vedi dove ogni avversario è forte o scoperto — utile per gli scambi.</p>
+    <div class="twrap"><table>
+      <thead><tr><th>Squadra</th><th>Difesa</th><th>Centrocampo</th><th>Attacco</th><th class="r">Giocatori</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
 /* ================= tab: ROSA ================= */
 function roseImportHtml(){
   const claim = state.managers.length ? `
@@ -1267,15 +1299,17 @@ function vRosa(){
     const list = my.filter(p=>p.role===r).sort((a,b)=>b.paid-a.paid);
     if(!list.length) return "";
     const rows = list.map(p=>{
-      const a = advice(kbFor(p));
+      const k = kbFor(p), a = advice(k);
       return `<tr>
-      <td>${roleChip(p.role)}</td><td class="pname" data-open2="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span></td>
+      <td>${roleChip(p.role)}</td><td class="pname" data-open2="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span>${p.note?' 📝':""}</td>
       <td>${advBadge(a)}</td><td class="r num">${fmt1(a.exp)}</td>
+      <td class="r num">${k?fmt1(k.fm)+(k.est?"~":""):"—"}</td>
+      <td class="r num">${k&&k.r!=="P"?`${k.gol}+${k.ass}`:"—"}</td>
       <td class="r num">${p.qta}</td><td class="r num" style="color:var(--gold);font-weight:700">${p.paid}</td>
       <td><button class="btn sm warn" data-release="${p.id}">Svincola</button></td></tr>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} · ${list.length}/${s.slots[r]}</h3>
       <div class="twrap"><table>
-      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
+      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">FM 25-26</th><th class="r">G+A</th><th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }).join("");
   const expSum = my.reduce((t,p)=>{const a=advice(kbFor(p)); return t+(a.exp||6);},0);
@@ -1287,6 +1321,7 @@ function vRosa(){
     <div class="kpi"><div class="l">Obiettivi presi</div><div class="v">${my.filter(p=>p.target).length}</div><div class="s">dei tuoi ★</div></div>
   </div>
   <div class="card"><h2>Spesa per reparto</h2><p class="sub">Barra rossa = reparto oltre il piano del tab Strategia.</p>${bars}</div>
+  ${teamStrengthHtml()}
   <div class="card"><h2>Rosa completa</h2>${sections}</div>
   <div class="card">
     <h2>Esporta le rose per la lega (CSV)</h2>
