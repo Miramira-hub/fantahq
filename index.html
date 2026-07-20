@@ -152,6 +152,37 @@
   .kpi.danger .v{color:var(--danger)}
   .slot{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-weight:700}
 
+  /* allerte reparti */
+  .alert{display:flex;gap:10px;align-items:center;border-radius:9px;padding:8px 12px;margin:6px 0;border:1px solid var(--border);background:var(--surface)}
+  .alert.warn{border-color:var(--warn);background:var(--gold-bg)}
+  .alert.crit{border-color:var(--danger);background:var(--danger-bg)}
+  .alert .txt{flex:1;min-width:0;font-size:13.5px}
+  .alert .txt b{font-weight:800}
+  .alert .pick{font-weight:700}
+
+  /* movimenti (log asta) */
+  .mov{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid var(--border);font-size:13.5px}
+  .mov:last-child{border-bottom:none}
+  .mov .who2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mov .pr{font-family:var(--mono);font-weight:700}
+  .mov .tagmine{color:var(--accent);font-weight:800}
+  .mov .taggone{color:var(--muted)}
+  .mov button{border:none;background:none;color:var(--danger);font-weight:800;font-size:15px;cursor:pointer;padding:2px 6px}
+
+  /* modalità asta rapida */
+  .fastwrap{max-width:560px;margin:0 auto}
+  .fastcard{background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+  .fastcard .who{font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .fastcard .meta{color:var(--muted);font-size:14px;margin:2px 0 10px}
+  .bigrow{display:flex;gap:8px;align-items:stretch;margin-top:10px;flex-wrap:wrap}
+  .bigbtn{flex:1;min-width:120px;font-size:18px;font-weight:800;padding:16px 10px;border-radius:12px;border:2px solid var(--border);background:var(--surface)}
+  .bigbtn.mine{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .bigbtn.gone{border-color:var(--gold);color:var(--gold)}
+  .stepper{display:flex;align-items:center;gap:0;border:2px solid var(--accent);border-radius:12px;overflow:hidden}
+  .stepper button{width:52px;font-size:26px;font-weight:800;background:var(--surface2);border:none;color:var(--ink)}
+  .stepper input{width:90px;text-align:center;font-size:26px;font-weight:800;border:none;border-radius:0;font-family:var(--mono)}
+  .switchbar{display:flex;justify-content:flex-end;margin-bottom:10px}
+
   /* card consigli */
   .pcard{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:10px 12px;margin-bottom:8px}
   .pcard .mid{flex:1;min-width:0}
@@ -266,23 +297,63 @@ function kbFor(p){
 }
 
 function mkPlayer(id,name,team,role,qta,fvm,kbi){
-  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), rating:0, target:false, maxBid:0, status:"free", paid:0 };
+  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null };
 }
 function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
   return { official:false, nextId:players.length+1,
-    settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"} },
-    players, teamsDiff:{}, avail:{}, lineup:{ module:"3-4-3" } };
+    settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"}, nTeams:8 },
+    players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" } };
 }
 function normState(st){                 // ripara uno state caricato da vecchi salvataggi
   st = st || freshState();
   st.settings = st.settings || freshState().settings;
   st.settings.rules = st.settings.rules || {modDef:"no"};
+  st.settings.nTeams = st.settings.nTeams || 8;
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
+  st.managers = Array.isArray(st.managers) ? st.managers : [];
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
+  st.players.forEach(p=>{ if(p.owner===undefined) p.owner=null; });
   st.nextId = st.nextId || (Math.max(0,...st.players.map(p=>p.id||0))+1);
   return st;
+}
+/* rivali (avversari): id + nome. Il numero di squadre totali sta in settings.nTeams. */
+function ensureManagers(){
+  const want = Math.max(0, (state.settings.nTeams||8) - 1);
+  const m = state.managers;
+  while(m.length < want) m.push({ id:"m"+(m.length+1)+"_"+Math.random().toString(36).slice(2,6), name:"Rivale "+(m.length+1) });
+  if(m.length > want) state.managers = m.slice(0, want);
+}
+function managerName(id){ if(!id) return "altri"; const m=state.managers.find(x=>x.id===id); return m?m.name:"altri"; }
+function rivalStats(){
+  ensureManagers();
+  const tot = ROLES.reduce((s,r)=>s+state.settings.slots[r],0);
+  return state.managers.map(m=>{
+    const owned = state.players.filter(p=>p.status==="gone" && p.owner===m.id);
+    const spent = owned.reduce((s,p)=>s+(p.paid||0),0);
+    const byRole = ROLES.reduce((o,r)=>{ o[r]=owned.filter(p=>p.role===r).length; return o; }, {});
+    const slotsUsed = owned.length;
+    const left = state.settings.budget - spent;
+    const slotsFree = tot - slotsUsed;
+    return { m, spent, left, byRole, slotsUsed, maxBid: Math.max(0, left - Math.max(0, slotsFree-1)) };
+  });
+}
+/* sorveglianza reparti: dove la mia asta è in sofferenza + il miglior colpo libero */
+function roleWatch(){
+  return ROLES.map(r=>{
+    const need = Math.max(0, slotsLeft(r));
+    const free = state.players.filter(p=>p.role===r && p.status==="free");
+    const ranked = free.map(p=>({p,a:advice(kbFor(p))})).sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
+    const topLeft = ranked.filter(x=>x.a.tier==="must"||x.a.tier==="target").length;
+    const best = ranked[0]||null;
+    let level = "ok";
+    if(need>0){
+      if(topLeft===0) level = "crit";
+      else if(topLeft <= need) level = "warn";
+    }
+    return { r, need, topLeft, best, level };
+  });
 }
 /* Come il regolamento della lega sposta il valore dei reparti:
    no      = niente modificatore difesa -> conta solo bonus: portiere/difesa pesano meno, spingi C/A
@@ -508,14 +579,16 @@ function importListone(text){
 }
 
 /* ================= sincronizzazione dispositivi ================= */
-const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup,
-  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid]) });
+const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0,
+  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0]) });
 function decState(o){
   const st = freshState();
   st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
+  st.managers = Array.isArray(o.m)?o.m:[]; st.seq = o.q||0;
   st.players = (o.p||[]).map((a,i)=>{
     const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
     p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
+    p.owner=a[10]||null; p.seq=a[11]||0;
     return p;
   });
   st.nextId = st.players.length+1;
@@ -780,6 +853,69 @@ function vStrategia(){
 }
 
 /* ================= tab: ASTA ================= */
+function ownerSelect(id){
+  ensureManagers();
+  return `<select id="${id}"><option value="">Altri (generico)</option>${state.managers.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("")}</select>`;
+}
+function alertsHtml(){
+  const w = roleWatch().filter(x=>x.level!=="ok");
+  if(!w.length) return "";
+  const order = {crit:0, warn:1};
+  w.sort((a,b)=>order[a.level]-order[b.level]);
+  return w.map(x=>{
+    const b = x.best;
+    const msg = x.level==="crit"
+      ? `<b>${ROLE_NAMES[x.r]}: nessun top rimasto</b> e ti mancano ${x.need} slot. Non aspettare oltre.`
+      : `<b>${ROLE_NAMES[x.r]} in sofferenza</b>: restano solo ${x.topLeft} giocatori di valore per ${x.need} slot. Muoviti a breve.`;
+    return `<div class="alert ${x.level}">
+      ${roleChip(x.r)}
+      <div class="txt">${msg}${b?` Miglior colpo libero: <span class="pick">${esc(b.p.name)}</span> (FM att. ${fmt1(b.a.exp)}).`:""}</div>
+      ${b?`<button class="btn sm pri" data-sel="${b.p.id}">Porta all'asta</button>`:""}
+    </div>`;
+  }).join("");
+}
+function movimentiHtml(limit){
+  const taken = state.players.filter(p=>p.status==="mine"||p.status==="gone")
+    .sort((a,b)=>(b.seq||0)-(a.seq||0)).slice(0, limit||14);
+  if(!taken.length) return `<div class="empty">Ancora nessun acquisto registrato.</div>`;
+  return taken.map(p=>`<div class="mov">
+    ${roleChip(p.role)}
+    <span class="who2"><b>${esc(p.name)}</b> ${p.status==="mine"?'<span class="tagmine">→ TU</span>':`<span class="taggone">→ ${esc(managerName(p.owner))}</span>`}</span>
+    <span class="pr">${p.paid||0}</span>
+    <button data-freemov="${p.id}" title="Annulla questo acquisto">✕</button>
+  </div>`).join("");
+}
+function rivalsHtml(){
+  const rs = rivalStats();
+  if(!rs.length) return "";
+  const rows = rs.map(({m,left,spent,byRole,maxBid})=>`<tr>
+    <td><input type="text" data-mgr="${m.id}" value="${esc(m.name)}" style="width:110px;padding:3px 6px"></td>
+    <td class="r num" style="color:var(--gold);font-weight:700">${left}</td>
+    <td class="r num">${spent}</td>
+    <td class="r num">${maxBid}</td>
+    <td class="num" style="font-size:12px">${ROLES.map(r=>`${r}${byRole[r]}`).join(" ")}</td>
+  </tr>`).join("");
+  return `<div class="twrap"><table>
+    <thead><tr><th>Rivale</th><th class="r">Residui</th><th class="r">Spesi</th><th class="r">Max</th><th>Presi</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    <p class="help" style="margin:8px 0 0">Assegna ogni giocatore "preso da altri" al rivale giusto: così vedi quanti crediti gli restano e capisci quando i tuoi obiettivi arriveranno a sconto.</p>`;
+}
+function buybarHtml(sel){
+  if(!sel) return "";
+  const k = kbFor(sel), a = advice(k);
+  return `<div class="buybar">
+    ${roleChip(sel.role)} <span class="who">${esc(sel.name)}</span> <span class="team">${esc(sel.team)}</span>
+    ${advBadge(a)}
+    <span class="num">FM att. <b>${fmt1(a.exp)}</b> · quota ${sel.qta}${sel.maxBid?` · tuo tetto <b style="color:var(--gold)">${sel.maxBid}</b>`:""} · sugg. <b>${suggPrice(sel)}</b></span>
+    <input type="number" id="buyPrice" min="1" value="${suggPrice(sel)}" style="width:80px">
+    <button class="btn pri" id="buyMine">Mio</button>
+    ${ownerSelect("buyOwner")}
+    <button class="btn" id="buyGone">Preso</button>
+    <button class="btn sm" id="buyCancel">✕</button>
+    <span class="hint">${k&&k.note?esc(k.note)+" · ":""}Max offerta possibile per te ora: <b class="num">${maxBid()}</b>.</span>
+  </div>`;
+}
+
 function vAsta(){
   const infl = inflation();
   const sel = ui.astaSel ? byId(ui.astaSel) : null;
@@ -787,25 +923,69 @@ function vAsta(){
   const q = ui.astaSearch.trim().toLowerCase();
   let list = state.players.filter(p=>p.status==="free" && (!q || (p.name+" "+p.team).toLowerCase().includes(q)));
   list.sort((a,b)=>b.qta-a.qta);
-  const shortlist = list.slice(0,30);
+
+  const kpis = `<div class="kpis">
+    <div class="kpi gold"><div class="l">Crediti residui</div><div class="v">${fmt(budgetLeft())}</div><div class="s">su ${state.settings.budget}</div></div>
+    <div class="kpi"><div class="l">Max offerta</div><div class="v">${fmt(maxBid())}</div><div class="s">slot liberi: ${totSlotsLeft()}</div></div>
+    <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">prezzi pagati vs quota</div></div>
+    <div class="kpi"><div class="l">Rosa</div><div class="v">${mine().length}/${ROLES.reduce((s,r)=>s+state.settings.slots[r],0)}</div><div class="s">${ROLES.map(r=>`${r}:${state.settings.slots[r]-slotsLeft(r)}/${state.settings.slots[r]}`).join(" ")}</div></div>
+  </div>`;
+  const switchbar = `<div class="switchbar"><button class="btn ${ui.fast?"pri":""}" id="fastToggle">${ui.fast?"↩ Modalità completa":"📱 Modalità asta rapida"}</button></div>`;
+  const alerts = alertsHtml();
+
+  /* ---- MODALITÀ RAPIDA (telefono) ---- */
+  if(ui.fast){
+    const shortlist = list.slice(0,12);
+    let fastSel = "";
+    if(sel){
+      const k = kbFor(sel), a = advice(k);
+      fastSel = `<div class="fastcard">
+        <div><span class="who">${esc(sel.name)}</span></div>
+        <div class="meta">${roleChip(sel.role)} ${esc(sel.team)} · ${advBadge(a)} · FM att. <b>${fmt1(a.exp)}</b> · quota ${sel.qta} · sugg. <b>${suggPrice(sel)}</b>${sel.maxBid?` · tuo tetto <b style="color:var(--gold)">${sel.maxBid}</b>`:""}</div>
+        <div class="bigrow">
+          <div class="stepper"><button data-step="-1" aria-label="meno">−</button><input type="number" id="buyPrice" min="1" value="${suggPrice(sel)}"><button data-step="1" aria-label="più">+</button></div>
+          <button class="bigbtn mine" id="buyMine">MIO</button>
+        </div>
+        <div class="bigrow">
+          ${ownerSelect("buyOwner")}
+          <button class="bigbtn gone" id="buyGone">L'HA PRESO UN ALTRO</button>
+        </div>
+        <div class="bigrow"><button class="btn" id="buyCancel" style="flex:1">Annulla selezione</button></div>
+        <p class="hint" style="margin:8px 0 0">Max offerta possibile per te ora: <b class="num">${maxBid()}</b></p>
+      </div>`;
+    }
+    const cards = shortlist.map(p=>{
+      const a = advice(kbFor(p));
+      return `<div class="pcard" data-sel="${p.id}" style="cursor:pointer">
+        ${roleChip(p.role)}
+        <div class="mid"><span class="nm">${esc(p.name)}</span> <span class="tm">${esc(p.team)}</span>
+          <div class="chipset" style="margin-top:2px">${advBadge(a)} ${p.target?'<span class="kchip hot">★ obiettivo</span>':""}</div></div>
+        <div class="fm"><div class="big">${suggPrice(p)}</div><div class="sm">sugg.</div></div>
+      </div>`;
+    }).join("");
+    return `<div class="fastwrap">
+      ${switchbar}
+      ${kpis}
+      ${alerts?`<div class="card" style="padding:10px 12px">${alerts}</div>`:""}
+      ${fastSel}
+      <div class="card">
+        <h2>Chiama un giocatore</h2>
+        <input type="search" id="astaQ" placeholder="Cerca il nome…" value="${esc(ui.astaSearch)}" style="width:100%;font-size:16px;padding:10px">
+        <div style="margin-top:10px">${cards || '<div class="empty">Nessun giocatore libero.</div>'}</div>
+      </div>
+      <div class="card">
+        <h2>Ultimi acquisti</h2>
+        ${movimentiHtml(8)}
+      </div>
+    </div>`;
+  }
+
+  /* ---- MODALITÀ COMPLETA ---- */
   const targetsLeft = ROLES.map(r=>{
     const n = state.players.filter(p=>p.role===r&&p.status==="free"&&p.target).length;
     return `<span class="slot">${roleChip(r)} ${n}★</span>`;
   }).join(" ");
-  let buybar = "";
-  if(sel){
-    const k = kbFor(sel), a = advice(k);
-    buybar = `<div class="buybar">
-      ${roleChip(sel.role)} <span class="who">${esc(sel.name)}</span> <span class="team">${esc(sel.team)}</span>
-      ${advBadge(a)}
-      <span class="num">FM att. <b>${fmt1(a.exp)}</b> · quota ${sel.qta}${sel.maxBid?` · tuo tetto <b style="color:var(--gold)">${sel.maxBid}</b>`:""} · sugg. <b>${suggPrice(sel)}</b></span>
-      <input type="number" id="buyPrice" min="1" max="${maxBid()}" placeholder="prezzo" style="width:86px">
-      <button class="btn pri" id="buyMine">Mio</button>
-      <button class="btn" id="buyGone">Preso da altri</button>
-      <button class="btn sm" id="buyCancel">✕</button>
-      <span class="hint">${k&&k.note?esc(k.note)+" · ":""}Max offerta possibile per te ora: <b class="num">${maxBid()}</b>.</span>
-    </div>`;
-  }
+  const shortlist = list.slice(0,30);
   const rows = shortlist.map(p=>{
     const a = advice(kbFor(p));
     return `<tr>
@@ -820,16 +1000,13 @@ function vAsta(){
     <td><button class="btn sm pri" data-sel="${p.id}">All'asta</button></td>
   </tr>`;}).join("");
   return `
-  <div class="kpis">
-    <div class="kpi gold"><div class="l">Crediti residui</div><div class="v">${fmt(budgetLeft())}</div><div class="s">su ${state.settings.budget}</div></div>
-    <div class="kpi"><div class="l">Max offerta</div><div class="v">${fmt(maxBid())}</div><div class="s">slot liberi: ${totSlotsLeft()}</div></div>
-    <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">prezzi pagati vs quota</div></div>
-    <div class="kpi"><div class="l">Rosa</div><div class="v">${mine().length}/${ROLES.reduce((s,r)=>s+state.settings.slots[r],0)}</div><div class="s">${ROLES.map(r=>`${r}:${state.settings.slots[r]-slotsLeft(r)}/${state.settings.slots[r]}`).join(" ")}</div></div>
-  </div>
-  ${buybar}
+  ${switchbar}
+  ${kpis}
+  ${alerts?`<div class="card" style="border-color:var(--warn)"><h2>Situazione reparti — dove muoverti ora</h2>${alerts}</div>`:""}
+  ${buybarHtml(sel)}
   <div class="card">
     <h2>Banco d'asta</h2>
-    <p class="sub">Quando chiamano un giocatore, cercalo e premi <b>All'asta</b>: vedi subito verdetto del motore, FM attesa e prezzo suggerito corretto per l'inflazione reale${infl>1.15?" — <b>asta calda, tieni i nervi saldi</b>":""}.</p>
+    <p class="sub">Quando chiamano un giocatore, cercalo e premi <b>All'asta</b>: scegli <b>Mio</b> (col prezzo pagato) o assegnalo al rivale che l'ha vinto. Il prezzo suggerito è già corretto per l'inflazione reale${infl>1.15?" — <b>asta calda, tieni i nervi saldi</b>":""}.</p>
     <div class="toolbar">
       <input type="search" id="astaQ" placeholder="Cerca il giocatore chiamato…" value="${esc(ui.astaSearch)}">
       ${undoStack.length?`<button class="btn" id="undo">↶ Annulla ultima (${esc(undoStack[undoStack.length-1].name)})</button>`:""}
@@ -840,6 +1017,18 @@ function vAsta(){
       <tbody>${rows || `<tr><td colspan="9"><div class="empty">Nessun giocatore libero con questo filtro.</div></td></tr>`}</tbody>
     </table></div>
     ${list.length>30?`<p class="help" style="margin:8px 0 0">Primi 30 per quota — usa la ricerca per gli altri ${list.length-30}.</p>`:""}
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h2>Movimenti — annulla un acquisto</h2>
+      <p class="sub">Ogni riga è un giocatore preso (da te o dai rivali). La ✕ lo rimette all'asta e ripristina i crediti.</p>
+      ${movimentiHtml(14)}
+    </div>
+    <div class="card">
+      <h2>Crediti dei rivali</h2>
+      <div class="toolbar"><label>Squadre nella lega (te compreso) <input type="number" id="setTeams" min="2" max="20" value="${state.settings.nTeams}" style="width:64px"></label></div>
+      ${rivalsHtml()}
+    </div>
   </div>`;
 }
 
@@ -1072,6 +1261,10 @@ function vGuida(){
 <li>Occhio all'effetto <b>"ultimo della fascia"</b>: meglio il penultimo top a prezzo giusto che l'ultimo a prezzo folle.</li>
 <li>Se l'<b>inflazione</b> (tab Asta) supera 1.15×, i prezzi caleranno a metà asta: tieni crediti per quella finestra.</li>
 <li>Gli slot da 1 credito sceglili dal gruppo <b>Scommesse</b>: giovani con spazio e rigoristi di provinciali.</li>
+<li><b>Registra chi prende chi</b>: quando un rivale vince un giocatore, assegnaglielo con <b>Preso</b>. La tabella "Crediti dei rivali" ti dice quanti crediti restano a ciascuno: quando sono corti, i tuoi obiettivi arrivano a sconto.</li>
+<li>Tieni d'occhio le <b>allerte reparti</b> in cima al tab Asta: se la difesa (o un altro reparto) si sta svuotando di giocatori di valore mentre hai ancora slot da riempire, il motore te lo dice e ti propone il miglior colpo ancora libero — un errore da correggere subito.</li>
+<li>Dal telefono usa la <b>Modalità asta rapida</b>: bottoni grandi MIO / preso e prezzo con +/−, per registrare al volo mentre l'asta corre.</li>
+<li>Hai sbagliato a segnare un acquisto? Nel riquadro <b>Movimenti</b> la ✕ annulla qualsiasi assegnazione e ripristina i crediti.</li>
 </ul>`],
 ["Scambi e mercato di riparazione", `
 <ul>
@@ -1111,8 +1304,17 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step]");
   if(!t) return;
+  if(t.id==="fastToggle"){ ui.fast=!ui.fast; ui.astaSel=null; render(); return; }
+  if(t.dataset.step){
+    const inp=$("#buyPrice"); if(inp){ inp.value=Math.max(1,(+inp.value||0)+ +t.dataset.step); inp.focus(); }
+    return;
+  }
+  if(t.dataset.freemov){
+    const p=byId(+t.dataset.freemov); if(p){ p.status="free"; p.paid=0; p.owner=null; undoStack=undoStack.filter(u=>u.id!==p.id); save(); toast(`${p.name} rimesso all'asta`); render(); }
+    return;
+  }
   if(t.id==="newLeagueBtn" || t.id==="addLeague2"){
     createLeague("");                       // nome di default "Lega N", si rinomina nel campo qui sotto
     ui.tab="strategia"; render();
@@ -1185,17 +1387,19 @@ document.addEventListener("click", e=>{
       if(slotsLeft(p.role)<=0){ toast(`Slot ${p.role} già pieni`); return; }
       if(!price){ toast("Inserisci il prezzo pagato"); return; }
       if(price>maxBid()){ toast(`Oltre il tuo massimo (${maxBid()})`); return; }
-      p.status="mine"; p.paid=price; toast(`${p.name} è tuo per ${price} crediti`);
+      p.status="mine"; p.paid=price; p.owner=null; toast(`${p.name} è tuo per ${price} crediti`);
     }else{
-      p.status="gone"; p.paid=price; toast(`${p.name} segnato come preso${price?` (${price} cr)`:""}`);
+      const own = $("#buyOwner"); p.owner = own ? (own.value||null) : null;
+      p.status="gone"; p.paid=price; toast(`${p.name} → ${managerName(p.owner)}${price?` (${price} cr)`:""}`);
     }
+    p.seq = (state.seq=(state.seq||0)+1);
     undoStack.push({id:p.id, name:p.name});
     if(undoStack.length>30) undoStack.shift();
     ui.astaSel=null; save(); render(); return;
   }
   if(t.id==="undo"){
     const u = undoStack.pop(); const p = u&&byId(u.id);
-    if(p){ p.status="free"; p.paid=0; save(); toast(`${p.name} riportato all'asta`); }
+    if(p){ p.status="free"; p.paid=0; p.owner=null; save(); toast(`${p.name} riportato all'asta`); }
     render(); return;
   }
   if(t.dataset.release){ const p=byId(+t.dataset.release); p.status="free"; p.paid=0; save(); toast(`${p.name} svincolato`); render(); return; }
@@ -1229,6 +1433,7 @@ document.addEventListener("input", e=>{
   if(el.dataset.rate){ byId(+el.dataset.rate).rating=Math.min(10,Math.max(0,+el.value||0)); save(); renderHeader(); return; }
   if(el.dataset.maxbid){ byId(+el.dataset.maxbid).maxBid=Math.max(0,+el.value||0); save(); return; }
   if(el.id==="leagueName"){ renameLeague(store.current, el.value); const s=$("#leagueSel"); if(s){ const o=[...s.options].find(o=>o.value===store.current); if(o) o.textContent=el.value||currentLeague().name; } return; }
+  if(el.dataset.mgr){ const m=state.managers.find(x=>x.id===el.dataset.mgr); if(m){ m.name=el.value||m.name; save(); } return; }
 });
 
 document.addEventListener("change", e=>{
@@ -1241,6 +1446,7 @@ document.addEventListener("change", e=>{
   if(el.dataset.split){ state.settings.split[el.dataset.split]=Math.max(0,Math.min(100,+el.value||0)); save(); render(); return; }
   if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
   if(el.id==="ruleMod"){ state.settings.rules=state.settings.rules||{}; state.settings.rules.modDef=el.value; save(); toast("Regolamento aggiornato: consigli ricalcolati"); render(); return; }
+  if(el.id==="setTeams"){ state.settings.nTeams=Math.max(2,Math.min(20,+el.value||8)); ensureManagers(); save(); render(); return; }
   if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
   if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
   if(el.id==="impCsv"){
