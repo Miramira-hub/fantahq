@@ -54,6 +54,8 @@
   .brand{display:flex;align-items:baseline;gap:8px}
   .brand b{font-size:19px;font-weight:800;letter-spacing:-.02em}
   .brand span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  .league{display:flex;align-items:center;gap:4px}
+  .league select{max-width:170px;font-weight:700;padding:5px 8px}
   .hstats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
   .hstat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;text-align:right;min-width:86px}
   .hstat .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -197,6 +199,10 @@
 <header class="app">
   <div class="hrow">
     <div class="brand"><b>FantaHQ</b><span>centro decisioni</span></div>
+    <div class="league">
+      <select id="leagueSel" title="Cambia lega"></select>
+      <button id="newLeagueBtn" class="btn sm" title="Aggiungi una lega">＋</button>
+    </div>
     <div class="hstats">
       <div class="hstat"><div class="l">Crediti</div><div class="v gold" id="hBudget">–</div></div>
       <div class="hstat"><div class="l">Slot liberi</div><div class="v" id="hSlots">–</div></div>
@@ -212,8 +218,9 @@
 <script src="data/kb.js"></script>
 <script>
 "use strict";
-const KEY = "fantahq_v2";
-const OLDKEY = "fantahq_v1";
+const KEY = "fantahq_v3";
+const OLD2 = "fantahq_v2";
+const OLD1 = "fantahq_v1";
 const DATA = window.FANTAHQ_DATA || {date:"dati non caricati (manca data/kb.js)", teams:{}, kb:[]};
 const DATA_DATE = DATA.date;
 const ROLES = ["P","D","C","A"];
@@ -225,15 +232,17 @@ const PRESETS = {
   modificatore:{P:7,D:24,C:24,A:45,label:"Modificatore difesa"},
   attacco:{P:6,D:12,C:22,A:60,label:"Attacco pesante"}
 };
-const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["scambi","Scambi"],["guida","Guida"]];
+const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["confronto","Confronto"],["scambi","Scambi"],["guida","Guida"]];
 
 const TEAMS = DATA.teams;
 
 const KB = DATA.kb;
 /* ================= stato ================= */
-let state = null;
+let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
+let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
-           consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false };
+           consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
+           cmp:[], cmpSearch:"", fast:false };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -261,31 +270,80 @@ function mkPlayer(id,name,team,role,qta,fvm,kbi){
 }
 function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
-  return { v:2, official:false, nextId:players.length+1,
+  return { official:false, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52} },
     players, teamsDiff:{}, avail:{}, lineup:{ module:"3-4-3" } };
 }
+function normState(st){                 // ripara uno state caricato da vecchi salvataggi
+  st = st || freshState();
+  st.settings = st.settings || freshState().settings;
+  st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
+  st.lineup = st.lineup || { module:"3-4-3" };
+  if(!Array.isArray(st.players)) st.players = freshState().players;
+  st.nextId = st.nextId || (Math.max(0,...st.players.map(p=>p.id||0))+1);
+  return st;
+}
+const uid = ()=> "l" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36);
+function freshLeague(name){ return { name: name || "Lega 1", state: freshState() }; }
+function newStore(firstLeague){
+  const id = uid();
+  return { v:3, current:id, order:[id], leagues:{ [id]: firstLeague || freshLeague("Lega 1") } };
+}
+function currentLeague(){ return store.leagues[store.current]; }
+
+function stateFromV1(raw){                // migra un vecchio state v1 (dati di esempio esclusi)
+  const st = JSON.parse(raw);
+  if(!st || !Array.isArray(st.players) || st.exampleData || !st.players.length) return null;
+  const ns = freshState();
+  ns.official = true;
+  ns.players = st.players.map(p=>({...mkPlayer(p.id,p.name,p.team,p.role,p.qta,p.fvm),
+    rating:p.rating||0, target:!!p.target, maxBid:p.maxBid||0, status:p.status||"free", paid:p.paid||0}));
+  ns.nextId = Math.max(0,...ns.players.map(p=>p.id))+1;
+  ns.settings = st.settings || ns.settings;
+  return ns;
+}
+
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ state = JSON.parse(raw); state.avail = state.avail||{}; return; }
-    const old = localStorage.getItem(OLDKEY);
-    if(old){
-      const st = JSON.parse(old);
-      if(st && Array.isArray(st.players) && !st.exampleData && st.players.length){
-        state = freshState();
-        state.official = true;
-        state.players = st.players.map(p=>({...mkPlayer(p.id,p.name,p.team,p.role,p.qta,p.fvm),
-          rating:p.rating||0, target:!!p.target, maxBid:p.maxBid||0, status:p.status||"free", paid:p.paid||0}));
-        state.nextId = Math.max(0,...state.players.map(p=>p.id))+1;
-        state.settings = st.settings||state.settings;
-        save(); return;
+    if(raw){
+      store = JSON.parse(raw);
+      if(store && store.leagues && store.current && store.leagues[store.current]){
+        for(const id of store.order) store.leagues[id].state = normState(store.leagues[id].state);
+        state = currentLeague().state; return;
       }
     }
+    const v2 = localStorage.getItem(OLD2);       // migrazione: stato singolo v2 -> lega 1
+    if(v2){ store = newStore(freshLeague("Lega 1")); currentLeague().state = normState(JSON.parse(v2)); state = currentLeague().state; save(); return; }
+    const v1 = stateFromV1(localStorage.getItem(OLD1) || "");
+    if(v1){ store = newStore({name:"Lega 1", state:v1}); state = currentLeague().state; save(); return; }
   }catch(e){}
-  state = freshState(); save();
+  store = newStore(); state = currentLeague().state; save();
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+
+function selectLeague(id){
+  if(!store.leagues[id]) return;
+  store.current = id; state = currentLeague().state;
+  undoStack = [];
+  Object.assign(ui, { astaSel:null, openId:0, tradeGive:[], tradeGet:[], cmp:[], confirmReset:false });
+  save();
+}
+function createLeague(name){
+  const lg = freshLeague((name||"").trim() || ("Lega "+(store.order.length+1)));
+  const id = uid();
+  store.leagues[id] = lg; store.order.push(id);
+  selectLeague(id);
+  return id;
+}
+function renameLeague(id, name){ if(store.leagues[id]){ store.leagues[id].name = name || store.leagues[id].name; save(); } }
+function deleteLeague(id){
+  if(!store.leagues[id] || store.order.length<=1) return false;
+  delete store.leagues[id];
+  store.order = store.order.filter(x=>x!==id);
+  if(store.current===id) selectLeague(store.order[0]); else save();
+  return true;
+}
 
 /* ================= motore consigli ================= */
 const ROLE_MEAN = {P:5.5, D:6.3, C:6.45, A:6.7};
@@ -385,6 +443,10 @@ function suggPrice(p){
   return Math.max(1, Math.round(p.qta * inflation() * bump * (p.target?1.05:1)));
 }
 function renderHeader(){
+  const sel = $("#leagueSel");
+  if(sel){
+    sel.innerHTML = store.order.map(id=>`<option value="${id}" ${id===store.current?"selected":""}>${esc(store.leagues[id].name)}</option>`).join("");
+  }
   $("#hBudget").textContent = fmt(budgetLeft());
   $("#hSlots").textContent = ROLES.map(r=>`${r}${Math.max(0,slotsLeft(r))}`).join(" ");
   $("#hMax").textContent = fmt(maxBid());
@@ -433,32 +495,46 @@ function importListone(text){
 }
 
 /* ================= sincronizzazione dispositivi ================= */
-function syncCode(){
-  const payload = { v:1, official:state.official, settings:state.settings, teamsDiff:state.teamsDiff,
-    avail:state.avail||{}, lineup:state.lineup,
-    players: state.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid]) };
-  return "FHQ1." + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup,
+  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid]) });
+function decState(o){
+  const st = freshState();
+  st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
+  st.players = (o.p||[]).map((a,i)=>{
+    const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
+    p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
+    return p;
+  });
+  st.nextId = st.players.length+1;
+  return normState(st);
+}
+function b64(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function unb64(s){ return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+
+function syncCode(){                       // FHQ2 = tutte le leghe
+  const payload = { current:store.current, order:store.order,
+    leagues: Object.fromEntries(store.order.map(id=>[id, {name:store.leagues[id].name, st:encState(store.leagues[id].state)}])) };
+  return "FHQ2." + b64(payload);
 }
 function loadSyncCode(code){
   code = (code||"").trim();
-  if(!code.startsWith("FHQ1.")) return "Codice non valido: deve iniziare con FHQ1.";
   try{
-    const payload = JSON.parse(decodeURIComponent(escape(atob(code.slice(5)))));
-    if(!Array.isArray(payload.players) || !payload.players.length) throw 0;
-    state = freshState();
-    state.official = !!payload.official;
-    state.settings = payload.settings||state.settings;
-    state.teamsDiff = payload.teamsDiff||{};
-    state.avail = payload.avail||{};
-    state.lineup = payload.lineup||state.lineup;
-    state.players = payload.players.map((a,i)=>{
-      const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
-      p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
-      return p;
-    });
-    state.nextId = state.players.length+1;
-    save();
-    return null;
+    if(code.startsWith("FHQ2.")){
+      const pl = unb64(code.slice(5));
+      if(!pl.order || !pl.order.length) throw 0;
+      store = { v:3, current:pl.current, order:pl.order,
+        leagues: Object.fromEntries(pl.order.map(id=>[id, {name:pl.leagues[id].name, state:decState(pl.leagues[id].st)}])) };
+      if(!store.leagues[store.current]) store.current = store.order[0];
+      state = currentLeague().state; save(); return null;
+    }
+    if(code.startsWith("FHQ1.")){          // vecchio codice a lega singola -> nuova lega
+      const pl = unb64(code.slice(5));
+      if(!Array.isArray(pl.players) || !pl.players.length) throw 0;
+      const st = decState({o:pl.official?1:0, s:pl.settings, d:pl.teamsDiff, a:pl.avail, l:pl.lineup,
+        p:pl.players});
+      store = newStore({name:"Lega importata", state:st}); state = currentLeague().state; save(); return null;
+    }
+    return "Codice non valido: deve iniziare con FHQ2. (o FHQ1.)";
   }catch(e){ return "Codice non leggibile: ricopialo per intero."; }
 }
 
@@ -638,7 +714,12 @@ function vStrategia(){
   return `
   <div class="card">
     <h2>Impostazioni lega</h2>
-    <p class="sub">Adatta budget e slot al regolamento della tua lega (classico: 500 crediti, 3P 8D 8C 6A).</p>
+    <p class="sub">Ogni lega ha rosa, budget, voti e obiettivi separati. Cambia lega dal menù in alto o crea la seconda con ＋. Classico: 500 crediti, 3P 8D 8C 6A.</p>
+    <div class="toolbar">
+      <label>Nome lega <input type="text" id="leagueName" value="${esc(currentLeague().name)}" style="width:170px" maxlength="30"></label>
+      <button class="btn" id="addLeague2">＋ Nuova lega</button>
+      <button class="btn warn" id="delLeague" ${store.order.length<=1?"disabled":""}>${ui.confirmDel?"Confermi? Elimina lega":"Elimina questa lega"}</button>
+    </div>
     <div class="toolbar">
       <label>Crediti totali <input type="number" id="setBudget" min="50" value="${s.budget}" style="width:90px"></label>
       ${ROLES.map(r=>`<label>${r} <input type="number" min="0" max="15" data-slot="${r}" value="${s.slots[r]}" style="width:58px"></label>`).join("")}
@@ -864,6 +945,69 @@ function vScambi(){
   </div>`;
 }
 
+/* ================= tab: CONFRONTO ================= */
+function vConfronto(){
+  const q = ui.cmpSearch.trim().toLowerCase();
+  const picks = ui.cmp.map(byId).filter(Boolean);
+  let results = "";
+  if(q){
+    const found = state.players.filter(p=>(p.name+" "+p.team).toLowerCase().includes(q)).slice(0,8);
+    results = `<div class="xi" style="margin-top:8px">${found.map(p=>{
+      const inList = ui.cmp.includes(p.id);
+      return `<div class="xirow">${roleChip(p.role)}<span class="nm">${esc(p.name)} <span class="team">${esc(p.team)}</span></span>
+        <button class="btn sm ${inList?"":"pri"}" data-cmpadd="${p.id}" ${inList||ui.cmp.length>=4?"disabled":""}>${inList?"già inserito":"＋ confronta"}</button></div>`;
+    }).join("") || '<div class="empty">Nessun giocatore trovato.</div>'}</div>`;
+  }
+
+  let tableHtml = '<div class="empty">Aggiungi almeno 2 giocatori per confrontarli.</div>';
+  if(picks.length>=1){
+    const data = picks.map(p=>{ const k=kbFor(p); return {p, k, a:advice(k)}; });
+    const best = (vals, hiGood=true)=>{
+      const nums = vals.map(v=>v==null?null:+v).filter(v=>v!=null && !isNaN(v));
+      if(!nums.length) return null;
+      return hiGood?Math.max(...nums):Math.min(...nums);
+    };
+    const row = (label, get, hiGood=true, fmtFn=(v=>v))=>{
+      const raw = data.map(get);
+      const b = best(raw, hiGood);
+      const cells = raw.map(v=>{
+        const isBest = b!=null && v!=null && +v===b && picks.length>1;
+        return `<td class="r num" style="${isBest?"font-weight:800;color:var(--accent)":""}">${v==null||v===""?"—":fmtFn(v)}</td>`;
+      }).join("");
+      return `<tr><th style="text-align:left">${label}</th>${cells}</tr>`;
+    };
+    const head = `<tr><th></th>${data.map(({p})=>`<th class="r">${roleChip(p.role)} ${esc(p.name)}<br><span class="team" style="font-weight:400">${esc(p.team)}</span> <button class="star on" data-cmpdel="${p.id}" title="Rimuovi" style="cursor:pointer;font-size:13px">✕</button></th>`).join("")}</tr>`;
+    tableHtml = `<div class="twrap"><table>
+      <thead>${head}</thead>
+      <tbody>
+        <tr><th style="text-align:left">Consiglio</th>${data.map(d=>`<td>${advBadge(d.a)}</td>`).join("")}</tr>
+        ${row("FM attesa 26-27", d=>d.k?+d.a.exp.toFixed(2):null, true, v=>v.toFixed(2))}
+        ${row("FM 2025-26", d=>d.k?d.k.fm:null, true, v=>v.toFixed(2))}
+        ${row("Presenze", d=>d.k?d.k.pres:null)}
+        ${row("Gol", d=>d.k?d.k.gol:null)}
+        ${row("Assist", d=>d.k?d.k.ass:null)}
+        ${row("Affidabilità", d=>d.k?d.a.aff:null, true, v=>v+"/100")}
+        ${row("Titolarità %", d=>d.k?d.k.tit:null)}
+        <tr><th style="text-align:left">Rigorista</th>${data.map(d=>`<td>${d.k&&d.k.rig===2?'<span class="kchip hot">Rigorista</span>':d.k&&d.k.rig===1?'<span class="kchip">n.2</span>':"—"}</td>`).join("")}</tr>
+        ${row("Età", d=>d.k?d.k.age:null, false, v=>v+" anni")}
+        ${row("Quota", d=>d.p.qta, false)}
+        <tr><th style="text-align:left">Squadra</th>${data.map(d=>`<td class="team">${esc(d.p.team)}<br>${esc((TEAMS[d.p.team]||{}).coach||"")}</td>`).join("")}</tr>
+      </tbody></table></div>
+      <p class="help" style="margin-top:8px">In <b style="color:var(--accent)">verde</b> il migliore per riga (dove ha senso: FM, presenze, bonus, affidabilità). Quota ed età: valore più basso evidenziato.</p>`;
+  }
+
+  const chips = picks.length?`<div class="chipset" style="margin:6px 0 4px">${picks.map(p=>`<span class="kchip good">${esc(p.name)} <span data-cmpdel="${p.id}" style="cursor:pointer">✕</span></span>`).join("")} <button class="btn sm" id="cmpClear">Svuota</button></div>`:"";
+
+  return `<div class="card">
+    <h2>Confronto testa a testa</h2>
+    <p class="sub">Il dilemma classico dell'asta — "prendo questo o quello?". Aggiungi fino a 4 giocatori e vedili affiancati su tutti i numeri del motore.</p>
+    <input type="search" id="cmpQ" placeholder="Cerca un giocatore da aggiungere…" value="${esc(ui.cmpSearch)}" style="width:100%">
+    ${results}
+    ${chips}
+    <div style="margin-top:10px">${tableHtml}</div>
+  </div>`;
+}
+
 /* ================= tab: GUIDA ================= */
 function vGuida(){
   const G = [
@@ -931,14 +1075,27 @@ function vGuida(){
 function render(){
   renderHeader();
   $("#tabs").innerHTML = TABS.map(([id,l])=>`<button data-tab="${id}" class="${ui.tab===id?"on":""}">${l}</button>`).join("");
-  const views = {consigli:vConsigli, listone:vListone, strategia:vStrategia, asta:vAsta, rosa:vRosa, formazione:vFormazione, scambi:vScambi, guida:vGuida};
+  const views = {consigli:vConsigli, listone:vListone, strategia:vStrategia, asta:vAsta, rosa:vRosa, formazione:vFormazione, confronto:vConfronto, scambi:vScambi, guida:vGuida};
   $("#view").innerHTML = views[ui.tab]();
   if(ui.tab==="asta" && ui.astaSel){ const el=$("#buyPrice"); if(el) el.focus(); }
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle");
   if(!t) return;
+  if(t.id==="newLeagueBtn" || t.id==="addLeague2"){
+    const name = prompt("Nome della nuova lega:", "Lega "+(store.order.length+1));
+    if(name!==null){ createLeague(name); ui.tab="strategia"; toast("Lega creata"); render(); }
+    return;
+  }
+  if(t.id==="delLeague"){
+    if(store.order.length<=1){ toast("Deve restare almeno una lega"); return; }
+    if(!ui.confirmDel){ ui.confirmDel=true; render(); return; }
+    const nm = currentLeague().name; deleteLeague(store.current); ui.confirmDel=false; toast(`Lega "${nm}" eliminata`); render(); return;
+  }
+  if(t.dataset.cmpadd){ const id=+t.dataset.cmpadd; if(!ui.cmp.includes(id)&&ui.cmp.length<4){ ui.cmp.push(id); ui.cmpSearch=""; render(); } return; }
+  if(t.dataset.cmpdel){ ui.cmp=ui.cmp.filter(x=>x!==+t.dataset.cmpdel); render(); return; }
+  if(t.id==="cmpClear"){ ui.cmp=[]; render(); return; }
   if(t.id==="themeBtn"){
     const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
     const next = cur==="dark"?"light":"dark";
@@ -981,7 +1138,7 @@ document.addEventListener("click", e=>{
     render();
     return;
   }
-  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; render(); return; }
+  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; render(); return; }
   if(t.dataset.crole!==undefined){ ui.consRole=t.dataset.crole; render(); return; }
   if(t.dataset.frole!==undefined){ ui.role = ui.role===t.dataset.frole?"":t.dataset.frole; ui.limit=200; render(); return; }
   if(t.id==="ftarget"){ ui.onlyTarget=!ui.onlyTarget; render(); return; }
@@ -1017,14 +1174,14 @@ document.addEventListener("click", e=>{
     return;
   }
   if(t.id==="expJson"){
-    const blob = new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
+    const blob = new Blob([JSON.stringify(store,null,1)],{type:"application/json"});
     const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="fantahq-backup.json"; a.click();
-    URL.revokeObjectURL(a.href); toast("Backup scaricato"); return;
+    URL.revokeObjectURL(a.href); toast("Backup scaricato (tutte le leghe)"); return;
   }
-  if(t.id==="loadSample"){ state=freshState(); undoStack=[]; save(); toast("Database interno ripristinato"); render(); return; }
+  if(t.id==="loadSample"){ currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; save(); toast("Database interno ripristinato (questa lega)"); render(); return; }
   if(t.id==="resetAll"){
     if(!ui.confirmReset){ ui.confirmReset=true; render(); return; }
-    state=freshState(); undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0}); save(); toast("Dati azzerati"); render(); return;
+    currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[]}); save(); toast("Dati di questa lega azzerati"); render(); return;
   }
 });
 document.addEventListener("click", e=>{
@@ -1037,12 +1194,15 @@ document.addEventListener("input", e=>{
   if(el.id==="q"){ ui.search=el.value; ui.limit=200; redrawKeepFocus(el); return; }
   if(el.id==="astaQ"){ ui.astaSearch=el.value; redrawKeepFocus(el); return; }
   if(el.id==="tradeQ"){ ui.tradeSearch=el.value; redrawKeepFocus(el); return; }
+  if(el.id==="cmpQ"){ ui.cmpSearch=el.value; redrawKeepFocus(el); return; }
   if(el.dataset.rate){ byId(+el.dataset.rate).rating=Math.min(10,Math.max(0,+el.value||0)); save(); renderHeader(); return; }
   if(el.dataset.maxbid){ byId(+el.dataset.maxbid).maxBid=Math.max(0,+el.value||0); save(); return; }
+  if(el.id==="leagueName"){ renameLeague(store.current, el.value); const s=$("#leagueSel"); if(s){ const o=[...s.options].find(o=>o.value===store.current); if(o) o.textContent=el.value||currentLeague().name; } return; }
 });
 
 document.addEventListener("change", e=>{
   const el = e.target;
+  if(el.id==="leagueSel"){ selectLeague(el.value); render(); return; }
   if(el.id==="fteam"){ ui.team=el.value; render(); return; }
   if(el.id==="fsort"){ ui.sort=el.value; render(); return; }
   if(el.id==="setBudget"){ state.settings.budget=Math.max(50,+el.value||500); save(); render(); return; }
@@ -1070,9 +1230,15 @@ document.addEventListener("change", e=>{
     const f = el.files[0]; if(!f) return;
     f.text().then(txt=>{
       try{
-        const st = JSON.parse(txt);
-        if(!st||!Array.isArray(st.players)||!st.settings) throw 0;
-        state = st; undoStack=[]; save(); toast("Backup ripristinato"); render();
+        const obj = JSON.parse(txt);
+        if(obj && obj.leagues && obj.current){                 // backup dell'intero store multi-lega
+          store = obj; for(const id of store.order) store.leagues[id].state = normState(store.leagues[id].state);
+          if(!store.leagues[store.current]) store.current = store.order[0];
+          state = currentLeague().state;
+        } else if(obj && Array.isArray(obj.players) && obj.settings){   // backup di una sola lega -> nella lega corrente
+          currentLeague().state = normState(obj); state = currentLeague().state;
+        } else throw 0;
+        undoStack=[]; Object.assign(ui,{astaSel:null,openId:0,tradeGive:[],tradeGet:[],cmp:[]}); save(); toast("Backup ripristinato"); render();
       }catch(_){ toast("File non valido: serve un backup FantaHQ"); }
     });
   }
