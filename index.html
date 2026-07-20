@@ -273,7 +273,7 @@ let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
-           cmp:[], cmpSearch:"", fast:false };
+           cmp:[], cmpSearch:"", fast:false, astaRole:"" };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -953,7 +953,11 @@ function vAsta(){
   const sel = ui.astaSel ? byId(ui.astaSel) : null;
   const fm = fasciaMap();
   const q = ui.astaSearch.trim().toLowerCase();
-  let list = state.players.filter(p=>p.status==="free" && (!q || (p.name+" "+p.team).toLowerCase().includes(q)));
+  let list = state.players.filter(p=>p.status==="free" && (!ui.astaRole || p.role===ui.astaRole) && (!q || (p.name+" "+p.team).toLowerCase().includes(q)));
+  const roleFilter = `<div class="toolbar" style="gap:6px">
+    <button class="fchip ${ui.astaRole===""?"on":""}" data-arole="">Tutti</button>
+    ${ROLES.map(r=>{ const n=state.players.filter(p=>p.role===r&&p.status==="free").length; return `<button class="fchip ${ui.astaRole===r?"on":""}" data-arole="${r}">${ROLE_NAMES[r]} <span class="num">${n}</span></button>`;}).join("")}
+  </div>`;
   list.sort((a,b)=>b.qta-a.qta);
 
   const kpis = `<div class="kpis">
@@ -1003,7 +1007,8 @@ function vAsta(){
       <div class="card">
         <h2>Chiama un giocatore</h2>
         <input type="search" id="astaQ" placeholder="Cerca il nome…" value="${esc(ui.astaSearch)}" style="width:100%;font-size:16px;padding:10px">
-        <div style="margin-top:10px">${cards || '<div class="empty">Nessun giocatore libero.</div>'}</div>
+        ${roleFilter}
+        <div style="margin-top:10px">${cards || '<div class="empty">Nessun giocatore libero con questo filtro.</div>'}</div>
       </div>
       <div class="card">
         <h2>Ultimi acquisti</h2>
@@ -1043,6 +1048,7 @@ function vAsta(){
       <input type="search" id="astaQ" placeholder="Cerca il giocatore chiamato…" value="${esc(ui.astaSearch)}">
       ${undoStack.length?`<button class="btn" id="undo">↶ Annulla ultima (${esc(undoStack[undoStack.length-1].name)})</button>`:""}
     </div>
+    ${roleFilter}
     <div class="toolbar" style="gap:6px">Obiettivi ★ liberi: ${targetsLeft}</div>
     <div class="twrap"><table>
       <thead><tr><th>R</th><th>Giocatore</th><th>Fascia</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">Quota</th><th class="r">Sugg.</th><th class="r">Tuo max</th><th></th></tr></thead>
@@ -1348,8 +1354,9 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole]");
   if(!t) return;
+  if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
   if(t.id==="csvMine"||t.id==="csvAll"){
     const res = exportRoseCsv(t.id==="csvAll");
     if(!res.count){
