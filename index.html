@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FantaHQ — Centro decisioni Fantacalcio</title>
+<style>
+  :root{
+    --bg:#F4F7F4; --surface:#FFFFFF; --surface2:#EDF2ED; --ink:#16211A; --muted:#5C6E62;
+    --border:#D9E2DA; --accent:#1E7A52; --accent-ink:#FFFFFF; --accent-soft:#DFEEE6;
+    --gold:#9A6B1F; --gold-bg:#F6EBD4; --danger:#BE4040; --danger-bg:#F7E2E2;
+    --ok:#1E7A52; --warn:#9A6B1F; --info:#2D7DD2; --info-bg:#E3EDF9;
+    --rP:#D97E0B; --rD:#2E9E5B; --rC:#2D7DD2; --rA:#D64550;
+    --shadow:0 1px 3px rgba(22,33,26,.08);
+    --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",system-ui,Roboto,"Helvetica Neue",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0E1411; --surface:#17211B; --surface2:#1E2A22; --ink:#E6EEE8; --muted:#94A79A;
+      --border:#2A382F; --accent:#3FBE83; --accent-ink:#0B1510; --accent-soft:#1D3529;
+      --gold:#D9A441; --gold-bg:#33290F; --danger:#E0655F; --danger-bg:#3A1D1B;
+      --ok:#3FBE83; --warn:#D9A441; --info:#4A90DE; --info-bg:#16283C;
+      --rP:#C97E14; --rD:#35A566; --rC:#4A90DE; --rA:#E05A64;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1411; --surface:#17211B; --surface2:#1E2A22; --ink:#E6EEE8; --muted:#94A79A;
+    --border:#2A382F; --accent:#3FBE83; --accent-ink:#0B1510; --accent-soft:#1D3529;
+    --gold:#D9A441; --gold-bg:#33290F; --danger:#E0655F; --danger-bg:#3A1D1B;
+    --ok:#3FBE83; --warn:#D9A441; --info:#4A90DE; --info-bg:#16283C;
+    --rP:#C97E14; --rD:#35A566; --rC:#4A90DE; --rA:#E05A64;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F7F4; --surface:#FFFFFF; --surface2:#EDF2ED; --ink:#16211A; --muted:#5C6E62;
+    --border:#D9E2DA; --accent:#1E7A52; --accent-ink:#FFFFFF; --accent-soft:#DFEEE6;
+    --gold:#9A6B1F; --gold-bg:#F6EBD4; --danger:#BE4040; --danger-bg:#F7E2E2;
+    --ok:#1E7A52; --warn:#9A6B1F; --info:#2D7DD2; --info-bg:#E3EDF9;
+    --rP:#D97E0B; --rD:#2E9E5B; --rC:#2D7DD2; --rA:#D64550;
+    --shadow:0 1px 3px rgba(22,33,26,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px}
+  input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  header.app{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+  .hrow{max-width:1140px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:8px}
+  .brand b{font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .brand span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  .hstats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+  .hstat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;text-align:right;min-width:86px}
+  .hstat .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .hstat .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
+  .hstat .v.gold{color:var(--gold)}
+  nav.tabs{max-width:1140px;margin:0 auto;padding:0 10px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{background:none;border:none;border-bottom:3px solid transparent;padding:8px 12px 9px;color:var(--muted);font-weight:600;white-space:nowrap}
+  nav.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+
+  main{max-width:1140px;margin:0 auto;padding:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  .banner{border:1px solid var(--gold);background:var(--gold-bg);color:var(--ink);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13.5px}
+  .banner b{color:var(--gold)}
+
+  .role{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;color:#fff;font-size:12px;font-weight:800;flex:none}
+  .role.P{background:var(--rP)} .role.D{background:var(--rD)} .role.C{background:var(--rC)} .role.A{background:var(--rA)}
+  .badge{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+  .badge.f1{border-color:var(--gold);color:var(--gold)}
+  .badge.f2{border-color:var(--accent);color:var(--accent)}
+  .badge.mine{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .badge.gone{background:var(--surface2);color:var(--muted);text-decoration:line-through}
+  .star{background:none;border:none;font-size:17px;color:var(--border);padding:2px 4px}
+  .star.on{color:var(--gold)}
+
+  /* badge consiglio */
+  .adv{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+  .adv.must{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold)}
+  .adv.target{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+  .adv.bet{background:var(--info-bg);color:var(--info);border:1px solid var(--info)}
+  .adv.safe{background:var(--surface2);color:var(--ink);border:1px solid var(--border)}
+  .adv.watch{background:var(--gold-bg);color:var(--warn);border:1px dashed var(--warn)}
+  .adv.avoid{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger)}
+  .adv.filler{background:none;color:var(--muted);border:1px solid var(--border)}
+  .adv.nd{background:none;color:var(--muted);border:1px dashed var(--border)}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .toolbar input[type=search]{flex:1;min-width:160px}
+  .fchip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 12px;font-weight:600;color:var(--muted)}
+  .fchip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+  .twrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--surface)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)}
+  td{padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  td .team{color:var(--muted);font-size:12px}
+  td input[type=number]{width:60px;padding:3px 6px}
+  .r{text-align:right}
+  .pname{cursor:pointer}
+  .pname:hover b{color:var(--accent)}
+
+  tr.detail>td{background:var(--surface2);white-space:normal;padding:12px 14px}
+  .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px}
+  .dstat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+  .dstat .l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  .dstat .v{font-family:var(--mono);font-weight:700;font-size:15px}
+  .why{font-size:13px;max-width:75ch}
+  .why b{color:var(--accent)}
+
+  .chipset{display:flex;gap:5px;flex-wrap:wrap}
+  .kchip{font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--surface);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+  .kchip.hot{border-color:var(--gold);color:var(--gold)}
+  .kchip.bad{border-color:var(--danger);color:var(--danger)}
+  .kchip.good{border-color:var(--accent);color:var(--accent)}
+
+  .btn{border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:6px 12px;font-weight:600}
+  .btn:hover{background:var(--surface2)}
+  .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.warn{border-color:var(--danger);color:var(--danger)}
+  .btn.sm{padding:3px 9px;font-size:13px}
+
+  .bar{display:grid;grid-template-columns:90px 1fr 110px;gap:10px;align-items:center;margin:7px 0}
+  .bar .lab{font-weight:700;display:flex;gap:7px;align-items:center;font-size:13px}
+  .bar .track{background:var(--surface2);border-radius:5px;height:14px;position:relative;overflow:hidden}
+  .bar .fill{position:absolute;inset:0 auto 0 0;border-radius:5px}
+  .bar .val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:var(--muted)}
+
+  .buybar{position:sticky;top:96px;z-index:10;background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .buybar .who{font-weight:800;font-size:16px}
+  .buybar .hint{color:var(--muted);font-size:13px;width:100%}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .kpi .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .kpi .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800}
+  .kpi .s{font-size:11.5px;color:var(--muted)}
+  .kpi.gold .v{color:var(--gold)}
+  .kpi.danger .v{color:var(--danger)}
+  .slot{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-weight:700}
+
+  /* card consigli */
+  .pcard{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:10px 12px;margin-bottom:8px}
+  .pcard .mid{flex:1;min-width:0}
+  .pcard .nm{font-weight:800}
+  .pcard .tm{color:var(--muted);font-size:12px}
+  .pcard .note{font-size:12.5px;color:var(--muted);margin-top:2px;white-space:normal}
+  .pcard .fm{text-align:right;flex:none}
+  .pcard .fm .big{font-family:var(--mono);font-weight:800;font-size:19px}
+  .pcard .fm .sm{font-size:10.5px;color:var(--muted)}
+  h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 8px}
+  h3.sec .adv{margin-left:6px}
+
+  .xi{display:flex;flex-direction:column;gap:4px}
+  .xirow{display:flex;gap:8px;align-items:center;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+  .xirow.tit{border-color:var(--accent);background:var(--accent-soft)}
+  .xirow .nm{font-weight:700;flex:1}
+  .xirow .sc{font-family:var(--mono);color:var(--muted)}
+
+  details.g{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:10px;overflow:hidden}
+  details.g summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;align-items:center;gap:10px}
+  details.g summary::before{content:"›";color:var(--accent);font-weight:800;font-size:18px;transition:transform .15s}
+  details.g[open] summary::before{transform:rotate(90deg)}
+  details.g .body{padding:0 16px 14px;max-width:68ch}
+  details.g .body p{margin:8px 0}
+  details.g .body li{margin:4px 0}
+  details.g .body b{color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){details.g summary::before{transition:none}}
+
+  textarea.paste{width:100%;min-height:120px;font-family:var(--mono);font-size:12.5px}
+  .help{font-size:12.5px;color:var(--muted)}
+  .help code{background:var(--surface2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:11.5px}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:8px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;max-width:90vw}
+  #toast.show{opacity:1}
+  @media (prefers-reduced-motion:reduce){#toast{transition:none}}
+  .footactions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:14px}
+  .verdict{border-radius:10px;padding:12px 16px;font-weight:700;margin-top:12px;border:1px solid var(--border);background:var(--surface2)}
+  .verdict.good{border-color:var(--ok);color:var(--ok);background:var(--accent-soft)}
+  .verdict.bad{border-color:var(--danger);color:var(--danger);background:var(--danger-bg)}
+</style>
+</head>
+<body>
+
+
+<header class="app">
+  <div class="hrow">
+    <div class="brand"><b>FantaHQ</b><span>centro decisioni</span></div>
+    <div class="hstats">
+      <div class="hstat"><div class="l">Crediti</div><div class="v gold" id="hBudget">–</div></div>
+      <div class="hstat"><div class="l">Slot liberi</div><div class="v" id="hSlots">–</div></div>
+      <div class="hstat"><div class="l">Max offerta</div><div class="v" id="hMax">–</div></div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+<main id="view"></main>
+<div id="toast" role="status"></div>
+
+<script src="data/kb.js"></script>
+<script>
+"use strict";
+const KEY = "fantahq_v2";
+const OLDKEY = "fantahq_v1";
+const DATA = window.FANTAHQ_DATA || {date:"dati non caricati (manca data/kb.js)", teams:{}, kb:[]};
+const DATA_DATE = DATA.date;
+const ROLES = ["P","D","C","A"];
+const ROLE_NAMES = {P:"Portieri", D:"Difensori", C:"Centrocampisti", A:"Attaccanti"};
+const ROLE_VAR = {P:"var(--rP)", D:"var(--rD)", C:"var(--rC)", A:"var(--rA)"};
+const MODULES = {"3-4-3":{D:3,C:4,A:3},"3-5-2":{D:3,C:5,A:2},"4-3-3":{D:4,C:3,A:3},"4-4-2":{D:4,C:4,A:2},"4-5-1":{D:4,C:5,A:1},"5-3-2":{D:5,C:3,A:2},"5-4-1":{D:5,C:4,A:1}};
+const PRESETS = {
+  equilibrata:{P:8,D:15,C:25,A:52,label:"Equilibrata"},
+  modificatore:{P:7,D:24,C:24,A:45,label:"Modificatore difesa"},
+  attacco:{P:6,D:12,C:22,A:60,label:"Attacco pesante"}
+};
+const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["scambi","Scambi"],["guida","Guida"]];
+
+const TEAMS = DATA.teams;
+
+const KB = DATA.kb;
+/* ================= stato ================= */
+let state = null;
+let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
+           consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false };
+let undoStack = [];
+
+const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
+
+const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
+  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16] }));
+const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
+
+const KBCACHE = new Map();
+function kbFor(p){
+  const key = norm(p.name)+"|"+p.role;
+  if(KBCACHE.has(key)) return KBCACHE.get(key);
+  let k = KBMAP.get(key) || null;
+  if(!k){
+    const toks = norm(p.name).split(" ").filter(w=>w.length>=4);
+    const cands = KBI.filter(x=>x.r===p.role && toks.some(w=>norm(x.n).includes(w)));
+    k = cands.length===1 ? cands[0] : null;
+  }
+  KBCACHE.set(key, k);
+  return k;
+}
+
+function mkPlayer(id,name,team,role,qta,fvm,kbi){
+  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), rating:0, target:false, maxBid:0, status:"free", paid:0 };
+}
+function freshState(){
+  const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
+  return { v:2, official:false, nextId:players.length+1,
+    settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52} },
+    players, teamsDiff:{}, lineup:{ module:"3-4-3" } };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ state = JSON.parse(raw); return; }
+    const old = localStorage.getItem(OLDKEY);
+    if(old){
+      const st = JSON.parse(old);
+      if(st && Array.isArray(st.players) && !st.exampleData && st.players.length){
+        state = freshState();
+        state.official = true;
+        state.players = st.players.map(p=>({...mkPlayer(p.id,p.name,p.team,p.role,p.qta,p.fvm),
+          rating:p.rating||0, target:!!p.target, maxBid:p.maxBid||0, status:p.status||"free", paid:p.paid||0}));
+        state.nextId = Math.max(0,...state.players.map(p=>p.id))+1;
+        state.settings = st.settings||state.settings;
+        save(); return;
+      }
+    }
+  }catch(e){}
+  state = freshState(); save();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ================= motore consigli ================= */
+const ROLE_MEAN = {P:5.5, D:6.3, C:6.45, A:6.7};
+const TH = {P:[5.85,5.60], D:[6.85,6.50], C:[7.00,6.60], A:[7.30,6.85]};
+
+function expFM(k){
+  const rm = ROLE_MEAN[k.r];
+  const w = Math.min(1,(k.pres||0)/30);
+  let v = rm + (k.fm-rm)*(0.35+0.65*w);
+  if(k.est) v = rm + (v-rm)*0.9;
+  const t = TEAMS[k.t]||{atk:3,def:3};
+  v += (k.r==="A"||k.r==="C") ? (t.atk-3)*0.10 : (t.def-3)*(k.r==="P"?0.13:0.10);
+  if(k.rig===2) v += 0.15; else if(k.rig===1) v += 0.05;
+  if(k.age>=38) v -= 0.25; else if(k.age>=35) v -= 0.15; else if(k.age<=21) v += 0.05;
+  if(k.inj>=3) v -= 0.20; else if(k.inj===2) v -= 0.10;
+  if(k.newT) v -= 0.08;
+  return v;
+}
+function affOf(k){ return Math.max(0, Math.min(100, k.tit - k.inj*8 - k.unc*10)); }
+
+const ADV_META = {
+  must:  {label:"Da prendere",     long:"Da prendere assolutamente", ord:0},
+  target:{label:"Obiettivo",       long:"Obiettivi consigliati",     ord:1},
+  bet:   {label:"Scommessa",       long:"Scommesse ad alto potenziale", ord:2},
+  safe:  {label:"Usato sicuro",    long:"Usato sicuro",              ord:3},
+  watch: {label:"Da monitorare",   long:"Rischi da monitorare",      ord:4},
+  avoid: {label:"Da evitare",      long:"Da evitare a questi prezzi", ord:5},
+  filler:{label:"Completamento",   long:"Completamento rosa",        ord:6},
+  nd:    {label:"n/d",             long:"Senza dati storici",        ord:7}
+};
+function advice(k){
+  if(!k) return {tier:"nd", exp:null, aff:null};
+  const exp = expFM(k), aff = affOf(k), [hi,mid] = TH[k.r];
+  let tier;
+  if(k.unc>=2) tier = "watch";
+  else if(exp>=hi && aff>=78) tier = "must";
+  else if(exp>=mid && aff>=68) tier = "target";
+  else if(k.up>=3 && (k.age<=23 || aff<70)) tier = "bet";
+  else if(k.inj>=2) tier = "watch";
+  else if(aff>=85 && exp>=mid-0.35) tier = "safe";
+  else if(exp<mid-0.45 && k.qta>=14) tier = "avoid";
+  else tier = "filler";
+  return {tier, exp, aff};
+}
+function chipsOf(k){
+  const t = TEAMS[k.t]||{};
+  const c = [];
+  if(k.rig===2) c.push(["Rigorista","hot"]);
+  else if(k.rig===1) c.push(["Rigore n.2",""]);
+  if(k.unc>=2) c.push(["Futuro incerto","bad"]);
+  if(k.newT) c.push(["Nuovo acquisto",""]);
+  if(k.age<=21) c.push(["U21","good"]);
+  if(k.age>=35) c.push([k.age+" anni",""]);
+  if(k.inj>=2) c.push(["Rischio infortuni","bad"]);
+  if(k.tit>=90) c.push(["Titolare fisso","good"]);
+  else if(k.tit<70) c.push(["Ballottaggio",""]);
+  if(k.up>=4) c.push(["Upside alto","good"]);
+  if((k.r==="A"||k.r==="C") && t.atk>=5) c.push(["Attacco top","good"]);
+  if((k.r==="P"||k.r==="D") && t.def>=5) c.push(["Difesa top","good"]);
+  return c;
+}
+const advBadge = a=>`<span class="adv ${a.tier}">${ADV_META[a.tier].label}</span>`;
+const fmt1 = v=>v==null?"—":v.toFixed(2);
+
+/* ================= helpers ================= */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n=>Math.round(n).toString();
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200); }
+const byId = id=>state.players.find(p=>p.id===id);
+const mine = ()=>state.players.filter(p=>p.status==="mine");
+const roleChip = r=>`<span class="role ${r}">${r}</span>`;
+
+function fasciaMap(){
+  const m = {};
+  for(const r of ROLES){
+    const list = state.players.filter(p=>p.role===r).slice().sort((a,b)=>b.qta-a.qta);
+    list.forEach((p,i)=>{ const q=i/(list.length||1); m[p.id] = q<0.12?1 : q<0.32?2 : q<0.62?3 : 4; });
+  }
+  return m;
+}
+function fasciaBadge(f){ return `<span class="badge f${f<=2?f:""}">${f}ª</span>`; }
+function budgetSpent(){ return mine().reduce((s,p)=>s+(p.paid||0),0); }
+function budgetLeft(){ return state.settings.budget - budgetSpent(); }
+function slotsLeft(r){ return state.settings.slots[r] - mine().filter(p=>p.role===r).length; }
+function totSlotsLeft(){ return ROLES.reduce((s,r)=>s+Math.max(0,slotsLeft(r)),0); }
+function maxBid(){ return Math.max(0, budgetLeft() - Math.max(0, totSlotsLeft()-1)); }
+function inflation(){
+  const sold = state.players.filter(p=>p.status!=="free" && p.paid>0);
+  const paid = sold.reduce((s,p)=>s+p.paid,0), base = sold.reduce((s,p)=>s+p.qta,0);
+  const raw = base>0 ? paid/base : 1;
+  return 1 + (raw-1)*Math.min(1, sold.length/12);
+}
+function suggPrice(p){
+  const a = advice(kbFor(p));
+  const bump = a.tier==="must"?1.12 : a.tier==="target"?1.05 : a.tier==="avoid"?0.85 : 1;
+  return Math.max(1, Math.round(p.qta * inflation() * bump * (p.target?1.05:1)));
+}
+function renderHeader(){
+  $("#hBudget").textContent = fmt(budgetLeft());
+  $("#hSlots").textContent = ROLES.map(r=>`${r}${Math.max(0,slotsLeft(r))}`).join(" ");
+  $("#hMax").textContent = fmt(maxBid());
+}
+
+/* ================= parser import ================= */
+const MANTRA = /^(Por|Dc|Dd|Ds|B|E|M|C|W|T|A|Pc)(;(Por|Dc|Dd|Ds|B|E|M|C|W|T|A|Pc))*$/;
+function parseListone(text){
+  const rows = [];
+  for(const rawLine of text.split(/\r?\n/)){
+    const line = rawLine.trim();
+    if(!line) continue;
+    if(/nome|ruolo|squadra|quotazion/i.test(line) && !/\d/.test(line)) continue;
+    let toks = line.includes("\t") ? line.split("\t") : line.includes(";") ? line.split(";") : line.split(/,|\s{2,}/);
+    toks = toks.map(t=>t.trim()).filter(t=>t!=="");
+    if(toks.length<3) continue;
+    const ri = toks.findIndex(t=>/^[PDCA]$/i.test(t));
+    if(ri===-1) continue;
+    const role = toks[ri].toUpperCase();
+    let i = ri+1;
+    if(i<toks.length && MANTRA.test(toks[i]) && toks.length>i+2) i++;
+    const name = toks[i], team = toks[i+1];
+    if(!name || !team || /^\d+$/.test(name) || /^\d+$/.test(team)) continue;
+    const nums = toks.slice(i+2).map(Number).filter(n=>!isNaN(n));
+    if(!nums.length) continue;
+    const qta = nums[0];
+    const fvm = nums.length>=7 ? nums[6] : (nums.length>=2 ? nums[nums.length-1] : 0);
+    if(qta>0) rows.push({role, name, team, qta, fvm});
+  }
+  return rows;
+}
+function importListone(text){
+  const rows = parseListone(text);
+  if(!rows.length) return 0;
+  const old = new Map(state.players.map(p=>[norm(p.name)+"|"+p.role, p]));
+  state.players = rows.map(r=>{
+    const prev = old.get(norm(r.name)+"|"+r.role);
+    const p = mkPlayer(state.nextId++, r.name, r.team, r.role, r.qta, r.fvm);
+    const k = kbFor(p); if(k) p.kbi = k.i;
+    if(prev){ p.rating=prev.rating; p.target=prev.target; p.maxBid=prev.maxBid; p.status=prev.status; p.paid=prev.paid; }
+    return p;
+  });
+  state.official = true;
+  save();
+  return rows.length;
+}
+
+/* ================= tab: CONSIGLI ================= */
+function vConsigli(){
+  const groups = {};
+  for(const p of state.players){
+    if(ui.consRole && p.role!==ui.consRole) continue;
+    if(p.status==="gone") continue;
+    const k = kbFor(p);
+    if(!k) continue;
+    const a = advice(k);
+    if(a.tier==="filler"||a.tier==="nd") continue;
+    (groups[a.tier] = groups[a.tier]||[]).push({p,k,a});
+  }
+  const order = ["must","target","bet","safe","watch","avoid"];
+  const sections = order.map(tier=>{
+    const list = (groups[tier]||[]).sort((x,y)=>y.a.exp-x.a.exp);
+    if(!list.length) return "";
+    const cards = list.map(({p,k,a})=>`
+      <div class="pcard">
+        ${roleChip(p.role)}
+        <div class="mid">
+          <span class="nm pname" data-open="${p.id}">${esc(p.name)}</span>
+          <span class="tm">${esc(p.team)} · ${esc((TEAMS[p.team]||{}).coach||"")}${p.status==="mine"?' · <span class="badge mine">MIO</span>':""}</span>
+          <div class="chipset" style="margin-top:3px">${chipsOf(k).map(([t,c])=>`<span class="kchip ${c}">${t}</span>`).join("")}</div>
+          ${k.note?`<div class="note">${esc(k.note)}</div>`:""}
+        </div>
+        <div class="fm">
+          <div class="big">${fmt1(a.exp)}</div>
+          <div class="sm">FM attesa</div>
+          <div class="sm num">quota ${p.qta}${state.official?"":"~"}</div>
+        </div>
+      </div>`).join("");
+    return `<h3 class="sec">${ADV_META[tier].long} · ${list.length} <span class="adv ${tier}">${ADV_META[tier].label}</span></h3>${cards}`;
+  }).join("");
+
+  return `
+  ${state.official?"":`<div class="banner"><b>Quote stimate</b> — il listone ufficiale 2026-27 non è ancora uscito: le quote sono stime del motore. Importa quello vero dal tab Listone appena disponibile.</div>`}
+  <div class="card">
+    <h2>Chi prendere all'asta — il verdetto del motore</h2>
+    <p class="sub">Classifica calcolata su: fantamedia 2025-26 reale, minuti giocati, rigori, squadra e allenatore 2026-27, età, infortuni, titolarità attesa e situazioni di mercato. Dati aggiornati al <b>${DATA_DATE}</b>. Clicca un nome per aprire la scheda nel Listone.</p>
+    <div class="toolbar">
+      <button class="fchip ${ui.consRole===""?"on":""}" data-crole="">Tutti</button>
+      ${ROLES.map(r=>`<button class="fchip ${ui.consRole===r?"on":""}" data-crole="${r}">${ROLE_NAMES[r]}</button>`).join("")}
+    </div>
+    ${sections || '<div class="empty">Nessun giocatore da mostrare.</div>'}
+    <p class="help" style="margin-top:14px">Il motore è una bussola, non un oracolo: prima dell'asta verifica sempre le ultime notizie su mercato e gerarchie, soprattutto per i giocatori segnati "da monitorare".</p>
+  </div>`;
+}
+
+/* ================= tab: LISTONE ================= */
+function detailRow(p, colspan){
+  const k = kbFor(p);
+  if(!k) return `<tr class="detail"><td colspan="${colspan}"><div class="why">Nessun dato storico nel database per questo giocatore: valuta con quota e notizie recenti.</div></td></tr>`;
+  const a = advice(k), t = TEAMS[k.t]||{};
+  const stat = (l,v)=>`<div class="dstat"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  return `<tr class="detail"><td colspan="${colspan}">
+    <div class="dgrid">
+      ${stat("FM 2025-26", fmt1(k.fm)+(k.est?" ~":""))}
+      ${stat("FM attesa 26-27", `<span style="color:var(--accent)">${fmt1(a.exp)}</span>`)}
+      ${stat("Presenze", k.pres||"—")}
+      ${k.r!=="P"?stat("Gol + assist", `${k.gol}+${k.ass}`):""}
+      ${stat("Età", k.age)}
+      ${stat("Affidabilità", a.aff+"/100")}
+      ${stat("Squadra", `${esc(k.t)} · ${esc(t.coach||"")}`)}
+      ${p.fvm?stat("FVM", p.fvm):""}
+    </div>
+    <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(([x,c])=>`<span class="kchip ${c}">${x}</span>`).join("")}</div>
+    <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
+  </td></tr>`;
+}
+function vListone(){
+  const fm = fasciaMap();
+  const teams = [...new Set(state.players.map(p=>p.team))].sort();
+  let list = state.players.filter(p=>
+    (!ui.role || p.role===ui.role) && (!ui.team || p.team===ui.team) &&
+    (!ui.onlyTarget || p.target) &&
+    (!ui.search || (p.name+" "+p.team).toLowerCase().includes(ui.search.toLowerCase()))
+  );
+  const expOf = p=>{ const k=kbFor(p); return k?advice(k).exp:0; };
+  const sorts = { exp:(a,b)=>expOf(b)-expOf(a), qta:(a,b)=>b.qta-a.qta, rating:(a,b)=>b.rating-a.rating,
+    name:(a,b)=>a.name.localeCompare(b.name), team:(a,b)=>a.team.localeCompare(b.team)||b.qta-a.qta };
+  list.sort(sorts[ui.sort]||sorts.exp);
+  const shown = list.slice(0, ui.limit);
+  const NCOL = 10;
+  const rows = shown.map(p=>{
+    const k = kbFor(p), a = advice(k);
+    return `<tr>
+    <td>${roleChip(p.role)}</td>
+    <td class="pname" data-open="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span></td>
+    <td>${fasciaBadge(fm[p.id]||4)}</td>
+    <td class="r num">${p.qta}${state.official?"":"~"}</td>
+    <td class="r num">${k?fmt1(k.fm)+(k.est?"~":""):"—"}</td>
+    <td class="r num" style="font-weight:700">${k?fmt1(a.exp):"—"}</td>
+    <td>${advBadge(a)}</td>
+    <td><input type="number" min="0" max="10" step="0.5" value="${p.rating||""}" placeholder="–" data-rate="${p.id}" title="Il tuo voto (sovrascrive il motore in formazione)"></td>
+    <td><button class="star ${p.target?"on":""}" data-target="${p.id}" title="Obiettivo d'asta">★</button>
+        <input type="number" min="0" value="${p.maxBid||""}" placeholder="max" data-maxbid="${p.id}" title="Tetto massimo d'asta"></td>
+    <td>${p.status==="mine"?'<span class="badge mine">MIO</span>':p.status==="gone"?'<span class="badge gone">preso</span>':""}</td>
+  </tr>${ui.openId===p.id?detailRow(p,NCOL):""}`;
+  }).join("");
+
+  return `
+  ${state.official?"":`<div class="banner"><b>Quote stimate</b> (~) dal motore — importa il listone ufficiale appena esce: voti, obiettivi e consigli verranno agganciati automaticamente.</div>`}
+  <div class="card">
+    <h2>Listone giocatori</h2>
+    <p class="sub">${state.players.length} giocatori · clicca un <b>nome</b> per aprire la scheda completa con storico e verdetto. FM = fantamedia; ~ = stima.</p>
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Cerca giocatore o squadra…" value="${esc(ui.search)}">
+      ${ROLES.map(r=>`<button class="fchip ${ui.role===r?"on":""}" data-frole="${r}">${r}</button>`).join("")}
+      <select id="fteam"><option value="">Tutte le squadre</option>${teams.map(t=>`<option ${ui.team===t?"selected":""}>${esc(t)}</option>`).join("")}</select>
+      <select id="fsort">
+        <option value="exp" ${ui.sort==="exp"?"selected":""}>FM attesa ↓</option>
+        <option value="qta" ${ui.sort==="qta"?"selected":""}>Quota ↓</option>
+        <option value="rating" ${ui.sort==="rating"?"selected":""}>Mio voto ↓</option>
+        <option value="name" ${ui.sort==="name"?"selected":""}>Nome</option>
+        <option value="team" ${ui.sort==="team"?"selected":""}>Squadra</option>
+      </select>
+      <button class="fchip ${ui.onlyTarget?"on":""}" id="ftarget">★ obiettivi</button>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>R</th><th>Giocatore</th><th>Fascia</th><th class="r">Quota</th><th class="r">FM 25-26</th><th class="r">FM att.</th><th>Consiglio</th><th>Voto</th><th>★ / Max</th><th>Stato</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="${NCOL}"><div class="empty">Nessun giocatore trovato.</div></td></tr>`}</tbody>
+    </table></div>
+    ${list.length>ui.limit?`<p style="text-align:center;margin:10px 0 0"><button class="btn" id="more">Mostra altri ${list.length-ui.limit}</button></p>`:""}
+  </div>
+  <div class="card">
+    <h2>Importa il listone ufficiale</h2>
+    <p class="sub">Apri il file quotazioni (es. Fantacalcio.it), copia le righe dei giocatori e incolla qui: il motore aggancia automaticamente storico e consigli ai nomi.</p>
+    <textarea class="paste" id="pasteArea" placeholder="Incolla qui le righe copiate dal file quotazioni…&#10;Funziona anche il formato semplice:  P&#9;Sommer&#9;Inter&#9;16"></textarea>
+    <div class="footactions" style="margin-top:10px">
+      <button class="btn pri" id="doImport">Importa</button>
+      <span class="help">Colonne riconosciute: <code>R · Nome · Squadra · Qt.A … FVM</code> (tab, punto e virgola o virgola). Voti e obiettivi vengono conservati.</span>
+    </div>
+    <h3 class="sec">Backup e dati</h3>
+    <div class="footactions">
+      <button class="btn" id="expJson">Esporta backup (JSON)</button>
+      <label class="btn" style="display:inline-block">Importa backup<input type="file" id="impJson" accept=".json" style="display:none"></label>
+      <button class="btn" id="loadSample">Ripristina database interno</button>
+      <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Cancella tutto":"Azzera tutti i dati"}</button>
+    </div>
+  </div>`;
+}
+/* ================= tab: STRATEGIA ================= */
+function vStrategia(){
+  const s = state.settings;
+  const credits = r=>Math.round(s.budget*s.split[r]/100);
+  const splitSum = ROLES.reduce((t,r)=>t+(+s.split[r]||0),0);
+  const bars = ROLES.map(r=>{
+    const c = credits(r), pct = s.split[r];
+    return `<div class="bar">
+      <div class="lab">${roleChip(r)} ${ROLE_NAMES[r].slice(0,3)} <span class="team">×${s.slots[r]}</span></div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${ROLE_VAR[r]}"></div></div>
+      <div class="val">${pct}% · <b>${c} cr</b></div>
+    </div>`;
+  }).join("");
+  const perSlot = ROLES.map(r=>{
+    const c = credits(r), n = s.slots[r];
+    let plan = "";
+    if(r==="P") plan = n>=3 ? `${Math.round(c*.8)} + ${Math.round(c*.15)} + ${Math.max(1,Math.round(c*.05))}` : `${Math.round(c*.85)} + ${Math.round(c*.15)}`;
+    else if(r==="A"&&n>=6) plan = `${Math.round(c*.42)} + ${Math.round(c*.26)} + ${Math.round(c*.15)} + ${Math.round(c*.09)} + ${Math.round(c*.05)} + ${Math.max(1,Math.round(c*.03))}`;
+    else{
+      const w=[.30,.22,.16,.12,.08,.06,.04,.02].slice(0,n); const tot=w.reduce((a,b)=>a+b,0);
+      plan = w.map(x=>Math.max(1,Math.round(c*x/tot))).join(" + ");
+    }
+    return `<tr><td>${roleChip(r)}</td><td>${ROLE_NAMES[r]}</td><td class="r num">${c}</td><td class="num">${plan}</td></tr>`;
+  }).join("");
+  return `
+  <div class="card">
+    <h2>Impostazioni lega</h2>
+    <p class="sub">Adatta budget e slot al regolamento della tua lega (classico: 500 crediti, 3P 8D 8C 6A).</p>
+    <div class="toolbar">
+      <label>Crediti totali <input type="number" id="setBudget" min="50" value="${s.budget}" style="width:90px"></label>
+      ${ROLES.map(r=>`<label>${r} <input type="number" min="0" max="15" data-slot="${r}" value="${s.slots[r]}" style="width:58px"></label>`).join("")}
+    </div>
+  </div>
+  <div class="card">
+    <h2>Ripartizione del budget</h2>
+    <p class="sub">Preset: <b>Equilibrata</b> è la base; <b>Modificatore difesa</b> se la lega lo usa; <b>Attacco pesante</b> per leghe piccole dove i bonus decidono tutto.</p>
+    <div class="toolbar">${Object.entries(PRESETS).map(([k,p])=>`<button class="btn" data-preset="${k}">${p.label}</button>`).join("")}</div>
+    <div class="toolbar">
+      ${ROLES.map(r=>`<label>${r} % <input type="number" min="0" max="100" data-split="${r}" value="${s.split[r]}" style="width:62px"></label>`).join("")}
+      <span class="help" style="color:${splitSum===100?"var(--muted)":"var(--danger)"}">totale ${splitSum}%${splitSum!==100?" — porta a 100%":""}</span>
+    </div>
+    ${bars}
+  </div>
+  <div class="card">
+    <h2>Piano di spesa per slot</h2>
+    <p class="sub">Pochi top pagati bene, poi scalare in fretta. Una traccia, non una gabbia.</p>
+    <div class="twrap"><table>
+      <thead><tr><th>R</th><th>Reparto</th><th class="r">Crediti</th><th>Suggerimento per slot</th></tr></thead>
+      <tbody>${perSlot}</tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ================= tab: ASTA ================= */
+function vAsta(){
+  const infl = inflation();
+  const sel = ui.astaSel ? byId(ui.astaSel) : null;
+  const fm = fasciaMap();
+  const q = ui.astaSearch.trim().toLowerCase();
+  let list = state.players.filter(p=>p.status==="free" && (!q || (p.name+" "+p.team).toLowerCase().includes(q)));
+  list.sort((a,b)=>b.qta-a.qta);
+  const shortlist = list.slice(0,30);
+  const targetsLeft = ROLES.map(r=>{
+    const n = state.players.filter(p=>p.role===r&&p.status==="free"&&p.target).length;
+    return `<span class="slot">${roleChip(r)} ${n}★</span>`;
+  }).join(" ");
+  let buybar = "";
+  if(sel){
+    const k = kbFor(sel), a = advice(k);
+    buybar = `<div class="buybar">
+      ${roleChip(sel.role)} <span class="who">${esc(sel.name)}</span> <span class="team">${esc(sel.team)}</span>
+      ${advBadge(a)}
+      <span class="num">FM att. <b>${fmt1(a.exp)}</b> · quota ${sel.qta}${sel.maxBid?` · tuo tetto <b style="color:var(--gold)">${sel.maxBid}</b>`:""} · sugg. <b>${suggPrice(sel)}</b></span>
+      <input type="number" id="buyPrice" min="1" max="${maxBid()}" placeholder="prezzo" style="width:86px">
+      <button class="btn pri" id="buyMine">Mio</button>
+      <button class="btn" id="buyGone">Preso da altri</button>
+      <button class="btn sm" id="buyCancel">✕</button>
+      <span class="hint">${k&&k.note?esc(k.note)+" · ":""}Max offerta possibile per te ora: <b class="num">${maxBid()}</b>.</span>
+    </div>`;
+  }
+  const rows = shortlist.map(p=>{
+    const a = advice(kbFor(p));
+    return `<tr>
+    <td>${roleChip(p.role)}</td>
+    <td><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span>${p.target?' <span class="star on" style="cursor:default">★</span>':""}</td>
+    <td>${fasciaBadge(fm[p.id]||4)}</td>
+    <td>${advBadge(a)}</td>
+    <td class="r num">${fmt1(a.exp)}</td>
+    <td class="r num">${p.qta}</td>
+    <td class="r num">${suggPrice(p)}</td>
+    <td class="r num">${p.maxBid||"—"}</td>
+    <td><button class="btn sm pri" data-sel="${p.id}">All'asta</button></td>
+  </tr>`;}).join("");
+  return `
+  <div class="kpis">
+    <div class="kpi gold"><div class="l">Crediti residui</div><div class="v">${fmt(budgetLeft())}</div><div class="s">su ${state.settings.budget}</div></div>
+    <div class="kpi"><div class="l">Max offerta</div><div class="v">${fmt(maxBid())}</div><div class="s">slot liberi: ${totSlotsLeft()}</div></div>
+    <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">prezzi pagati vs quota</div></div>
+    <div class="kpi"><div class="l">Rosa</div><div class="v">${mine().length}/${ROLES.reduce((s,r)=>s+state.settings.slots[r],0)}</div><div class="s">${ROLES.map(r=>`${r}:${state.settings.slots[r]-slotsLeft(r)}/${state.settings.slots[r]}`).join(" ")}</div></div>
+  </div>
+  ${buybar}
+  <div class="card">
+    <h2>Banco d'asta</h2>
+    <p class="sub">Quando chiamano un giocatore, cercalo e premi <b>All'asta</b>: vedi subito verdetto del motore, FM attesa e prezzo suggerito corretto per l'inflazione reale${infl>1.15?" — <b>asta calda, tieni i nervi saldi</b>":""}.</p>
+    <div class="toolbar">
+      <input type="search" id="astaQ" placeholder="Cerca il giocatore chiamato…" value="${esc(ui.astaSearch)}">
+      ${undoStack.length?`<button class="btn" id="undo">↶ Annulla ultima (${esc(undoStack[undoStack.length-1].name)})</button>`:""}
+    </div>
+    <div class="toolbar" style="gap:6px">Obiettivi ★ liberi: ${targetsLeft}</div>
+    <div class="twrap"><table>
+      <thead><tr><th>R</th><th>Giocatore</th><th>Fascia</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">Quota</th><th class="r">Sugg.</th><th class="r">Tuo max</th><th></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="9"><div class="empty">Nessun giocatore libero con questo filtro.</div></td></tr>`}</tbody>
+    </table></div>
+    ${list.length>30?`<p class="help" style="margin:8px 0 0">Primi 30 per quota — usa la ricerca per gli altri ${list.length-30}.</p>`:""}
+  </div>`;
+}
+
+/* ================= tab: ROSA ================= */
+function vRosa(){
+  const s = state.settings, my = mine();
+  if(!my.length) return `<div class="card"><div class="empty">Ancora nessun giocatore in rosa.<br>Registra gli acquisti nel tab <b>Asta live</b>.</div></div>`;
+  const plan = r=>Math.round(s.budget*s.split[r]/100);
+  const bars = ROLES.map(r=>{
+    const spent = my.filter(p=>p.role===r).reduce((t,p)=>t+p.paid,0);
+    const pl = plan(r), over = spent>pl, w = Math.min(100, pl?spent/pl*100:0);
+    return `<div class="bar">
+      <div class="lab">${roleChip(r)} ${ROLE_NAMES[r].slice(0,3)}</div>
+      <div class="track"><div class="fill" style="width:${w}%;background:${over?"var(--danger)":ROLE_VAR[r]}"></div></div>
+      <div class="val">${spent} / ${pl} cr</div></div>`;
+  }).join("");
+  const sections = ROLES.map(r=>{
+    const list = my.filter(p=>p.role===r).sort((a,b)=>b.paid-a.paid);
+    if(!list.length) return "";
+    const rows = list.map(p=>{
+      const a = advice(kbFor(p));
+      return `<tr>
+      <td>${roleChip(p.role)}</td><td class="pname" data-open2="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span></td>
+      <td>${advBadge(a)}</td><td class="r num">${fmt1(a.exp)}</td>
+      <td class="r num">${p.qta}</td><td class="r num" style="color:var(--gold);font-weight:700">${p.paid}</td>
+      <td><button class="btn sm warn" data-release="${p.id}">Svincola</button></td></tr>`;}).join("");
+    return `<h3 class="sec">${ROLE_NAMES[r]} · ${list.length}/${s.slots[r]}</h3>
+      <div class="twrap"><table>
+      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }).join("");
+  const expSum = my.reduce((t,p)=>{const a=advice(kbFor(p)); return t+(a.exp||6);},0);
+  return `
+  <div class="kpis">
+    <div class="kpi gold"><div class="l">Spesi</div><div class="v">${fmt(budgetSpent())}</div><div class="s">residui ${fmt(budgetLeft())}</div></div>
+    <div class="kpi"><div class="l">Giocatori</div><div class="v">${my.length}</div><div class="s">su ${ROLES.reduce((t,r)=>t+s.slots[r],0)}</div></div>
+    <div class="kpi"><div class="l">FM attesa media</div><div class="v">${(expSum/my.length).toFixed(2)}</div><div class="s">qualità rosa (motore)</div></div>
+    <div class="kpi"><div class="l">Obiettivi presi</div><div class="v">${my.filter(p=>p.target).length}</div><div class="s">dei tuoi ★</div></div>
+  </div>
+  <div class="card"><h2>Spesa per reparto</h2><p class="sub">Barra rossa = reparto oltre il piano del tab Strategia.</p>${bars}</div>
+  <div class="card"><h2>Rosa completa</h2>${sections}</div>`;
+}
+
+/* ================= tab: FORMAZIONE ================= */
+function vFormazione(){
+  const my = mine();
+  if(!my.length) return `<div class="card"><div class="empty">Prima costruisci la rosa (tab <b>Asta live</b>), poi qui trovi la formazione consigliata.</div></div>`;
+  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+  const need = {P:1, ...mod};
+  const myTeams = [...new Set(my.map(p=>p.team))].sort();
+  const score = p=>{
+    const k = kbFor(p), a = advice(k);
+    const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
+    const diff = state.teamsDiff[p.team] ?? 3;
+    return base + (3-diff)*0.35;
+  };
+  const sections = ROLES.map(r=>{
+    const list = my.filter(p=>p.role===r).map(p=>({p, sc:score(p)})).sort((a,b)=>b.sc-a.sc);
+    const rows = list.map((x,i)=>`
+      <div class="xirow ${i<need[r]?"tit":""}">
+        ${roleChip(r)}<span class="nm">${esc(x.p.name)} <span class="team">${esc(x.p.team)} · avv. ${"●".repeat(state.teamsDiff[x.p.team]??3)}</span></span>
+        <span class="sc">${x.sc.toFixed(1)}</span>
+        ${i<need[r]?'<span class="badge mine">TITOLARE</span>':`<span class="badge">panchina ${i-need[r]+1}</span>`}
+      </div>`).join("");
+    return `<h3 class="sec">${ROLE_NAMES[r]} — servono ${need[r]}</h3><div class="xi">${rows||'<div class="empty">Nessuno in rosa.</div>'}</div>`;
+  }).join("");
+  return `
+  <div class="card">
+    <h2>Formazione consigliata</h2>
+    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per la difficoltà dell'avversario. Verifica sempre le probabili formazioni prima di confermare.</p>
+    <div class="toolbar"><label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option ${state.lineup.module===m?"selected":""}>${m}</option>`).join("")}</select></label></div>
+    ${sections}
+  </div>
+  <div class="card">
+    <h2>Difficoltà avversari di giornata</h2>
+    <p class="sub">1 = partita facilissima, 5 = durissima. Il consiglio si aggiorna subito.</p>
+    <div class="toolbar">
+      ${myTeams.map(t=>`<label>${esc(t)} <select data-diff="${esc(t)}">${[1,2,3,4,5].map(d=>`<option ${(state.teamsDiff[t]??3)===d?"selected":""}>${d}</option>`).join("")}</select></label>`).join("")}
+    </div>
+  </div>`;
+}
+
+/* ================= tab: SCAMBI ================= */
+function vScambi(){
+  const my = mine();
+  const q = ui.tradeSearch.trim().toLowerCase();
+  const others = state.players.filter(p=>p.status!=="mine" && (q? (p.name+" "+p.team).toLowerCase().includes(q) : ui.tradeGet.includes(p.id))).slice(0,15);
+  const side = (title, list, key, arr)=>`
+    <div><h3 class="sec">${title}</h3>
+      ${key==="get"?`<input type="search" id="tradeQ" placeholder="Cerca giocatori da ricevere…" value="${esc(ui.tradeSearch)}" style="width:100%;margin-bottom:8px">`:""}
+      <div class="xi">${list.map(p=>{const a=advice(kbFor(p));return `
+        <label class="xirow" style="cursor:pointer">
+          <input type="checkbox" data-trade="${key}:${p.id}" ${arr.includes(p.id)?"checked":""}>
+          ${roleChip(p.role)}<span class="nm">${esc(p.name)} <span class="team">${esc(p.team)}</span></span>
+          ${advBadge(a)}<span class="sc">FM ${fmt1(a.exp)}</span>
+        </label>`;}).join("") || '<div class="empty">Nessun giocatore.</div>'}
+      </div></div>`;
+  let verdict = "";
+  if(ui.tradeGive.length && ui.tradeGet.length){
+    const G = ui.tradeGive.map(byId).filter(Boolean), R = ui.tradeGet.map(byId).filter(Boolean);
+    const sum = (l,f)=>l.reduce((t,p)=>t+f(p),0);
+    const ex = p=>{const a=advice(kbFor(p)); return a.exp||6;};
+    const qg = sum(G,p=>p.qta), qr = sum(R,p=>p.qta);
+    const eg = sum(G,ex), er = sum(R,ex);
+    const de = er-eg, dq = qr-qg;
+    const cls = de>0.25?"good":de<-0.25?"bad":"";
+    const label = de>0.25?"Scambio favorevole (per FM attesa)":de<-0.25?"Scambio sfavorevole (per FM attesa)":"Scambio alla pari";
+    verdict = `<div class="verdict ${cls}">${label} — FM attesa: cedi ${eg.toFixed(2)}, ricevi ${er.toFixed(2)} (${de>=0?"+":""}${de.toFixed(2)})</div>
+    <div class="twrap" style="margin-top:10px"><table>
+      <thead><tr><th></th><th class="r">Cedi (${G.length})</th><th class="r">Ricevi (${R.length})</th><th class="r">Δ</th></tr></thead>
+      <tbody>
+        <tr><td>FM attesa (somma)</td><td class="r num">${eg.toFixed(2)}</td><td class="r num">${er.toFixed(2)}</td><td class="r num" style="color:${de>=0?"var(--ok)":"var(--danger)"}">${de>=0?"+":""}${de.toFixed(2)}</td></tr>
+        <tr><td>Quota listone</td><td class="r num">${qg}</td><td class="r num">${qr}</td><td class="r num" style="color:${dq>=0?"var(--ok)":"var(--danger)"}">${dq>=0?"+":""}${dq}</td></tr>
+      </tbody></table></div>
+    <p class="help" style="margin-top:8px">I numeri non vedono tutto: pesa titolarità, rigori, calendario e gli slot che liberi od occupi.</p>`;
+  }
+  return `
+  <div class="card">
+    <h2>Valuta uno scambio</h2>
+    <p class="sub">Spunta chi daresti via e chi riceveresti: il motore confronta le FM attese.</p>
+    <div class="grid2">
+      ${side("Cedi (dalla tua rosa)", my, "give", ui.tradeGive)}
+      ${side("Ricevi", others, "get", ui.tradeGet)}
+    </div>
+    ${verdict || '<div class="empty">Seleziona almeno un giocatore per lato.</div>'}
+  </div>`;
+}
+
+/* ================= tab: GUIDA ================= */
+function vGuida(){
+  const G = [
+["Come funziona il motore dei consigli", `
+<p>Il verdetto su ogni giocatore nasce da questi fattori, pesati insieme:</p>
+<ul>
+<li><b>Fantamedia 2025-26 reale</b> (dove disponibile; ~ = stima), riproporzionata sui minuti giocati: 18 presenze valgono meno di 33.</li>
+<li><b>Squadra e allenatore 2026-27</b>: giocare nell'Inter di Chivu o nella Roma offensiva di Gasperini vale bonus; una neopromossa toglie.</li>
+<li><b>Rigori</b>: il rigorista designato vale +, il secondo tiratore un po' meno.</li>
+<li><b>Età, infortuni, titolarità</b> e <b>situazioni di mercato</b> (es. Leao in uscita, Vlahovic svincolato) che congelano il giudizio.</li>
+</ul>
+<p>Le categorie: <b>Da prendere</b> (top affidabili), <b>Obiettivo</b> (ottimo rapporto resa/prezzo), <b>Scommessa</b> (upside alto, rischio alto), <b>Usato sicuro</b> (rendimento noto, niente sorprese), <b>Da monitorare</b> (talento vero ma situazione aperta: ricontrolla le notizie prima dell'asta), <b>Da evitare</b> (costa più di quel che rende).</p>
+<p>Il tuo <b>voto personale</b> nel Listone sovrascrive il motore nella formazione: tu conosci la tua lega meglio di qualsiasi algoritmo.</p>`],
+["Prima dell'asta: la preparazione vince", `
+<ul>
+<li>Parti dal tab <b>Consigli</b>: segna ★ 2-3 obiettivi per fascia, non uno solo: se te lo soffiano hai il piano B.</li>
+<li>Per ogni obiettivo fissa il <b>tetto massimo</b> e rispettalo: il 90% delle aste si perde per un rilancio di pancia.</li>
+<li>I giocatori <b>"da monitorare"</b> (Leao, Vlahovic, Lookman…) vanno ricontrollati la sera prima dell'asta: se la situazione si è chiarita possono diventare affari o trappole.</li>
+<li>Prepara 2 piani di budget alternativi e decidi nei primi 20 minuti quale seguire.</li>
+</ul>`],
+["Come si distribuisce il budget", `
+<p>Su 500 crediti (lega classica 8-10 squadre):</p>
+<ul>
+<li><b>Attacco 50-55%</b> — 2 top + 1 semi-top + 3 scommesse.</li>
+<li><b>Centrocampo 24-27%</b> — 1-2 centrocampisti "da attaccante" (McTominay, Nico Paz, Pulisic) più titolari da 6 politico.</li>
+<li><b>Difesa 12-15%</b> — titolari che giocano sempre; col <b>modificatore</b> sali a 22-25% puntando su media voto (Gila, Bastoni).</li>
+<li><b>Porta 6-8%</b> — un titolare di fascia alta (Carnesecchi, Svilar) + un secondo vero.</li>
+</ul>`],
+["Al tavolo: tattiche d'asta", `
+<ul>
+<li><b>Non aprire tu i big che vuoi</b>: chi chiama spesso paga di più. Chiama presto i big che NON vuoi: bruciano il budget dei rivali.</li>
+<li>Occhio all'effetto <b>"ultimo della fascia"</b>: meglio il penultimo top a prezzo giusto che l'ultimo a prezzo folle.</li>
+<li>Se l'<b>inflazione</b> (tab Asta) supera 1.15×, i prezzi caleranno a metà asta: tieni crediti per quella finestra.</li>
+<li>Gli slot da 1 credito sceglili dal gruppo <b>Scommesse</b>: giovani con spazio e rigoristi di provinciali.</li>
+</ul>`],
+["Scambi e mercato di riparazione", `
+<ul>
+<li><b>Vendi l'hype, compra il calendario</b>: dopo 2-3 exploit un giocatore si scambia sopra il valore reale.</li>
+<li>A <b>gennaio</b> monitora i nuovi arrivi in Serie A: Malen preso a gennaio 2026 ha fatto 14 gol in mezza stagione.</li>
+<li>Mai cedere l'unico top di reparto per "sistemare la panchina".</li>
+</ul>`],
+["Ogni settimana: la formazione", `
+<ul>
+<li>Probabili formazioni il più tardi possibile: la titolarità vale più di ogni statistica.</li>
+<li>Aggiorna la <b>difficoltà avversari</b> nel tab Formazione: un discreto in casa contro l'ultima vale più di un top nel big match.</li>
+<li>In panchina metti prima chi ha più probabilità di giocare, non il più forte.</li>
+</ul>`],
+["Errori che costano campionati", `
+<ul>
+<li>Spendere oltre il 45% del budget su un solo giocatore.</li>
+<li>Comprare giocatori "in uscita" a prezzo pieno sperando che restino.</li>
+<li>Ignorare turnover di coppe e squalifiche.</li>
+<li>Farsi trascinare nei rilanci dei primi 30 minuti, quando l'inflazione è al massimo.</li>
+<li>Non aggiornare il listone dopo il mercato: un trasferimento cambia il valore.</li>
+</ul>`]
+  ];
+  return `<div class="card">
+    <h2>Guida strategica</h2>
+    <p class="sub">Il metodo, dalla preparazione alla gestione settimanale. Database e consigli aggiornati al ${DATA_DATE}.</p>
+    ${G.map(([t,b])=>`<details class="g"><summary>${t}</summary><div class="body">${b}</div></details>`).join("")}
+  </div>`;
+}
+
+/* ================= render & eventi ================= */
+function render(){
+  renderHeader();
+  $("#tabs").innerHTML = TABS.map(([id,l])=>`<button data-tab="${id}" class="${ui.tab===id?"on":""}">${l}</button>`).join("");
+  const views = {consigli:vConsigli, listone:vListone, strategia:vStrategia, asta:vAsta, rosa:vRosa, formazione:vFormazione, scambi:vScambi, guida:vGuida};
+  $("#view").innerHTML = views[ui.tab]();
+  if(ui.tab==="asta" && ui.astaSel){ const el=$("#buyPrice"); if(el) el.focus(); }
+}
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo");
+  if(!t) return;
+  if(t.dataset.open!==undefined && !t.dataset.tab){
+    const id = +t.dataset.open;
+    if(ui.tab==="consigli"){ ui.tab="listone"; ui.openId=id; ui.search=""; ui.role=""; ui.limit=500; }
+    else ui.openId = ui.openId===id ? 0 : id;
+    render();
+    return;
+  }
+  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; render(); return; }
+  if(t.dataset.crole!==undefined){ ui.consRole=t.dataset.crole; render(); return; }
+  if(t.dataset.frole!==undefined){ ui.role = ui.role===t.dataset.frole?"":t.dataset.frole; ui.limit=200; render(); return; }
+  if(t.id==="ftarget"){ ui.onlyTarget=!ui.onlyTarget; render(); return; }
+  if(t.id==="more"){ ui.limit+=300; render(); return; }
+  if(t.dataset.preset){ const p={...PRESETS[t.dataset.preset]}; delete p.label; state.settings.split=p; save(); render(); return; }
+  if(t.dataset.target){ const p=byId(+t.dataset.target); p.target=!p.target; save(); render(); return; }
+  if(t.dataset.sel){ ui.astaSel=+t.dataset.sel; render(); return; }
+  if(t.id==="buyCancel"){ ui.astaSel=null; render(); return; }
+  if(t.id==="buyMine"||t.id==="buyGone"){
+    const p = byId(ui.astaSel); if(!p) return;
+    const price = Math.max(0, +($("#buyPrice").value||0));
+    if(t.id==="buyMine"){
+      if(slotsLeft(p.role)<=0){ toast(`Slot ${p.role} già pieni`); return; }
+      if(!price){ toast("Inserisci il prezzo pagato"); return; }
+      if(price>maxBid()){ toast(`Oltre il tuo massimo (${maxBid()})`); return; }
+      p.status="mine"; p.paid=price; toast(`${p.name} è tuo per ${price} crediti`);
+    }else{
+      p.status="gone"; p.paid=price; toast(`${p.name} segnato come preso${price?` (${price} cr)`:""}`);
+    }
+    undoStack.push({id:p.id, name:p.name});
+    if(undoStack.length>30) undoStack.shift();
+    ui.astaSel=null; save(); render(); return;
+  }
+  if(t.id==="undo"){
+    const u = undoStack.pop(); const p = u&&byId(u.id);
+    if(p){ p.status="free"; p.paid=0; save(); toast(`${p.name} riportato all'asta`); }
+    render(); return;
+  }
+  if(t.dataset.release){ const p=byId(+t.dataset.release); p.status="free"; p.paid=0; save(); toast(`${p.name} svincolato`); render(); return; }
+  if(t.id==="doImport"){
+    const n = importListone($("#pasteArea").value);
+    if(n){ toast(`Importati ${n} giocatori`); render(); } else toast("Nessuna riga riconosciuta: controlla il formato");
+    return;
+  }
+  if(t.id==="expJson"){
+    const blob = new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
+    const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="fantahq-backup.json"; a.click();
+    URL.revokeObjectURL(a.href); toast("Backup scaricato"); return;
+  }
+  if(t.id==="loadSample"){ state=freshState(); undoStack=[]; save(); toast("Database interno ripristinato"); render(); return; }
+  if(t.id==="resetAll"){
+    if(!ui.confirmReset){ ui.confirmReset=true; render(); return; }
+    state=freshState(); undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0}); save(); toast("Dati azzerati"); render(); return;
+  }
+});
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-open2]");
+  if(t){ ui.tab="listone"; ui.openId=+t.dataset.open2; ui.search=""; ui.role=""; ui.limit=500; render(); }
+});
+
+document.addEventListener("input", e=>{
+  const el = e.target;
+  if(el.id==="q"){ ui.search=el.value; ui.limit=200; redrawKeepFocus(el); return; }
+  if(el.id==="astaQ"){ ui.astaSearch=el.value; redrawKeepFocus(el); return; }
+  if(el.id==="tradeQ"){ ui.tradeSearch=el.value; redrawKeepFocus(el); return; }
+  if(el.dataset.rate){ byId(+el.dataset.rate).rating=Math.min(10,Math.max(0,+el.value||0)); save(); renderHeader(); return; }
+  if(el.dataset.maxbid){ byId(+el.dataset.maxbid).maxBid=Math.max(0,+el.value||0); save(); return; }
+});
+
+document.addEventListener("change", e=>{
+  const el = e.target;
+  if(el.id==="fteam"){ ui.team=el.value; render(); return; }
+  if(el.id==="fsort"){ ui.sort=el.value; render(); return; }
+  if(el.id==="setBudget"){ state.settings.budget=Math.max(50,+el.value||500); save(); render(); return; }
+  if(el.dataset.slot){ state.settings.slots[el.dataset.slot]=Math.max(0,Math.min(15,+el.value||0)); save(); render(); return; }
+  if(el.dataset.split){ state.settings.split[el.dataset.split]=Math.max(0,Math.min(100,+el.value||0)); save(); render(); return; }
+  if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
+  if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
+  if(el.dataset.trade){
+    const [side,id] = el.dataset.trade.split(":");
+    const arr = side==="give"?ui.tradeGive:ui.tradeGet;
+    const n = +id, i = arr.indexOf(n);
+    if(el.checked && i===-1) arr.push(n); else if(!el.checked && i>-1) arr.splice(i,1);
+    render(); return;
+  }
+  if(el.id==="impJson"){
+    const f = el.files[0]; if(!f) return;
+    f.text().then(txt=>{
+      try{
+        const st = JSON.parse(txt);
+        if(!st||!Array.isArray(st.players)||!st.settings) throw 0;
+        state = st; undoStack=[]; save(); toast("Backup ripristinato"); render();
+      }catch(_){ toast("File non valido: serve un backup FantaHQ"); }
+    });
+  }
+});
+
+function redrawKeepFocus(el){
+  const id = el.id, pos = el.selectionStart;
+  render();
+  const n = document.getElementById(id);
+  if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} }
+}
+
+load();
+render();
+</script>
+
+</body>
+</html>
