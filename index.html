@@ -297,7 +297,7 @@ function kbFor(p){
 }
 
 function mkPlayer(id,name,team,role,qta,fvm,kbi){
-  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null };
+  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), extId:"", rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null };
 }
 function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
@@ -554,11 +554,12 @@ function parseListone(text){
     if(i<toks.length && MANTRA.test(toks[i]) && toks.length>i+2) i++;
     const name = toks[i], team = toks[i+1];
     if(!name || !team || /^\d+$/.test(name) || /^\d+$/.test(team)) continue;
+    const id = (ri>0 && /^\d+$/.test(toks[ri-1])) ? toks[ri-1] : "";   // codice ufficiale del calciatore (colonna prima del ruolo)
     const nums = toks.slice(i+2).map(Number).filter(n=>!isNaN(n));
     if(!nums.length) continue;
     const qta = nums[0];
     const fvm = nums.length>=7 ? nums[6] : (nums.length>=2 ? nums[nums.length-1] : 0);
-    if(qta>0) rows.push({role, name, team, qta, fvm});
+    if(qta>0) rows.push({id, role, name, team, qta, fvm});
   }
   return rows;
 }
@@ -569,8 +570,9 @@ function importListone(text){
   state.players = rows.map(r=>{
     const prev = old.get(norm(r.name)+"|"+r.role);
     const p = mkPlayer(state.nextId++, r.name, r.team, r.role, r.qta, r.fvm);
+    p.extId = r.id||"";
     const k = kbFor(p); if(k) p.kbi = k.i;
-    if(prev){ p.rating=prev.rating; p.target=prev.target; p.maxBid=prev.maxBid; p.status=prev.status; p.paid=prev.paid; }
+    if(prev){ p.rating=prev.rating; p.target=prev.target; p.maxBid=prev.maxBid; p.status=prev.status; p.paid=prev.paid; p.owner=prev.owner; }
     return p;
   });
   state.official = true;
@@ -578,9 +580,42 @@ function importListone(text){
   return rows.length;
 }
 
+/* ================= export CSV rose (per Leghe Fantacalcio) ================= */
+function downloadFile(name, text, mime){
+  const blob = new Blob(["﻿"+text], {type:(mime||"text/csv")+";charset=utf-8"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  URL.revokeObjectURL(a.href);
+}
+const csvCell = v=>{ const s=String(v==null?"":v); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+function myTeamName(){ return (state.settings.myTeam||"").trim() || "La mia squadra"; }
+function exportRoseCsv(all){
+  const SEP = ";";
+  const head = (all ? ["Fantasquadra","Id","R","Calciatore","Squadra","Costo"] : ["Id","R","Calciatore","Squadra","Costo"]);
+  let list, withMissingId=0;
+  if(all){
+    list = state.players.filter(p=>p.status==="mine" || (p.status==="gone"));
+  } else {
+    list = mine();
+  }
+  list = list.slice().sort((a,b)=> (a.status===b.status?0:a.status==="mine"?-1:1) || ROLES.indexOf(a.role)-ROLES.indexOf(b.role) || b.paid-a.paid);
+  const lines = [head.join(SEP)];
+  for(const p of list){
+    if(!p.extId) withMissingId++;
+    const team = p.status==="mine" ? myTeamName() : managerName(p.owner);
+    const cells = all
+      ? [team, p.extId||"", p.role, p.name, p.team, p.paid||0]
+      : [p.extId||"", p.role, p.name, p.team, p.paid||0];
+    lines.push(cells.map(csvCell).join(SEP));
+  }
+  if(!list.length) return {count:0};
+  const fname = `fantahq-rose-${(all?"tutte":norm(myTeamName()).replace(/\s+/g,"-"))||"mia"}.csv`;
+  downloadFile(fname, lines.join("\r\n"));
+  return {count:list.length, withMissingId, fname};
+}
+
 /* ================= sincronizzazione dispositivi ================= */
 const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0,
-  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0]) });
+  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0,p.extId||""]) });
 function decState(o){
   const st = freshState();
   st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
@@ -588,7 +623,7 @@ function decState(o){
   st.players = (o.p||[]).map((a,i)=>{
     const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
     p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
-    p.owner=a[10]||null; p.seq=a[11]||0;
+    p.owner=a[10]||null; p.seq=a[11]||0; p.extId=a[12]||"";
     return p;
   });
   st.nextId = st.players.length+1;
@@ -1069,7 +1104,19 @@ function vRosa(){
     <div class="kpi"><div class="l">Obiettivi presi</div><div class="v">${my.filter(p=>p.target).length}</div><div class="s">dei tuoi ★</div></div>
   </div>
   <div class="card"><h2>Spesa per reparto</h2><p class="sub">Barra rossa = reparto oltre il piano del tab Strategia.</p>${bars}</div>
-  <div class="card"><h2>Rosa completa</h2>${sections}</div>`;
+  <div class="card"><h2>Rosa completa</h2>${sections}</div>
+  <div class="card">
+    <h2>Esporta le rose per la lega (CSV)</h2>
+    <p class="sub">Scarica un CSV con giocatori e prezzi da caricare su Leghe Fantacalcio (Admin → Gestione rose → Importa). Il file usa il separatore <code>;</code> ed è modificabile in Excel.</p>
+    <div class="toolbar">
+      <label>Nome della mia fantasquadra <input type="text" id="myTeamName" value="${esc(state.settings.myTeam||"")}" placeholder="La mia squadra" style="width:180px" maxlength="40"></label>
+    </div>
+    <div class="footactions">
+      <button class="btn pri" id="csvMine">Scarica CSV della mia rosa</button>
+      <button class="btn" id="csvAll">Scarica CSV di tutte le rose</button>
+    </div>
+    <p class="help" style="margin-top:10px"><b>Per un import perfetto serve il codice Id ufficiale dei calciatori:</b> importa prima il <b>listone ufficiale</b> (tab Listone) — FantaHQ lo memorizza e lo mette nel CSV. Senza, il file esce senza Id e sulla piattaforma potresti dover associare qualche giocatore a mano. Il formato esatto varia un po' tra le piattaforme: se la tua chiede colonne diverse, mandami una riga del loro file di esempio e te lo adatto.</p>
+  </div>`;
 }
 
 /* ================= tab: FORMAZIONE ================= */
@@ -1304,8 +1351,14 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step]");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll");
   if(!t) return;
+  if(t.id==="csvMine"||t.id==="csvAll"){
+    const res = exportRoseCsv(t.id==="csvAll");
+    if(!res.count){ toast("Nessun giocatore da esportare: registra prima gli acquisti"); return; }
+    toast(`CSV scaricato: ${res.count} giocatori${res.withMissingId?` (${res.withMissingId} senza Id ufficiale)`:""}`);
+    return;
+  }
   if(t.id==="fastToggle"){ ui.fast=!ui.fast; ui.astaSel=null; render(); return; }
   if(t.dataset.step){
     const inp=$("#buyPrice"); if(inp){ inp.value=Math.max(1,(+inp.value||0)+ +t.dataset.step); inp.focus(); }
@@ -1434,6 +1487,7 @@ document.addEventListener("input", e=>{
   if(el.dataset.maxbid){ byId(+el.dataset.maxbid).maxBid=Math.max(0,+el.value||0); save(); return; }
   if(el.id==="leagueName"){ renameLeague(store.current, el.value); const s=$("#leagueSel"); if(s){ const o=[...s.options].find(o=>o.value===store.current); if(o) o.textContent=el.value||currentLeague().name; } return; }
   if(el.dataset.mgr){ const m=state.managers.find(x=>x.id===el.dataset.mgr); if(m){ m.name=el.value||m.name; save(); } return; }
+  if(el.id==="myTeamName"){ state.settings.myTeam=el.value; save(); return; }
 });
 
 document.addEventListener("change", e=>{
