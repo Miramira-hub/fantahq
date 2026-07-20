@@ -297,7 +297,7 @@ function kbFor(p){
 }
 
 function mkPlayer(id,name,team,role,qta,fvm,kbi){
-  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), extId:"", rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null };
+  return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), extId:"", rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null, note:"" };
 }
 function freshState(){
   const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
@@ -612,7 +612,7 @@ function exportRoseCsv(all){
 
 /* ================= sincronizzazione dispositivi ================= */
 const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0,
-  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0,p.extId||""]) });
+  p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0,p.extId||"",p.note||""]) });
 function decState(o){
   const st = freshState();
   st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
@@ -620,7 +620,7 @@ function decState(o){
   st.players = (o.p||[]).map((a,i)=>{
     const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
     p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
-    p.owner=a[10]||null; p.seq=a[11]||0; p.extId=a[12]||"";
+    p.owner=a[10]||null; p.seq=a[11]||0; p.extId=a[12]||""; p.note=a[13]||"";
     return p;
   });
   st.nextId = st.players.length+1;
@@ -657,6 +657,53 @@ function loadSyncCode(code){
 }
 
 /* ================= tab: CONSIGLI ================= */
+/* coppie portieri consigliate: un titolare + il suo secondo (stesso club, spesa minima)
+   oppure un secondo titolare economico di un'altra squadra */
+function gkPairs(){
+  const ks = state.players.filter(p=>p.role==="P").map(p=>({p,k:kbFor(p),a:advice(kbFor(p))})).filter(x=>x.k);
+  ks.sort((a,b)=>b.a.exp-a.a.exp);
+  const pairs=[]; const used=new Set();
+  for(const pr of ks.slice(0,6)){
+    if(used.has(pr.p.id)) continue;
+    const sameClub = ks.find(x=>x.p.id!==pr.p.id && x.p.team===pr.p.team);
+    let second, why;
+    if(sameClub){ second=sameClub; why="il suo secondo di squadra: spendi pochissimo e sei coperto quando riposa"; }
+    else { second = ks.filter(x=>x.p.id!==pr.p.id && x.p.team!==pr.p.team && x.k.tit>=80 && !used.has(x.p.id)).sort((a,b)=>a.p.qta-b.p.qta)[0];
+      why = "un secondo titolare economico di un'altra squadra"; }
+    if(second){ pairs.push({pr,second,why}); used.add(pr.p.id); used.add(second.p.id); }
+    if(pairs.length>=3) break;
+  }
+  return pairs;
+}
+function gkPairsHtml(){
+  const pairs = gkPairs();
+  if(!pairs.length) return "";
+  return `<div class="card">
+    <h2>Coppie portieri consigliate</h2>
+    <p class="sub">Partite dai portieri: qui trovi un titolare affidabile abbinato a un secondo sensato, così copri lo slot senza sprechi.</p>
+    ${pairs.map(({pr,second,why})=>`<div class="alert" style="border-color:var(--rP)">
+      <span class="role P">P</span>
+      <div class="txt"><b>${esc(pr.p.name)}</b> <span class="team">${esc(pr.p.team)}</span> (FM att. ${fmt1(pr.a.exp)}, quota ${pr.p.qta}) <b>+</b> <b>${esc(second.p.name)}</b> <span class="team">${esc(second.p.team)}</span> (quota ${second.p.qta}) — ${why}.</div>
+      <button class="btn sm" data-open="${pr.p.id}">Scheda</button>
+    </div>`).join("")}
+  </div>`;
+}
+/* mercato di riparazione: a rosa fatta, per ogni reparto confronta il tuo peggiore
+   con il miglior svincolato ancora libero e suggerisce l'upgrade */
+function repairSuggestions(){
+  const my = mine(); if(!my.length) return [];
+  const out=[];
+  for(const r of ROLES){
+    const mineR = my.map(p=>({p,a:advice(kbFor(p))})).filter(x=>x.p.role===r && x.a.exp!=null).sort((a,b)=>a.a.exp-b.a.exp);
+    const freeR = state.players.filter(p=>p.role===r&&p.status==="free").map(p=>({p,a:advice(kbFor(p))})).filter(x=>x.a.exp!=null).sort((a,b)=>b.a.exp-a.a.exp);
+    if(!mineR.length||!freeR.length) continue;
+    const worst=mineR[0], best=freeR[0];
+    const delta=(best.a.exp||0)-(worst.a.exp||0);
+    if(delta>=0.4) out.push({r,worst,best,delta});
+  }
+  return out.sort((a,b)=>b.delta-a.delta);
+}
+
 function vConsigli(){
   const groups = {};
   for(const p of state.players){
@@ -702,13 +749,18 @@ function vConsigli(){
     </div>
     ${sections || '<div class="empty">Nessun giocatore da mostrare.</div>'}
     <p class="help" style="margin-top:14px">Il motore è una bussola, non un oracolo: prima dell'asta verifica sempre le ultime notizie su mercato e gerarchie, soprattutto per i giocatori segnati "da monitorare".</p>
-  </div>`;
+  </div>
+  ${(ui.consRole===""||ui.consRole==="P")?gkPairsHtml():""}`;
 }
 
 /* ================= tab: LISTONE ================= */
+function noteBox(p){
+  return `<div style="margin-top:8px"><label class="help" style="display:block;margin-bottom:3px">La tua nota su ${esc(p.name)}</label>
+    <input type="text" data-note="${p.id}" value="${esc(p.note||"")}" placeholder="es. rigorista, in dubbio rinnovo, occhio al turnover…" style="width:100%;max-width:520px"></div>`;
+}
 function detailRow(p, colspan){
   const k = kbFor(p);
-  if(!k) return `<tr class="detail"><td colspan="${colspan}"><div class="why">Nessun dato storico nel database per questo giocatore: valuta con quota e notizie recenti.</div></td></tr>`;
+  if(!k) return `<tr class="detail"><td colspan="${colspan}"><div class="why">Nessun dato storico nel database per questo giocatore: valuta con quota e notizie recenti.</div>${noteBox(p)}</td></tr>`;
   const a = advice(k), t = TEAMS[k.t]||{};
   const stat = (l,v)=>`<div class="dstat"><div class="l">${l}</div><div class="v">${v}</div></div>`;
   return `<tr class="detail"><td colspan="${colspan}">
@@ -724,6 +776,7 @@ function detailRow(p, colspan){
     </div>
     <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(([x,c])=>`<span class="kchip ${c}">${x}</span>`).join("")}</div>
     <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
+    ${noteBox(p)}
   </td></tr>`;
 }
 function vListone(){
@@ -744,7 +797,7 @@ function vListone(){
     const k = kbFor(p), a = advice(k);
     return `<tr>
     <td>${roleChip(p.role)}</td>
-    <td class="pname" data-open="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span></td>
+    <td class="pname" data-open="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span>${p.note?' <span title="'+esc(p.note)+'">📝</span>':""}</td>
     <td>${fasciaBadge(fm[p.id]||4)}</td>
     <td class="r num">${p.qta}${state.official?"":"~"}</td>
     <td class="r num">${k?fmt1(k.fm)+(k.est?"~":""):"—"}</td>
@@ -1210,6 +1263,24 @@ function vScambi(){
       ${side("Ricevi", others, "get", ui.tradeGet)}
     </div>
     ${verdict || '<div class="empty">Seleziona almeno un giocatore per lato.</div>'}
+  </div>
+  ${repairHtml()}`;
+}
+function repairHtml(){
+  const my = mine();
+  if(!my.length) return "";
+  const sugg = repairSuggestions();
+  const body = sugg.length ? sugg.map(({r,worst,best,delta})=>`<div class="alert warn">
+      ${roleChip(r)}
+      <div class="txt">Svincola <b>${esc(worst.p.name)}</b> <span class="team">${esc(worst.p.team)}</span> (FM att. ${fmt1(worst.a.exp)}) → prendi <b>${esc(best.p.name)}</b> <span class="team">${esc(best.p.team)}</span> (FM att. ${fmt1(best.a.exp)}, <b>libero</b>). Miglioramento <b>+${delta.toFixed(2)}</b> di FM attesa.</div>
+      <button class="btn sm" data-open="${best.p.id}">Scheda</button>
+    </div>`).join("")
+    : '<div class="empty">Nessun upgrade evidente tra gli svincolati: la tua rosa è già competitiva reparto per reparto.</div>';
+  return `<div class="card">
+    <h2>Mercato di riparazione — svincolati</h2>
+    <p class="sub">A rosa completa, per ogni reparto confronto il tuo giocatore più debole con il miglior svincolato ancora libero. Utile a dicembre/gennaio: dice chi vale la pena mollare per prendere di meglio.</p>
+    ${body}
+    <p class="help" style="margin-top:8px">Prima di svincolare pesa sempre titolarità e calendario: un titolare modesto con partite facili può rendere più di un "nome" che gioca poco.</p>
   </div>`;
 }
 
@@ -1495,6 +1566,7 @@ document.addEventListener("input", e=>{
   if(el.id==="leagueName"){ renameLeague(store.current, el.value); const s=$("#leagueSel"); if(s){ const o=[...s.options].find(o=>o.value===store.current); if(o) o.textContent=el.value||currentLeague().name; } return; }
   if(el.dataset.mgr){ const m=state.managers.find(x=>x.id===el.dataset.mgr); if(m){ m.name=el.value||m.name; save(); } return; }
   if(el.id==="myTeamName"){ state.settings.myTeam=el.value; save(); return; }
+  if(el.dataset.note){ const p=byId(+el.dataset.note); if(p){ p.note=el.value; save(); } return; }
 });
 
 document.addEventListener("change", e=>{
