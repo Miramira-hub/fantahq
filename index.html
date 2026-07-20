@@ -580,6 +580,113 @@ function importListone(text){
   return rows.length;
 }
 
+/* ================= lettura file .xlsx (senza librerie esterne) ================= */
+const colOf = ref=>{ let s=0; for(const ch of ref){ const c=ch.charCodeAt(0); if(c>=65&&c<=90) s=s*26+(c-64); else break; } return s-1; };
+async function inflateRaw(u8){
+  if(typeof DecompressionStream==="undefined") throw new Error("Il browser non supporta la lettura .xlsx: incolla le righe o salva in CSV.");
+  const stream = new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function xlsxToText(buf){
+  const dv=new DataView(buf), u8=new Uint8Array(buf);
+  let eo=-1;
+  for(let i=u8.length-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ eo=i; break; } }
+  if(eo<0) throw new Error("File .xlsx non valido.");
+  const cdOff=dv.getUint32(eo+16,true), cnt=dv.getUint16(eo+10,true);
+  const entries={}; let p=cdOff;
+  for(let n=0;n<cnt;n++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true), compSize=dv.getUint32(p+20,true);
+    const nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), commLen=dv.getUint16(p+32,true);
+    const lho=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u8.subarray(p+46,p+46+nameLen));
+    entries[name]={method,compSize,lho};
+    p+=46+nameLen+extraLen+commLen;
+  }
+  const readEntry=async name=>{
+    const e=entries[name]; if(!e) return null;
+    const nl=dv.getUint16(e.lho+26,true), xl=dv.getUint16(e.lho+28,true);
+    const start=e.lho+30+nl+xl;
+    const comp=u8.subarray(start,start+e.compSize);
+    const raw=e.method===0?comp:await inflateRaw(comp);
+    return new TextDecoder("utf-8").decode(raw);
+  };
+  const ssXml=await readEntry("xl/sharedStrings.xml");
+  const shared=ssXml?[...new DOMParser().parseFromString(ssXml,"application/xml").getElementsByTagName("si")]
+    .map(si=>[...si.getElementsByTagName("t")].map(t=>t.textContent).join("")):[];
+  // scegli il foglio con più righe (il listone completo)
+  let best="", bestRows=-1;
+  for(const nm of Object.keys(entries)){
+    if(!/^xl\/worksheets\/sheet\d+\.xml$/.test(nm)) continue;
+    const xml=await readEntry(nm); if(!xml) continue;
+    const nr=(xml.match(/<row\b/g)||[]).length;
+    if(nr>bestRows){ bestRows=nr; best=xml; }
+  }
+  if(!best) throw new Error("Nessun foglio dati nel file.");
+  const doc=new DOMParser().parseFromString(best,"application/xml");
+  const lines=[...doc.getElementsByTagName("row")].map(row=>{
+    const arr=[];
+    for(const c of row.getElementsByTagName("c")){
+      const col=colOf(c.getAttribute("r")||"A");
+      const t=c.getAttribute("t"); const vEl=c.getElementsByTagName("v")[0];
+      let val="";
+      if(t==="s") val=shared[+(vEl?vEl.textContent:0)]||"";
+      else if(t==="inlineStr"){ const tt=c.getElementsByTagName("t")[0]; val=tt?tt.textContent:""; }
+      else val=vEl?vEl.textContent:"";
+      arr[col]=val;
+    }
+    return arr.map(x=>x==null?"":x).join("\t");
+  });
+  return lines.join("\n");
+}
+async function importListoneFile(file){
+  const isXlsx=/\.xlsx?$/i.test(file.name)||/\.xlsx$/i.test(file.name);
+  if(/\.xlsx$/i.test(file.name)){
+    const buf=await file.arrayBuffer();
+    const text=await xlsxToText(buf);
+    return importListone(text);
+  }
+  return importListone(await file.text());
+}
+
+/* ================= import rose di tutti (formato $,$,$ Fantacalcio) ================= */
+function importRoseCsv(text){
+  if(!state.players.some(p=>p.extId)) return {err:"Prima importa il listone ufficiale: servono i codici Id per abbinare i giocatori."};
+  const byExt=new Map(state.players.filter(p=>p.extId).map(p=>[String(p.extId),p]));
+  const order=[]; const map=new Map();
+  for(const raw of text.split(/\r?\n/)){
+    const line=raw.trim(); if(!line) continue;
+    const parts=line.split(",").map(s=>s.trim());
+    if(parts.length<3) continue;
+    const team=parts[0], id=parts[1], cost=parts[2];
+    if(team==="$"||!/^\d+$/.test(id)) continue;
+    if(!map.has(team)){ map.set(team,[]); order.push(team); }
+    map.get(team).push({id, cost:+cost||0});
+  }
+  if(!order.length) return {err:"Nessuna riga valida (formato atteso: Squadra,Id,Costo)."};
+  state.players.forEach(p=>{ p.status="free"; p.paid=0; p.owner=null; p.seq=0; });
+  state.managers=order.map((name,ix)=>({id:"m"+ix+"_"+Math.random().toString(36).slice(2,6), name}));
+  state.settings.nTeams=order.length+1;
+  let matched=0, unmatched=0, seq=0;
+  order.forEach((name,ix)=>{
+    for(const {id,cost} of map.get(name)){
+      const pl=byExt.get(String(id));
+      if(pl){ pl.status="gone"; pl.owner=state.managers[ix].id; pl.paid=cost; pl.seq=++seq; matched++; }
+      else unmatched++;
+    }
+  });
+  state.seq=seq; save();
+  return {teams:order.length, matched, unmatched};
+}
+function claimTeam(mgrId){
+  const m=state.managers.find(x=>x.id===mgrId); if(!m) return false;
+  state.players.forEach(p=>{ if(p.status==="gone"&&p.owner===mgrId){ p.status="mine"; p.owner=null; } });
+  state.managers=state.managers.filter(x=>x.id!==mgrId);
+  state.settings.nTeams=state.managers.length+1;
+  state.settings.myTeam=m.name;
+  undoStack=[]; save(); return true;
+}
+
 /* ================= export CSV rose (formato Leghe Fantacalcio) =================
    Formato reale: blocchi separati da una riga "$,$,$", righe "Fantasquadra,Id,Costo".
    Conta solo il codice Id del calciatore (viene dal listone ufficiale importato). */
@@ -739,6 +846,7 @@ function vConsigli(){
 
   return `
   ${state.official?"":`<div class="banner"><b>Quote stimate</b> — il listone ufficiale 2026-27 non è ancora uscito: le quote sono stime del motore. Importa quello vero dal tab Listone appena disponibile.</div>`}
+  ${ui.consRole==="P"?gkPairsHtml():""}
   <div class="card">
     <h2>Chi prendere all'asta — il verdetto del motore</h2>
     <p class="sub">Classifica calcolata su: fantamedia 2025-26 reale, minuti giocati, rigori, squadra e allenatore 2026-27, età, infortuni, titolarità attesa e situazioni di mercato. Dati aggiornati al <b>${DATA_DATE}</b>. Clicca un nome per aprire la scheda nel Listone.</p>
@@ -749,8 +857,7 @@ function vConsigli(){
     </div>
     ${sections || '<div class="empty">Nessun giocatore da mostrare.</div>'}
     <p class="help" style="margin-top:14px">Il motore è una bussola, non un oracolo: prima dell'asta verifica sempre le ultime notizie su mercato e gerarchie, soprattutto per i giocatori segnati "da monitorare".</p>
-  </div>
-  ${(ui.consRole===""||ui.consRole==="P")?gkPairsHtml():""}`;
+  </div>`;
 }
 
 /* ================= tab: LISTONE ================= */
@@ -836,12 +943,15 @@ function vListone(){
   </div>
   <div class="card">
     <h2>Importa il listone ufficiale</h2>
-    <p class="sub">Apri il file quotazioni (es. Fantacalcio.it), copia le righe dei giocatori e incolla qui: il motore aggancia automaticamente storico e consigli ai nomi.</p>
-    <textarea class="paste" id="pasteArea" placeholder="Incolla qui le righe copiate dal file quotazioni…&#10;Funziona anche il formato semplice:  P&#9;Sommer&#9;Inter&#9;16"></textarea>
+    <p class="sub">Carica direttamente il file <b>.xlsx</b> delle quotazioni Fantacalcio.it (o incolla le righe qui sotto). Il motore aggancia storico, consigli e codici Id ai nomi.</p>
+    <div class="footactions" style="margin-bottom:10px">
+      <label class="btn pri" style="display:inline-block">📄 Carica file (.xlsx / .csv)<input type="file" id="impCsv" accept=".xlsx,.csv,.tsv,.txt" style="display:none"></label>
+      <span class="help">Il file scaricato da Fantacalcio.it è .xlsx: caricalo così com'è.</span>
+    </div>
+    <textarea class="paste" id="pasteArea" placeholder="…oppure incolla qui le righe copiate dal file quotazioni&#10;Funziona anche il formato semplice:  P&#9;Sommer&#9;Inter&#9;16"></textarea>
     <div class="footactions" style="margin-top:10px">
-      <button class="btn pri" id="doImport">Importa</button>
-      <label class="btn" style="display:inline-block">Carica file CSV/TXT<input type="file" id="impCsv" accept=".csv,.tsv,.txt" style="display:none"></label>
-      <span class="help">Colonne riconosciute: <code>R · Nome · Squadra · Qt.A … FVM</code> (tab, punto e virgola o virgola). Voti e obiettivi vengono conservati.</span>
+      <button class="btn" id="doImport">Importa dal testo incollato</button>
+      <span class="help">Colonne riconosciute: <code>Id · R · Nome · Squadra · Qt.A … FVM</code>. Voti e obiettivi vengono conservati.</span>
     </div>
     <h3 class="sec">Sincronizza PC ↔ telefono</h3>
     <p class="help" style="margin:0 0 8px">I tuoi dati (rosa, voti, obiettivi) vivono solo su questo dispositivo. Per portarli altrove: genera il codice, invialo all'altro dispositivo (es. messaggio a te stesso) e lì incollalo e premi Carica.</p>
@@ -1124,9 +1234,26 @@ function vAsta(){
 }
 
 /* ================= tab: ROSA ================= */
+function roseImportHtml(){
+  const claim = state.managers.length ? `
+    <h3 class="sec">Qual è la tua squadra?</h3>
+    <div class="toolbar">
+      <select id="claimSel">${state.managers.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("")}</select>
+      <button class="btn pri" id="claimBtn">Questa è la mia squadra</button>
+    </div>
+    <p class="help">Sposta i giocatori di quella squadra nella tua rosa; le altre restano come rivali (li vedi in Asta → Crediti dei rivali).</p>` : "";
+  return `<div class="card">
+    <h2>Importa le rose di tutti ${state.official?"":'<span class="badge" style="border-color:var(--danger);color:var(--danger)">manca il listone</span>'}</h2>
+    <p class="sub">Carica il file rose della lega (formato Leghe Fantacalcio: blocchi <code>$,$,$</code> con righe <code>Squadra,Id,Costo</code>). I giocatori vengono assegnati alle squadre tramite il codice Id — quindi <b>importa prima il listone ufficiale</b> nel tab Listone.</p>
+    <div class="footactions">
+      <label class="btn pri" style="display:inline-block">📄 Carica file rose (.csv/.txt)<input type="file" id="impRose" accept=".csv,.txt" style="display:none"></label>
+    </div>
+    ${claim}
+  </div>`;
+}
 function vRosa(){
   const s = state.settings, my = mine();
-  if(!my.length) return `<div class="card"><div class="empty">Ancora nessun giocatore in rosa.<br>Registra gli acquisti nel tab <b>Asta live</b>.</div></div>`;
+  if(!my.length) return `<div class="card"><div class="empty">Ancora nessun giocatore nella tua rosa.<br>Registra gli acquisti nel tab <b>Asta live</b>, oppure importa qui sotto le rose di tutti e scegli la tua squadra.</div></div>${roseImportHtml()}`;
   const plan = r=>Math.round(s.budget*s.split[r]/100);
   const bars = ROLES.map(r=>{
     const spent = my.filter(p=>p.role===r).reduce((t,p)=>t+p.paid,0);
@@ -1172,7 +1299,8 @@ function vRosa(){
       <button class="btn" id="csvAll">Scarica CSV di tutte le rose</button>
     </div>
     <p class="help" style="margin-top:10px"><b>Indispensabile il codice Id ufficiale:</b> questo formato usa solo l'Id del calciatore, quindi devi aver importato il <b>listone ufficiale</b> (tab Listone) — FantaHQ ne memorizza l'Id (prima colonna <code>#</code>) e lo scrive nel CSV. Senza listone importato i giocatori vengono saltati e l'app te lo segnala.</p>
-  </div>`;
+  </div>
+  ${roseImportHtml()}`;
 }
 
 /* ================= tab: FORMAZIONE ================= */
@@ -1425,9 +1553,15 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole]");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
+  if(t.id==="claimBtn"){
+    const sel=$("#claimSel"); if(!sel) return;
+    const nm=(state.managers.find(m=>m.id===sel.value)||{}).name||"";
+    if(claimTeam(sel.value)){ toast(`"${nm}" è ora la tua rosa`); render(); }
+    return;
+  }
   if(t.id==="csvMine"||t.id==="csvAll"){
     const res = exportRoseCsv(t.id==="csvAll");
     if(!res.count){
@@ -1584,10 +1718,22 @@ document.addEventListener("change", e=>{
   if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
   if(el.id==="impCsv"){
     const f = el.files[0]; if(!f) return;
-    f.text().then(txt=>{
-      const n = importListone(txt);
+    toast("Lettura file in corso…");
+    importListoneFile(f).then(n=>{
       if(n){ toast(`Importati ${n} giocatori dal file`); render(); } else toast("Nessuna riga riconosciuta nel file");
+    }).catch(err=>{ toast(err.message||"Errore nella lettura del file"); });
+    el.value="";
+    return;
+  }
+  if(el.id==="impRose"){
+    const f = el.files[0]; if(!f) return;
+    f.text().then(txt=>{
+      const res = importRoseCsv(txt);
+      if(res.err){ toast(res.err); return; }
+      toast(`Rose importate: ${res.teams} squadre, ${res.matched} giocatori${res.unmatched?` (${res.unmatched} Id non trovati)`:""}`);
+      render();
     });
+    el.value="";
     return;
   }
   if(el.dataset.trade){
