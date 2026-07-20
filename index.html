@@ -273,7 +273,7 @@ let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
-           cmp:[], cmpSearch:"", fast:false, astaRole:"" };
+           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta" };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -1130,8 +1130,17 @@ function vAsta(){
   const roleFilter = `<div class="toolbar" style="gap:6px">
     <button class="fchip ${ui.astaRole===""?"on":""}" data-arole="">Tutti</button>
     ${ROLES.map(r=>{ const n=state.players.filter(p=>p.role===r&&p.status==="free").length; return `<button class="fchip ${ui.astaRole===r?"on":""}" data-arole="${r}">${ROLE_NAMES[r]} <span class="num">${n}</span></button>`;}).join("")}
+    <label style="margin-left:auto;font-size:13px;color:var(--muted)">Ordina
+      <select id="astaSort">
+        <option value="qta" ${ui.astaSort==="qta"?"selected":""}>Quota ↓</option>
+        <option value="exp" ${ui.astaSort==="exp"?"selected":""}>FM attesa ↓</option>
+        <option value="name" ${ui.astaSort==="name"?"selected":""}>Nome A-Z</option>
+      </select>
+    </label>
   </div>`;
-  list.sort((a,b)=>b.qta-a.qta);
+  const astaExp=p=>{ const k=kbFor(p); return k?advice(k).exp:0; };
+  const astaSorts={ qta:(a,b)=>b.qta-a.qta, exp:(a,b)=>astaExp(b)-astaExp(a)||b.qta-a.qta, name:(a,b)=>a.name.localeCompare(b.name) };
+  list.sort(astaSorts[ui.astaSort]||astaSorts.qta);
 
   const kpis = `<div class="kpis">
     <div class="kpi gold"><div class="l">Crediti residui</div><div class="v">${fmt(budgetLeft())}</div><div class="s">su ${state.settings.budget}</div></div>
@@ -1227,7 +1236,7 @@ function vAsta(){
       <thead><tr><th>R</th><th>Giocatore</th><th>Fascia</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">Quota</th><th class="r">Sugg.</th><th class="r">Tuo max</th><th></th></tr></thead>
       <tbody>${rows || `<tr><td colspan="9"><div class="empty">Nessun giocatore libero con questo filtro.</div></td></tr>`}</tbody>
     </table></div>
-    ${list.length>30?`<p class="help" style="margin:8px 0 0">Primi 30 per quota — usa la ricerca per gli altri ${list.length-30}.</p>`:""}
+    ${list.length>30?`<p class="help" style="margin:8px 0 0">Primi 30 in ordine scelto — usa la ricerca per gli altri ${list.length-30}.</p>`:""}
   </div>
   <div class="grid2">
     <div class="card">
@@ -1821,6 +1830,7 @@ document.addEventListener("change", e=>{
   if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
   if(el.id==="ruleMod"){ state.settings.rules=state.settings.rules||{}; state.settings.rules.modDef=el.value; save(); toast("Regolamento aggiornato: consigli ricalcolati"); render(); return; }
   if(el.id==="setTeams"){ state.settings.nTeams=Math.max(2,Math.min(20,+el.value||8)); ensureManagers(); save(); render(); return; }
+  if(el.id==="astaSort"){ ui.astaSort=el.value; render(); return; }
   if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
   if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
   if(el.id==="impCsv"){
