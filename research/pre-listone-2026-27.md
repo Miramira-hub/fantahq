@@ -88,19 +88,61 @@ Movimenti che cambiano il contesto/valore (da riflettere nel rebuild):
 
 ---
 
-## 4. Log ricerca giocatori (stat avanzate 2025-26)
+## 4. Log ricerca giocatori (stat avanzate 2025-26) — reparto per reparto
 
-Fonti: fbref, FootyStats, FotMob, StatMuse. `npxG` = xG senza rigori. Percentili su Serie A.
+Fonti: fbref, FootyStats, FotMob, StatMuse, Sky, fantacalcio.dev. `npxG` = xG senza rigori.
+Legenda segnali: 🟢 confermato/sostenibile · 💎 regressione+ (sottovalutato, salirà) · 🔻 regressione−/cautela · ⚡ breakout.
 
-| Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto macchina |
+**Contesto squadra (xG di squadra 25-26) — chi è stato sfortunato in porta:**
+- **Sotto** (attacchi sfortunati → giocatori che saliranno): Juventus 50.67 xG / **43 gol** (2ª qualità occasioni ma pessima conversione), Roma 44.45 xG / 34 gol, Fiorentina −9/−13, Pisa −13.9 (ma retrocessa).
+- **Sopra** (finalizzazione sopra la media → possibile calo): **Inter +13.3** (80 gol da 66.68 xG), Sassuolo.
+
+### 4.P Portieri
+| Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto |
 |---|---|---|---|---|
-| **Nico Paz** | Como (Fabregas) | 12 gol, 6 assist, 35 pres; **npxG/90 0.51 (~98° pct)** | — solido | 🟢 Rendimento sostenuto dai dati, non fortuna → **acquisto sicuro** |
-| **Soulé** | Roma (Gasperini) | ~5 assist ma **xA/90 0.27 (~94° pct)**; 7 gol | 💎 regressione+ | Crea da top, i compagni hanno sprecato → **assist in arrivo, sottovalutato**. Fit Gasperini ottimo |
-| **Gonçalo Ramos** | Milan (Amorim), NEW | PSG: 6 gol ma **xG 8.22** (sfortunato), **npxG/90 0.51** in ~1300' (chioccia) | ⚡ breakout | Nessuna FM in A → i sistemi solo-storico non lo vedono. Per-90 da titolare: **potenziale alto se gioca** |
-| **Dovbyk** | Bologna (Tedesco), da Roma | 3 gol/14 gare; xG/tiro 0.31 (7° in A) ma **tiri in porta 7 vs 43 vs 58** (crollo volume/minuti) | contesto cambiato | Alla Roma 🔻 fade; **al Bologna da titolare il giudizio si ribalta** → rivalutare col ruolo nuovo |
+| **Svilar** | Roma (Gasperini) | 18 clean sheet, **77.5% parate**, 107 parate | 🟢 | Miglior portiere Serie A; para-rigori. Top affidabile |
+| **Carnesecchi** | Atalanta (Sarri) | **78.1% parate (2°)**, 0.87 GA/90 (5°), 2 rig parati | 🟢 | Con Sarri (più controllo) resta élite. Migliore per FM |
+| **Milinkovic-Savic V.** | Napoli (Allegri) | **3 rigori parati** (top) | 💎 contesto | **Con la difesa di Allegri (0.88 subiti) un portiere Napoli vale tanto**. Nodo ballottaggio Meret da sciogliere |
+| **Maignan** | Milan (Amorim) | FM 5.84 | 🔻 contesto | Amorim offensivo → meno clean sheet; + voci mercato |
+| Montipò | Hellas *(verificare cat.)* | 3 rigori parati | — | Specialista dischetto |
 
-> Il punto del demo: la stessa macchina ha **confermato** un top (Paz), **scovato** un sottovalutato (Soulé),
-> **valutato** un nuovo senza storia (Ramos) e **contestualizzato** un caso mercato (Dovbyk). Solo numeri e fatti.
+### 4.D Difensori
+| Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto |
+|---|---|---|---|---|
+| **Dumfries** | Inter (Chivu) | **npxG/90 ~0.9** (altissimo per un D), quinto offensivo | 🟢 | Macchina da bonus; oro col modificatore |
+| **Dimarco** | Inter (Chivu) | Top reparto per gol+assist+piazzati | 🟢 | Certezza assoluta, primo investimento in difesa |
+| **Cambiaso** | Juventus (Spalletti) | 2 gol 3 assist in **23** (limitato da infortuni) | 💎 | Esterno goleador; con Spalletti offensivo e se sano → bonus in crescita |
+| **Angelino** | Roma (Gasperini) | Esterno da bonus nel sistema Gasp | ⚡/watch | Consacrazione possibile, ma **concorrenza Tsimikas**: verificare gerarchie |
+| *(sistema)* | Roma (Gasperini) | 101 gol dai difensori nell'era Gasp | 💎 | Braccetti/esterni Roma (Wesley, Ndicka, Celik) candidati bonus a sorpresa |
+
+### 4.C Centrocampisti
+| Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto |
+|---|---|---|---|---|
+| **Baturina** | Como (Fabregas) | **xA/90 0.34 (~98° pct)** ma solo 3 assist | 💎💎 | Crea da fuoriclasse, i compagni sprecano → **assist in arrivo, il vero sottovalutato** |
+| **Koopmeiners** | Juventus (Spalletti) | 0 gol 0 assist in 22 (infortuni/panca) ma **1.12 xA** | 💎 | **Bounce-back**: era top all'Atalanta; se Spalletti gli ridà il ruolo da trequartista-gol, rimbalza |
+| **Nico Paz** | Como (Fabregas) | 12 gol 6 assist; **npxG/90 0.51 (~98° pct)** | 🟢 | Non fortuna, dati solidi → acquisto sicuro (fulcro di Fabregas) |
+| **Pulisic** | Milan (Amorim) | **xA/90 0.28 (~95° pct)**, 4 assist + gol | 🟢 | Creatore + finalizzatore élite; Amorim lo esalta |
+| **Soulé** | Roma (Gasperini) | **xA/90 0.27 (~94° pct)**, ~5 assist, 7 gol | 💎 | Crea da top, compagni sprecano → assist in arrivo, sottovalutato |
+| **McTominay** | Napoli (Allegri) | 10 gol, 3 assist, 33 pres | 🟢 | Doppia cifra dal centrocampo, sostenibile; centrale anche con Allegri |
+
+### 4.A Attaccanti
+| Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto |
+|---|---|---|---|---|
+| **Thuram M.** | Inter (Chivu) | 13 gol, **npxG/90 0.64 (~99° pct)**, npxG 13.58 | 🟢 | Segna esattamente quanto crea → élite sostenibile |
+| **Højlund** | Napoli (Allegri) | 12 gol, npxG/90 0.41, npxG 12.48, 60 tiri | 🟢 | In linea col suo xG, affidabile; riferimento di Allegri |
+| **Krstović** | Atalanta (Sarri) | **npxG/90 0.63** (tra i top per-90) | 🟢 | Generatore di occasioni efficiente; buon valore se quota resta media |
+| **Kean** | Fiorentina (Grosso) | Tra i leader npxG; Fiorentina −9/−13 come squadra | 💎 | Rigorista; **se la Fiore finalizza meglio, sale**. Rendimento suo già solido |
+| **Lautaro** | Inter (Chivu) | Capocannoniere ma **+4.23 gol sopra xG** (max in A) | 🔻 cautela | Top vero, ma finalizzazione irripetibile: attendersi ~18-20, non 25 → non strapagare |
+| **Yildiz** | Juventus (Spalletti) | 11 gol + 9 assist; Juve 2ª qualità occasioni ma mal finalizzata | 💎 | Gioiello 21 anni; con Spalletti e migliore conversione Juve → margini di crescita |
+| **Camarda** | Lecce (Di Francesco) | 18 anni, **+44% potenziale al picco**, rigorista | ⚡ | La scommessa più intrigante: rigorista titolare giovanissimo |
+| **Pio Esposito** | Inter (Chivu) | Giovane, primi gol in A | ⚡ | Upside alto, gerarchie Inter da capire |
+| **Gonçalo Ramos** | Milan (Amorim), NEW | PSG: 6 gol ma xG 8.22 (sfortunato), npxG/90 0.51 in ~1300' | ⚡ | Nessuna FM in A; per-90 da titolare → potenziale alto se gioca |
+| **Dovbyk** | Bologna (Tedesco), da Roma | 3 gol/14; xG/tiro 0.31 (7°) ma tiri in porta 7 vs 43 vs 58 (crollo) | contesto | Alla Roma 🔻; **al Bologna da titolare il giudizio si ribalta** → rivalutare col ruolo nuovo |
+
+> **La macchina in azione:** conferma i top per dati (Thuram, Nico Paz, Svilar), scova i sottovalutati per
+> regressione+ (**Baturina, Koopmeiners, Soulé, Cambiaso**), tempera le trappole (**Lautaro** overperformance),
+> pesca i breakout (**Camarda, Gonçalo Ramos, Pio Esposito**) e ribalta i giudizi coi fatti di mercato (Dovbyk→Bologna).
+> Tutto da numeri e fatti, zero opinioni.
 
 ---
 
