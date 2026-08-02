@@ -28,6 +28,13 @@ fino al 1° settembre e le rose cambiano ancora. Questo file è la fonte di veri
 - 🔻 `regressione−`: gol molto sopra xG → probabile calo (non strapagare).
 - ⚡ `breakout`: alto rendimento per-90 con pochi minuti → se gioca di più esplode (pattern Nico Paz).
 
+**🚪 Cancello titolarità (FILTRO DURO — prima di ogni consiglio).**
+Un sottovalutato serve solo se GIOCA: un gioiello in panchina rende zero. Quindi:
+- Le statistiche **per-90** (xG/90, xA/90) misurano la *qualità*, NON quanto accumula: vanno sempre lette insieme a **minuti e % da titolare** (start su presenze) e alla **concorrenza nel ruolo** (chi ha davanti).
+- Regola: nessun giocatore entra in **"Da prendere / Obiettivo"** senza titolarità ragionevolmente certa (soglia minuti/start + nessun titolare inamovibile davanti + fiducia dell'allenatore).
+- Chi ha gran potenziale ma **rischio panchina** è limitato a **"Scommessa"** con flag esplicito *"titolarità da confermare"*. Mai spacciarlo per sicuro.
+- Dato pratico da raccogliere per ogni giocatore: **start%**, minuti, ballottaggi/gerarchie (fatto verificabile). Aggiornabile a inizio stagione con le probabili.
+
 **Auto-rosa ottimale:** dato budget + slot + valori attesi + prezzi, ottimizzatore (knapsack per reparto)
 che propone la rosa migliore per valore atteso.
 
@@ -118,8 +125,8 @@ Legenda segnali: 🟢 confermato/sostenibile · 💎 regressione+ (sottovalutato
 ### 4.C Centrocampisti
 | Giocatore | Squadra 26-27 | Dati chiave 25-26 | Segnale | Verdetto |
 |---|---|---|---|---|
-| **Baturina** | Como (Fabregas) | **xA/90 0.34 (~98° pct)** ma solo 3 assist | 💎💎 | Crea da fuoriclasse, i compagni sprecano → **assist in arrivo, il vero sottovalutato** |
-| **Koopmeiners** | Juventus (Spalletti) | 0 gol 0 assist in 22 (infortuni/panca) ma **1.12 xA** | 💎 | **Bounce-back**: era top all'Atalanta; se Spalletti gli ridà il ruolo da trequartista-gol, rimbalza |
+| **Baturina** | Como (Fabregas) | xA/90 0.34 (~98° pct) ma **solo 17 start/38**, 1570' | 💎 ma 🚪⚠️ | Qualità per-90 da top, MA **chiuso da Nico Paz** ("inamovibile" per Fabregas) → gioca a spezzoni. **Scommessa, non sicuro**: solo se libera il posto/cambia squadra |
+| **Koopmeiners** | Juventus (Spalletti) | 0 gol 0 assist in 22 (infortuni/panca), 1354' ma **1.12 xA** | 💎 ma 🚪 | Bounce-back potenziale (era top all'Atalanta), **ma titolarità/ruolo da confermare** con Spalletti → scommessa da tenere d'occhio, non certezza |
 | **Nico Paz** | Como (Fabregas) | 12 gol 6 assist; **npxG/90 0.51 (~98° pct)** | 🟢 | Non fortuna, dati solidi → acquisto sicuro (fulcro di Fabregas) |
 | **Pulisic** | Milan (Amorim) | **xA/90 0.28 (~95° pct)**, 4 assist + gol | 🟢 | Creatore + finalizzatore élite; Amorim lo esalta |
 | **Soulé** | Roma (Gasperini) | **xA/90 0.27 (~94° pct)**, ~5 assist, 7 gol | 💎 | Crea da top, compagni sprecano → assist in arrivo, sottovalutato |
