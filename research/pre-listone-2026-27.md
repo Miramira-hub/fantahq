@@ -36,32 +36,36 @@ che propone la rosa migliore per valore atteso.
 ## 2. Profili-allenatore 2026-27 (data-driven)
 
 Ogni allenatore riceve un peso per reparto ricavato dal **rendimento storico dei suoi reparti**,
-applicato ai giocatori della sua squadra 2026-27. `P/D/C/A` = spinta sul valore fantacalcistico.
+applicato ai giocatori della sua squadra 2026-27. Legenda spinta: `++` forte, `+` medio, `=` neutro, `−` penalizza.
 
-| Allenatore | Squadra 26-27 | Tilt (dati) | Effetto fantacalcio |
-|---|---|---|---|
-| **Allegri** | Napoli | Difesa élite: al Milan 43→2ª difesa Serie A; a fine Juve 270 gol subiti in 346 gare | **P ++ , D +** (specie col modificatore); attacco cinico ma meno volumi |
-| **Gasperini** | Roma | Difensori: **101 gol** dal 2016/17 (record EU); braccetti/esterni bonus (Gosens 25g+16a) | **D + (bonus offensivo braccetti/esterni)** , **A/trequartisti ++** |
-| Sarri | Atalanta | *(da ancorare)* possesso, più controllo del caos offensivo dell'Atalanta di Gasp | registi/mezzali; meno gol-difensori del passato Atalanta |
-| Chivu | Inter | *(da ancorare)* rosa fortissima, equilibrata | valori alti diffusi |
-| Spalletti | Juventus | *(da ancorare)* gioco offensivo, esalta trequartisti/gol | C/A offensivi |
-| Fabregas | Como | *(da ancorare)* gioco propositivo, lancia i giovani | talenti C/A, occasioni |
-| Gattuso | Lazio | *(da ancorare)* compattezza | D/portiere > attacco |
-| Tedesco | Bologna | *(da ancorare)* squadra organizzata | equilibrio |
-| Amorim | Milan | *(da ancorare)* 3-4-3, esterni | esterni/attacco |
-| Pisacane | Cagliari | *(da ancorare)* | |
-| De Rossi | Genoa | *(da ancorare)* | |
-| Cuesta | Parma | *(da ancorare)* | |
-| Di Francesco | Lecce | *(da ancorare)* | |
-| Aquilani | Sassuolo | *(da ancorare)* | |
-| Juric | Monza | *(da ancorare)* difesa aggressiva | |
-| Stroppa | Venezia | *(da ancorare)* neopromossa | |
-| Alvini | Frosinone | *(da ancorare)* neopromossa | |
-| Grosso | Fiorentina | *(da ancorare)* | |
-| Abate | Torino | *(da ancorare)* | |
-| Runjaic | Udinese | *(da ancorare)* | |
+**Ancora quantitativa — gol subiti/partita in Serie A (storico allenatori):**
+Conte 0.80 · **Allegri 0.88** · **Chivu 0.94** · **Sarri 1.06**. È la spina dorsale del "peso difensivo".
 
-> TODO: ancorare con dati (gol subiti/fatti, clean sheet, quota gol da difensori) i tecnici "da ancorare".
+| Allenatore | Squadra 26-27 | P | D | C | A | Insight + ancora dati |
+|---|---|:--:|:--:|:--:|:--:|---|
+| **Allegri** | Napoli | ++ | + | = | = | Difesa élite (0.88 subiti; Milan 43→2ª difesa). **Porta/difesa d'oro col modificatore**; attacco cinico, pochi volumi |
+| **Chivu** | Inter | + | + | + | ++ | 0.94 subiti (3° storico) + rosa fortissima: **valori alti diffusi**, difesa solida e attacco top |
+| **Sarri** | Atalanta | + | + | + | = | Possesso + difesa (Lazio 2ª per clean sheet, 14; 1.06 subiti). Eredita l'Atalanta: **meno gol-dai-difensori** dell'era Gasp, più **registi/mezzali** |
+| **Spalletti** | Juventus | = | + | ++ | ++ | Miglior attacco E difesa nello scudetto Napoli; possesso; **24 gol da palla inattiva** (bonus a chi batte/incorna). Esalta **trequartisti e attaccanti** |
+| **Gasperini** | Roma | = | + | ++ | ++ | **101 gol dai difensori** dal 2016/17 (record EU): **braccetti/esterni fanno bonus**; trequartisti/attaccanti ++ |
+| **Gattuso** | Lazio | + | + | + | + | Pressing intenso, verticale, compatto (Napoli 86 fatti/41 subiti). Equilibrio, punta su **transizioni**; non difensivista puro come Sarri |
+| **Amorim** | Milan | = | + | + | ++ | 3-4-3 super offensivo (Sporting record gol, quinti alti sulla linea d'attacco): **esterni/quinti bonus, attacco ++**. Cautela: 1ª in A dopo il flop Man Utd |
+| **Fabregas** | Como | + | + | ++ | + | Possesso 4-2-3-1, **trequartista libero fulcro** (Nico Paz), lancia giovani, difesa discreta. **Talenti C/trequartista ++**, occasioni nascoste |
+| **Juric** | Monza | + | + | = | + | 3-4-3 marcatura a uomo, discepolo di Gasp: Torino **4ª difesa (17 subiti)**, quinti con inserimenti. Ma Monza neopromossa (materiale scarso) |
+| **Tedesco** | Bologna | = | + | + | + | Verticale e intenso, arriva in fretta in area, difesa a 3/4 variabile, aggressivo in transizione. Equilibrio |
+| **De Rossi** | Genoa | + | + | = | = | 4-3-3, intensità + costruzione + **compattezza difensiva**. Solidità da metà classifica |
+| **Runjaic** | Udinese | + | + | = | = | *(tattico)* Udinese organizzata e solida dietro, poche fonti di bonus offensivo |
+| **Cuesta** | Parma | = | + | + | = | *(tattico)* scuola possesso (assistente City), gioco propositivo ma rosa giovane |
+| **Aquilani** | Sassuolo | = | = | + | + | *(tattico)* possesso/propositivo (pedigree Primavera Fiore); Sassuolo tende al bel gioco |
+| **Di Francesco** | Lecce | = | = | + | + | *(tattico)* 4-3-3 offensivo, ma Lecce da salvezza: bonus limitati dal materiale |
+| **Grosso** | Fiorentina | = | + | + | + | *(tattico)* pragmatico, verticale sugli esterni |
+| **Abate** | Torino | = | + | + | = | *(tattico)* pedigree Primavera Milan, gioco ordinato, valorizza giovani |
+| **Pisacane** | Cagliari | + | + | = | = | *(tattico)* confermato, pragmatico da salvezza, difesa prima di tutto |
+| **Stroppa** | Venezia | + | + | = | = | *(tattico)* neopromossa, 3-5-2 accorto/difensivo |
+| **Alvini** | Frosinone | = | + | = | = | *(tattico)* neopromossa, salvezza, pochi bonus attesi |
+
+> Marcati *(tattico)* = profilo da identità di gioco, da rifinire con dati stagionali al rebuild.
+> I `++/+` diventeranno moltiplicatori numerici nel motore (rimpiazzano il rating atk/def a mano per squadra).
 
 ---
 
