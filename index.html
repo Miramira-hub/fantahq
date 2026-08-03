@@ -413,7 +413,10 @@ function load(){
   }catch(e){}
   store = newStore(); state = currentLeague().state; save();
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(store)); return true; }
+  catch(e){ try{ toast("Salvataggio non riuscito: spazio del browser esaurito"); }catch(_){} return false; }
+}
 
 function selectLeague(id){
   if(!store.leagues[id]) return;
@@ -975,8 +978,10 @@ function vListone(){
       <button class="btn" id="expJson">Esporta backup (JSON)</button>
       <label class="btn" style="display:inline-block">Importa backup<input type="file" id="impJson" accept=".json" style="display:none"></label>
       <button class="btn" id="loadSample">Ripristina database interno</button>
-      <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Cancella tutto":"Azzera tutti i dati"}</button>
+      <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Azzera questa lega":`Azzera questa lega (${esc(currentLeague().name)})`}</button>
+      <button class="btn warn" id="resetEverything">${ui.confirmWipe?"Confermi? CANCELLA TUTTO":`Azzera tutto — ${store.order.length} leghe`}</button>
     </div>
+    <p class="help" style="margin-top:8px"><b>Azzera questa lega</b> svuota solo la lega selezionata. <b>Azzera tutto</b> cancella <b>tutte le ${store.order.length} leghe</b> e riparte da zero con una lega vuota: usalo per ripulire i dati di prova prima di una nuova stagione.</p>
   </div>`;
 }
 /* ================= tab: STRATEGIA ================= */
@@ -1669,7 +1674,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
   if(t.id==="claimBtn"){
@@ -1752,7 +1757,7 @@ document.addEventListener("click", e=>{
     render();
     return;
   }
-  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; render(); return; }
+  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; ui.confirmWipe=false; render(); return; }
   if(t.dataset.crole!==undefined){ ui.consRole=t.dataset.crole; render(); return; }
   if(t.dataset.frole!==undefined){ ui.role = ui.role===t.dataset.frole?"":t.dataset.frole; ui.limit=200; render(); return; }
   if(t.id==="ftarget"){ ui.onlyTarget=!ui.onlyTarget; render(); return; }
@@ -1796,8 +1801,16 @@ document.addEventListener("click", e=>{
   }
   if(t.id==="loadSample"){ currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; save(); toast("Database interno ripristinato (questa lega)"); render(); return; }
   if(t.id==="resetAll"){
-    if(!ui.confirmReset){ ui.confirmReset=true; render(); return; }
-    currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[]}); save(); toast("Dati di questa lega azzerati"); render(); return;
+    if(!ui.confirmReset){ ui.confirmReset=true; ui.confirmWipe=false; render(); return; }
+    currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[]}); save(); toast(`Lega "${currentLeague().name}" azzerata`); render(); return;
+  }
+  if(t.id==="resetEverything"){
+    if(!ui.confirmWipe){ ui.confirmWipe=true; ui.confirmReset=false; render(); return; }
+    try{ localStorage.removeItem(KEY); localStorage.removeItem(OLD2); localStorage.removeItem(OLD1); }catch(_){}
+    store=newStore(); state=currentLeague().state; undoStack=[];
+    Object.assign(ui,{confirmWipe:false,confirmReset:false,confirmDel:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[],
+      search:"",astaSearch:"",tradeSearch:"",cmpSearch:"",role:"",team:"",astaRole:"",consRole:"",onlyTarget:false});
+    save(); toast("Tutto azzerato: sei ripartito da una sola lega vuota"); render(); return;
   }
 });
 document.addEventListener("click", e=>{
