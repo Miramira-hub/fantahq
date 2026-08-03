@@ -153,6 +153,30 @@ Legenda segnali: 🟢 confermato/sostenibile · 💎 regressione+ (sottovalutato
 
 ---
 
+## 6. Roadmap stagionale (in-season workflow)
+
+La macchina non si ferma all'asta: si affina ogni giornata. Cadenza concordata con l'utente.
+
+**Fase 0 — Pre-stagione (dal 4 agosto):**
+- Analisi completa di tutti i giocatori (rebuild §5).
+- **Titolarità % di base** per ogni giocatore: da minuti/start% 25-26 + probabili formazioni + gerarchie/ballottaggi (fatto verificabile). È il cuore del "cancello titolarità".
+- Segnare i ballottaggi aperti (es. portiere Napoli Milinkovic-Savic/Meret) da sciogliere con le prime uscite.
+
+**Fase 1 — In stagione, recap a ogni giornata:**
+- **Aggiornare la titolarità %** con le formazioni realmente schierate (chi gioca davvero, chi è in panchina).
+- **Difficoltà calendario** per la giornata (auto quando escono i fixtures).
+- **Segnalare gem/trap emergenti**: chi sta sopra/sotto il proprio xG nelle ultime giornate (regressione in tempo reale), nuovi titolari, cambi di rigorista, infortuni/squalifiche.
+- **Form/momentum**: trend fantamedia ultime N giornate.
+
+**Fase 2 — Potenziare i consigli di formazione (progressivo):**
+- Da "gioca/dubbio/out" manuale → **titolarità suggerita dai dati** (l'app propone gli 11, l'utente conferma).
+- Consiglio che pesa: titolarità % + difficoltà avversario + form recente + rigorista + storico contro quell'avversario.
+- Alert pre-giornata sui casi dubbi (ballottaggi, rientri da infortunio, turnover coppe).
+
+> Nota operativa: il recap settimanale è una **passata di ricerca** (dati reali della giornata) — su richiesta,
+> oppure valutare una routine schedulata durante la stagione. Non automatizzabile "a scatola nera": serve
+> leggere formazioni/infortuni reali ogni settimana.
+
 ## 5. TODO al 4 agosto (rebuild)
 - [ ] Importare il listone ufficiale 2026-27 → set definitivo di giocatori, ruoli, **Id**, quotazioni.
 - [ ] Rigenerare `data/kb.js` con nomi in formato "Cognome I." (matching esatto col listone).
