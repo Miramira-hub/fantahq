@@ -173,9 +173,11 @@ La macchina non si ferma all'asta: si affina ogni giornata. Cadenza concordata c
 - Consiglio che pesa: titolarità % + difficoltà avversario + form recente + rigorista + storico contro quell'avversario.
 - Alert pre-giornata sui casi dubbi (ballottaggi, rientri da infortunio, turnover coppe).
 
-> Nota operativa: il recap settimanale è una **passata di ricerca** (dati reali della giornata) — su richiesta,
-> oppure valutare una routine schedulata durante la stagione. Non automatizzabile "a scatola nera": serve
-> leggere formazioni/infortuni reali ogni settimana.
+> **Trigger: SEMPRE su richiesta dell'utente, MAI schedulato.** Deciso con l'utente: il calendario è
+> irregolare (turni infrasettimanali + weekend, coppe, rinvii, soste), quindi una routine a cadenza fissa
+> sarebbe fuori sincrono. L'utente scrive quando aggiornare (es. "recap per la 5ª", "c'è stato
+> l'infrasettimanale, riaggiorna per il weekend") e io faccio la passata sui dati reali di quel momento.
+> Ogni recap = dati veri della giornata (formazioni, infortuni, squalifiche, rigoristi): non automatizzabile a scatola nera.
 
 ## 5. TODO al 4 agosto (rebuild)
 - [ ] Importare il listone ufficiale 2026-27 → set definitivo di giocatori, ruoli, **Id**, quotazioni.
