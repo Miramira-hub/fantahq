@@ -59,7 +59,37 @@ const estFM = (role,q) => {
   return Math.round(Math.max(lo, Math.min(hi, v)) * 100) / 100;
 };
 
-/* ---- titolarità stimata dal rango della quota dentro squadra+ruolo ---- */
+/* ================= DATI REALI 2025-26 (Understat: 430 giocatori con >=450') =================
+   [nome, squadra25-26, minuti, presenze, gol, xG, assist, xA, npxG, tiri, keyPasses]
+   Danno: minuti/titolarità REALI (non stimati), gol+assist reali e soprattutto i segnali di
+   regressione (gol vs npxG, assist vs xA) = le occasioni nascoste. */
+const US = JSON.parse(fs.readFileSync(`${SCRATCH}/understat2526.json`, "utf8"))
+  .map(r => ({ n:r[0], t:r[1], min:r[2], gp:r[3], gol:r[4], xg:r[5], ass:r[6], xa:r[7], npxg:r[8], tiri:r[9], kp:r[10] }));
+
+/* Il listone scrive "Cognome I." / "Cognome N.C.", Understat il nome completo:
+   abbino sul cognome e, quando c'è, verifico l'iniziale del nome (evita Martinez L. vs Martinez Jo.). */
+const surnameOf = n => { const t = toks(n); return t[t.length-1]; };
+const initialsOf = n => (String(n).match(/\b([A-Z])\./g) || []).map(s => s[0].toLowerCase());
+const USBY = new Map();
+for (const u of US) { const s = surnameOf(u.n); if (!USBY.has(s)) USBY.set(s, []); USBY.get(s).push(u); }
+function findUS(p){
+  const cands = USBY.get(surnameOf(p.n)) || [];
+  if (!cands.length) return null;
+  if (cands.length === 1) return cands[0];
+  const ini = initialsOf(p.n);
+  if (ini.length) {
+    const byIni = cands.filter(u => { const first = toks(u.n)[0] || ""; return first.startsWith(ini[0]); });
+    if (byIni.length === 1) return byIni[0];
+  }
+  const byTeam = cands.filter(u => norm(u.t) === norm(p.t));   // stessa squadra = non si è mosso
+  if (byTeam.length === 1) return byTeam[0];
+  return null;                                                  // ambiguo: meglio nessun dato che dati sbagliati
+}
+const MAXMIN = 38 * 90;
+/* titolarità reale dai minuti giocati (quota parte della stagione effettivamente in campo) */
+const titFromMinutes = u => Math.max(10, Math.min(97, Math.round(u.min / MAXMIN * 100)));
+
+/* ---- titolarità stimata dal rango della quota dentro squadra+ruolo (fallback) ---- */
 const rankTit = (p) => {
   const same = L.filter(x => x.t === p.t && x.r === p.r).sort((a,b) => b.q - a.q);
   const i = same.findIndex(x => x.id === p.id);
@@ -89,7 +119,7 @@ const RIG = {
 
 /* ---- note/insight dalla pre-ricerca (segnali data-driven) ---- */
 const NOTE = {
-  "Martinez L.":"Capocannoniere 25-26 (17 gol) ma +4.23 gol sopra il suo xG: fuoriclasse vero, però non aspettarti di nuovo 25 gol.",
+  "Martinez L.":"Capocannoniere 25-26 con 17 gol e xG 17.1: segna esattamente quanto crea, rendimento pienamente sostenibile.",
   "Malen":"FM 8.81 su mezza stagione nel sistema Gasperini + ora primo rigorista: il colpo più pesante dopo Lautaro.",
   "Thuram":"npxG/90 0.64 (top 99°): segna esattamente quanto crea, rendimento sostenibile.",
   "Hojlund":"11 gol in linea col suo xG: affidabile, riferimento offensivo di Allegri.",
@@ -150,31 +180,50 @@ const TEAMS = {
 /* ---- costruzione ---- */
 const esc = s => String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"');
 const ROLE_TITLE = { P:"PORTIERI", D:"DIFENSORI", C:"CENTROCAMPISTI", A:"ATTACCANTI" };
-let matched = 0, estimated = 0;
+let matched = 0, estimated = 0, withUS = 0;
 const lines = [];
 for (const role of ["P","D","C","A"]) {
   let first = true;
   for (const p of L.filter(x => x.r === role).sort((a,b) => b.q - a.q)) {
     const o = findOld(p);
+    const u = findUS(p);                       // dati reali 25-26
+    if (u) withUS++;
     const hasReal = o && !o.est;
     if (hasReal) matched++; else estimated++;
     const fm  = hasReal ? o.fm : estFM(p.r, p.q);
     const est = hasReal ? 0 : 1;
-    const pres = o ? o.pres : 0;
-    const gol  = o ? o.gol : 0;
-    const ass  = o ? o.ass : 0;
+    const pres = u ? u.gp  : (o ? o.pres : 0);
+    const gol  = u ? u.gol : (o ? o.gol : 0);
+    const ass  = u ? u.ass : (o ? o.ass : 0);
     const rig  = RIG[p.n] ?? (o ? o.rig : 0);
-    /* Cancello titolarità: chi ha cambiato squadra riparte dalle gerarchie NUOVE
-       (un titolare altrove può essere riserva qui: es. Provedel, titolare Lazio → vice Inter).
-       Chi è rimasto conserva metà del peso storico. */
-    const changedTeam = !o || norm(o.t) !== norm(p.t);
-    const tit  = (o && o.tit && !changedTeam) ? Math.round((o.tit + rankTit(p)) / 2) : rankTit(p);
+    /* Cancello titolarità. Priorità ai MINUTI REALI giocati; chi ha cambiato squadra riparte
+       dalle gerarchie nuove (un titolare altrove può essere riserva qui: Provedel, Lazio → vice Inter). */
+    const changedTeam = !u || norm(u.t) !== norm(p.t);
+    const tit = u
+      ? (changedTeam ? Math.round((titFromMinutes(u) + rankTit(p)) / 2) : titFromMinutes(u))
+      : rankTit(p);
     const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
     const inj  = o ? o.inj : 0;
     const age  = o && o.age ? o.age : 26;
     const unc  = 0;                       // mercato quasi chiuso: azzerato, si aggiorna nei recap
     const newT = o ? (norm(o.t) !== norm(p.t) ? 1 : 0) : 1;
-    const note = NOTE[p.n] || (o ? o.note : "");
+
+    /* ---- segnali di regressione dai dati reali: le occasioni nascoste ----
+       gol molto sotto npxG = ha creato più di quanto ha segnato → risalirà (e viceversa).
+       Stessa logica su assist vs xA. Solo con minuti sufficienti per essere significativo. */
+    let signal = "";
+    if (u && u.min >= 700) {
+      /* Confronto gol totali con xG TOTALE (non npxG): npxG esclude i rigori, quindi userebbe
+         un metro sbagliato per i rigoristi (es. Calhanoglu risulterebbe +7.7 sopra le attese). */
+      const dG = u.gol - u.xg, dA = u.ass - u.xa;
+      const p90 = (u.npxg / u.min * 90);
+      if (dG <= -3)      signal = `💎 Ha segnato ${u.gol} gol creandone ${u.xg.toFixed(1)} (${dG.toFixed(1)}): finalizzazione sfortunata, il rendimento dovrebbe risalire.`;
+      else if (dG >= 3)  signal = `🔻 ${u.gol} gol su ${u.xg.toFixed(1)} attesi (+${dG.toFixed(1)}): stagione sopra le righe, difficile da ripetere.`;
+      else if (dA <= -2.5) signal = `💎 ${u.ass} assist ma ${u.xa.toFixed(1)} attesi: crea occasioni che i compagni sprecano, gli assist arriveranno.`;
+      else if (p90 >= 0.45 && u.min < 1600) signal = `⚡ ${p90.toFixed(2)} npxG/90 in sole ${Math.round(u.min/90)} partite piene: rendimento alto con pochi minuti, se gioca di più esplode.`;
+    }
+    const baseNote = NOTE[p.n] || (o ? o.note : "");
+    const note = [baseNote, signal].filter(Boolean).join(" ");
     const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}"]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
@@ -207,4 +256,4 @@ if (!probe.window.FANTAHQ_DATA || probe.window.FANTAHQ_DATA.kb.length !== L.leng
 fs.writeFileSync(`${REPO}/data/kb.js`, out);
 console.log("giocatori:", L.length, "| FM reale:", matched, "| FM stimata:", estimated);
 console.log("regressioni:", JSON.stringify(Object.fromEntries(Object.entries(REG).map(([k,v]) => [k, `fm=${v.a.toFixed(2)}+${v.b.toFixed(3)}*ln(q) (n=${v.n})`]))));
-console.log("rigoristi applicati:", L.filter(p => RIG[p.n]).length, "| note:", L.filter(p => NOTE[p.n]).length);
+console.log("con dati reali Understat:", withUS, "su", L.length, "| rigoristi:", L.filter(p => RIG[p.n]).length);
