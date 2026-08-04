@@ -237,7 +237,7 @@ for (const role of ["P","D","C","A"]) {
     }
     const baseNote = NOTE[p.n] || (o ? o.note : "");
     const note = [baseNote, signal].filter(Boolean).join(" ");
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}"]`;
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}"]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }
@@ -249,12 +249,13 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    - teams: rating attacco/difesa 1-5 + allenatore (profili ricavati dai dati storici dei tecnici)
    - kb: [ruolo, nome, squadra, quotaUfficiale, fantamedia, fmStimata(0/1), presenze, gol, assist,
           rigorista(2=primo,1=alternativa,0=no), titolarità%, upside0-5, rischioInfortuni0-3,
-          età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota]
+          età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota, idUfficiale]
    Nomi allineati al listone ufficiale ("Cognome I."): l'app aggancia per NOME+RUOLO.
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
    regressione calibrata per ruolo sui giocatori con dati reali (est=1). */
 window.FANTAHQ_DATA = {
   date: ${JSON.stringify("4 agosto 2026 — listone ufficiale 2026/27")},
+  official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
 ${lines.join(",\n")}

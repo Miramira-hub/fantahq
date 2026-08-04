@@ -279,7 +279,7 @@ let undoStack = [];
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
 
 const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
-  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16] }));
+  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"" }));
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
@@ -310,8 +310,10 @@ function mkPlayer(id,name,team,role,qta,fvm,kbi){
   return { id, name, team, role, qta:+qta||1, fvm:+fvm||0, kbi:(kbi??-1), extId:"", rating:0, target:false, maxBid:0, status:"free", paid:0, owner:null, note:"" };
 }
 function freshState(){
-  const players = KBI.map((k,ix)=>mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i));
-  return { official:false, nextId:players.length+1,
+  /* Il database interno porta già le quotazioni ufficiali e i codici Id del listone:
+     official=true evita l'avviso "quote stimate" e abilita l'export CSV senza import. */
+  const players = KBI.map((k,ix)=>{ const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i); p.extId = k.extId||""; return p; });
+  return { official: !!DATA.official, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"}, nTeams:8 },
     players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" } };
 }
@@ -325,6 +327,14 @@ function normState(st){                 // ripara uno state caricato da vecchi s
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
   st.players.forEach(p=>{ if(p.owner===undefined) p.owner=null; });
+  /* Aggiornamento per chi ha dati salvati da prima che il database contenesse il listone
+     ufficiale: aggancia i codici Id e toglie l'avviso "quote stimate", senza toccare rosa,
+     voti e obiettivi. Non tocca chi ha importato un listone proprio. */
+  if(DATA.official && !st.official){
+    let hit = 0;
+    st.players.forEach(p=>{ const k = kbFor(p); if(k && k.extId){ p.extId = p.extId || k.extId; if(k.qta) p.qta = k.qta; hit++; } });
+    if(hit >= st.players.length * 0.8) st.official = true;
+  }
   st.nextId = st.nextId || (Math.max(0,...st.players.map(p=>p.id||0))+1);
   return st;
 }
