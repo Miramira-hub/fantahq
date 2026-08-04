@@ -16,7 +16,14 @@ const old = [...fs.readFileSync(`${SCRATCH}/kb-2025-26.js`, "utf8")
   .map(m => ({ r:m[1], n:m[2], t:m[3], q:+m[4], fm:+m[5], est:+m[6], pres:+m[7], gol:+m[8], ass:+m[9],
                rig:+m[10], tit:+m[11], up:+m[12], inj:+m[13], age:+m[14], unc:+m[15], newT:+m[16], note:m[17] }));
 
-const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
+/* Normalizzazione nomi: oltre ai diacritici gestisce le lettere non decomponibili in NFD
+   (\u00d8 \u00f8 \u0110 \u0111 \u0142 \u00fe \u00df \u00e6) e toglie gli apostrofi \u2014 altrimenti "\u00d8stig\u00e5rd" e "N'Dicka" perdono il
+   cognome e non si agganciano ai dati statistici. */
+const norm = s => String(s).toLowerCase()
+  .replace(/[\u00f8\u00d8]/g,"o").replace(/[\u0111\u0110]/g,"d").replace(/\u0142/g,"l").replace(/\u00fe/g,"th").replace(/\u00df/g,"ss").replace(/\u00e6/g,"ae")
+  .replace(/['\u2019\u02bc]/g,"")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
 const toks = n => norm(n).split(" ").filter(w => w.length >= 3);
 
 /* Cambi di ruolo verificati sul listone 2026-27 (nome nel listone -> ruolo che aveva nel 25-26).
@@ -70,8 +77,10 @@ const US = JSON.parse(fs.readFileSync(`${SCRATCH}/understat2526.json`, "utf8"))
    abbino sul cognome e, quando c'è, verifico l'iniziale del nome (evita Martinez L. vs Martinez Jo.). */
 const surnameOf = n => { const t = toks(n); return t[t.length-1]; };
 const initialsOf = n => (String(n).match(/\b([A-Z])\./g) || []).map(s => s[0].toLowerCase());
+/* Indicizzo per OGNI token del nome, non solo per l'ultimo: molti giocatori hanno più cognomi
+   (es. "Pierre Kalulu Kyatengwa" nel listone è solo "Kalulu") e altrimenti si perderebbero. */
 const USBY = new Map();
-for (const u of US) { const s = surnameOf(u.n); if (!USBY.has(s)) USBY.set(s, []); USBY.get(s).push(u); }
+for (const u of US) for (const t of toks(u.n)) { if (!USBY.has(t)) USBY.set(t, []); if (!USBY.get(t).includes(u)) USBY.get(t).push(u); }
 function findUS(p){
   const cands = USBY.get(surnameOf(p.n)) || [];
   if (!cands.length) return null;
@@ -137,7 +146,11 @@ const NOTE = {
   "Meret":"Con Allegri (0.88 gol subiti a partita in carriera) un portiere del Napoli vale più della sua quota.",
   "Dimarco":"MVP difensori 25-26: gol, assist e piazzati. La quota 32 dice tutto: è un centrocampista travestito.",
   "Yildiz":"10+6 a 21 anni e ora rigorista: la Juve ha creato 50.67 xG segnando solo 43 gol, c'è margine di crescita.",
-  "Kolo Muani":"Torna alla Juventus: in Serie A aveva già inciso, prima punta titolare.",
+  "Kolo Muani":"Torna alla Juventus (operazione da ~90M con Alajbegovic): in Serie A aveva già fatto 10 gol in 22 gare col prestito precedente. Prima punta titolare di Spalletti, ma nessun dato 25-26 in A (era al PSG).",
+  "Alajbegovic":"Giovane bosniaco pagato caro dal Leverkusen: talento vero ma nessun minuto in Serie A, spazio da conquistare. Scommessa, non certezza.",
+  "Stones":"Ufficiale all'Inter dal Manchester City: qualità assoluta nella difesa meno battuta del campionato, ma storico di infortuni e nessun dato in A.",
+  "Ratkov":"Nuovo attaccante della Lazio: quota media, titolarità da verificare con Gattuso.",
+  "Nkunku":"Tra i rigoristi del Milan (17/20 in carriera dal dischetto): se conquista spazio con Amorim, i bonus arrivano.",
   "Akanji":"Dal Manchester City all'Inter: difesa più solida del campionato, clean sheet probabili.",
   "Stones":"Dal Manchester City all'Inter a parametro zero: qualità assoluta, da valutare la tenuta fisica.",
   "Camarda":"Passato al Milan: talento 19enne, ma davanti ha Ramos e Nkunku — titolarità da conquistare.",
