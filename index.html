@@ -273,7 +273,7 @@ let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
-           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta" };
+           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -1059,6 +1059,175 @@ function vStrategia(){
     <h2>Obiettivi automatici</h2>
     <p class="sub">Il motore segna ★ i migliori candidati liberi per ogni reparto (slot + 2 riserve; i tuoi ★ esistenti restano). Poi rifinisci a mano nel Listone.</p>
     <button class="btn pri" id="genTargets">★ Genera obiettivi dal motore</button>
+  </div>
+  ${squadHtml()}`;
+}
+
+/* ================= auto-rosa ottimale =================
+   Per ogni reparto risolve uno zaino (knapsack) 0/1: scegliere esattamente N giocatori
+   entro il budget del reparto massimizzando il valore. I giocatori sono ordinati per FM
+   attesa, così il j-esimo scelto è il j-esimo migliore: i titolari (secondo il modulo)
+   contano pieno, le riserve pesano molto meno — perché in campo ne vanno 11, non 25. */
+const BENCH_W = 0.35;
+/* Zaino 0/1 per un singolo reparto: esattamente n giocatori entro il budget B. */
+function solveRole(r, n, B, need){
+  const NEG = -1e9;
+  /* Candidati = i migliori per rendimento PIÙ i più economici: con un budget ridotto
+     (metà asta) i soli top non permettono di riempire gli slot e il piano resterebbe vuoto. */
+  const pool = state.players.filter(p=>p.role===r && p.status==="free")
+    .map(p=>({ p, e:advice(kbFor(p)).exp||0, c:Math.max(1, suggPrice(p)) }))
+    .filter(x=>x.e>0);
+  const byVal = pool.slice().sort((a,b)=>b.e-a.e).slice(0, 45);
+  const byPrice = pool.slice().sort((a,b)=>a.c-b.c || b.e-a.e).slice(0, 25);
+  const cands = [...new Set([...byVal, ...byPrice])].sort((a,b)=>b.e-a.e);
+  if(!n || cands.length < n) return { picks:[], cost:0, value:0, budget:B, ok:false };
+  const W = B+1;
+  const dp = Array.from({length:n+1}, ()=>new Float64Array(W).fill(NEG));
+  dp[0][0] = 0;
+  const chosen = [];
+  for(let i=0;i<cands.length;i++){
+    const { e, c } = cands[i];
+    const mark = new Uint8Array((n+1)*W);
+    for(let j=n-1;j>=0;j--){
+      const w = j < need ? 1 : BENCH_W;          // j = quanti già presi = rango del nuovo
+      const row = dp[j], next = dp[j+1];
+      for(let b=0;b+c<W;b++){
+        const cur = row[b];
+        if(cur===NEG) continue;
+        const v = cur + e*w;
+        if(v > next[b+c]){ next[b+c] = v; mark[(j+1)*W + (b+c)] = 1; }
+      }
+    }
+    chosen.push(mark);
+  }
+  let bestB = -1, bestV = NEG;
+  for(let b=0;b<W;b++) if(dp[n][b] > bestV){ bestV = dp[n][b]; bestB = b; }
+  if(bestB < 0) return { picks:[], cost:0, value:0, budget:B, ok:false };
+  const picks = [];
+  let j = n, b = bestB;
+  for(let i=cands.length-1;i>=0 && j>0;i--){
+    if(chosen[i][j*W + b]){ picks.push(cands[i]); b -= cands[i].c; j--; }
+  }
+  picks.reverse();
+  return { picks, cost:picks.reduce((t,x)=>t+x.c,0), value:bestV, budget:B, ok:true };
+}
+/* Rosa ottimale: risolve ogni reparto e poi REDISTRIBUISCE i crediti avanzati al reparto
+   dove rendono di più — altrimenti si arriva a fine asta con crediti inutilizzati. */
+function optimalSquad(strategy){
+  const s = state.settings;
+  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+  const need = { P:1, ...mod };
+  const split = strategy ? PRESETS[strategy] : s.split;
+  /* Pianifica sul RESIDUO: se l'asta è già iniziata, contano solo gli slot ancora da
+     riempire e i crediti che restano — così il piano resta valido a metà asta. */
+  const budget = budgetLeft();
+  const slotN = {}, needLeft = {};
+  for(const r of ROLES){
+    slotN[r] = Math.max(0, slotsLeft(r));
+    const presiTit = Math.min(mine().filter(p=>p.role===r).length, need[r]);
+    needLeft[r] = Math.max(0, need[r] - presiTit);
+  }
+  /* Riparto il budget garantendo PRIMA a ogni reparto il minimo per riempire i suoi slot
+     (≈2 crediti a slot) e distribuendo solo l'eccedenza secondo la strategia: altrimenti,
+     a fine asta con pochi crediti, un reparto resterebbe senza proposte. */
+  const roles = {}, base = {};
+  const reserve = {}; let totRes = 0;
+  for(const r of ROLES){ reserve[r] = slotN[r] * 2; totRes += reserve[r]; }
+  const extra = Math.max(0, budget - totRes);
+  let ok = true;
+  for(const r of ROLES){
+    base[r] = totRes > budget
+      ? Math.max(slotN[r], Math.floor(budget * (reserve[r] / (totRes||1))))
+      : reserve[r] + Math.round(extra * (split[r]||0) / 100);
+    roles[r] = solveRole(r, slotN[r], base[r], needLeft[r]);
+    if(!roles[r].ok && slotN[r]) ok = false;
+  }
+  /* Redistribuzione dell'avanzo al reparto dove rende di più, con un TETTO del +50% sul
+     budget di partenza: senza tetto ogni preset convergerebbe alla stessa rosa, annullando
+     la scelta strategica dell'utente (es. "modificatore difesa"). */
+  for(let round=0; round<5; round++){
+    const spent = ROLES.reduce((t,r)=>t+roles[r].cost, 0);
+    const left = budget - spent;
+    if(left < 3) break;
+    let bestR = null, bestGain = 0.02, bestSol = null;
+    for(const r of ROLES){
+      if(!slotN[r]) continue;
+      /* primi giri: tetto che preserva la strategia; ultimi giri: tetto libero, così
+         i crediti che restano vengono comunque investiti invece di andare sprecati */
+      const cap = round < 3 ? Math.round(base[r] * 1.5) : budget;
+      /* si parte dalla spesa EFFETTIVA, non dal budget assegnato: sommare l'avanzo a un
+         budget non speso lo conterebbe due volte e la rosa finirebbe fuori budget */
+      const nb = Math.min(roles[r].cost + left, cap);
+      if(nb <= roles[r].budget) continue;
+      const sol = solveRole(r, slotN[r], nb, needLeft[r]);
+      const gain = sol.value - roles[r].value;
+      if(sol.ok && gain > bestGain){ bestGain = gain; bestR = r; bestSol = sol; }
+    }
+    if(!bestR) break;
+    roles[bestR] = bestSol;
+  }
+  const total = ROLES.reduce((t,r)=>t+roles[r].cost, 0);
+  const value = ROLES.reduce((t,r)=>t+roles[r].value, 0);
+  return { roles, total, value, ok };
+}
+function squadHtml(){
+  const plan = optimalSquad(ui.squadStrategy || null);
+  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+  const need = { P:1, ...mod };
+  const budgetNow = budgetLeft();
+  const slotLeftTot = ROLES.reduce((t,r)=>t+Math.max(0, slotsLeft(r)), 0);
+  const sections = ROLES.map(r=>{
+    const g = plan.roles[r]; if(!g || !g.picks.length) return "";
+    const rows = g.picks.map((x,i)=>`<tr>
+      <td>${roleChip(r)}</td>
+      <td class="pname" data-open2="${x.p.id}"><b>${esc(x.p.name)}</b> <span class="team">${esc(x.p.team)}</span></td>
+      <td>${i<need[r]?'<span class="badge mine">titolare</span>':'<span class="badge">panchina</span>'}</td>
+      <td class="r num">${fmt1(x.e)}</td>
+      <td class="r num" style="color:var(--gold);font-weight:700">${x.c}</td>
+    </tr>`).join("");
+    return `<h3 class="sec">${ROLE_NAMES[r]} — ${g.cost} di ${g.budget} crediti</h3>
+      <div class="twrap"><table>
+        <thead><tr><th>R</th><th>Giocatore</th><th></th><th class="r">FM att.</th><th class="r">Prezzo stimato</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  }).join("");
+  const residuo = budgetNow - plan.total;
+  return `<div class="card">
+    <h2>Rosa ideale — il piano d'acquisto del motore</h2>
+    <p class="sub">Con i tuoi <b>${state.settings.budget} crediti</b> e i tuoi slot, il motore calcola la <b>combinazione migliore</b> di giocatori ancora liberi: non i più forti in assoluto, ma quelli che insieme rendono di più stando nel budget. I titolari (modulo ${state.lineup.module}) pesano pieno, le riserve molto meno. I prezzi sono stimati e si adattano all'inflazione dell'asta.</p>
+    <div class="toolbar">
+      ${Object.entries(PRESETS).map(([k,p])=>`<button class="fchip ${ui.squadStrategy===k?"on":""}" data-sqstrat="${k}">${p.label}</button>`).join("")}
+      <button class="fchip ${!ui.squadStrategy?"on":""}" data-sqstrat="">La mia ripartizione</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi gold"><div class="l">Costo totale</div><div class="v">${plan.total}</div><div class="s">su ${budgetNow} · residuo ${residuo}</div></div>
+      <div class="kpi"><div class="l">Giocatori</div><div class="v">${ROLES.reduce((t,r)=>t+(plan.roles[r]?.picks.length||0),0)}</div><div class="s">su ${ROLES.reduce((t,r)=>t+state.settings.slots[r],0)}</div></div>
+      <div class="kpi"><div class="l">FM media titolari</div><div class="v">${(ROLES.reduce((t,r)=>t+(plan.roles[r]?.picks.slice(0,need[r]).reduce((a,x)=>a+x.e,0)||0),0)/11).toFixed(2)}</div><div class="s">gli 11 che scendono in campo</div></div>
+      <div class="kpi"><div class="l">Modulo</div><div class="v" style="font-size:17px">${state.lineup.module}</div><div class="s">cambialo in Formazione</div></div>
+    </div>
+    ${sections || '<div class="empty">Nessun piano possibile con i crediti rimasti.</div>'}
+    ${slotLeftTot > budgetNow
+      ? `<div class="alert crit" style="margin-top:10px"><div class="txt"><b>Crediti insufficienti:</b> ti restano <b>${budgetNow}</b> crediti per <b>${slotLeftTot}</b> slot da riempire, ma serve almeno 1 credito a giocatore. Dovrai liberare slot (svincolare) o la rosa resterà incompleta.</div></div>`
+      : `<p class="help" style="margin-top:10px">${plan.ok?"":"<b>Attenzione:</b> con questa ripartizione qualche reparto non riesce a coprire tutti gli slot — sposta percentuali in Ripartizione del budget. "}Questo è un <b>piano</b>, non una gabbia: all'asta i prezzi reali cambiano e il motore ricalcola da solo escludendo chi è già stato preso e tenendo conto di quello che hai già comprato. Rigeneralo quando vuoi, anche a metà asta.</p>`}
+  </div>`;
+}
+
+/* ================= piano B: alternative equivalenti =================
+   Se un obiettivo salta, servono subito i sostituti: stesso ruolo, rendimento simile,
+   prezzo uguale o inferiore, ancora liberi. */
+function alternatives(p, k){
+  const a = advice(kbFor(p)); if(a.exp==null) return [];
+  const base = suggPrice(p);
+  return state.players.filter(x=>x.status==="free" && x.role===p.role && x.id!==p.id)
+    .map(x=>({ x, e:advice(kbFor(x)).exp||0, c:Math.max(1,suggPrice(x)) }))
+    .filter(o=>o.e >= a.exp - 0.45 && o.c <= base)
+    .sort((m,n)=>(n.e-n.c/100) - (m.e-m.c/100))
+    .slice(0, k||3);
+}
+function altHtml(p){
+  const alts = alternatives(p, 3);
+  if(!alts.length) return "";
+  return `<div class="hint" style="width:100%;margin-top:6px">
+    <b>Piano B</b> se lo perdi: ${alts.map(o=>`<span class="kchip good" style="cursor:pointer" data-sel="${o.x.id}">${esc(o.x.name)} · FM ${fmt1(o.e)} · ~${o.c}</span>`).join(" ")}
   </div>`;
 }
 
@@ -1123,6 +1292,7 @@ function buybarHtml(sel){
     <button class="btn" id="buyGone">Preso</button>
     <button class="btn sm" id="buyCancel">✕</button>
     <span class="hint">${k&&k.note?esc(k.note)+" · ":""}Max offerta possibile per te ora: <b class="num">${maxBid()}</b>.</span>
+    ${altHtml(sel)}
   </div>`;
 }
 
@@ -1175,6 +1345,7 @@ function vAsta(){
         </div>
         <div class="bigrow"><button class="btn" id="buyCancel" style="flex:1">Annulla selezione</button></div>
         <p class="hint" style="margin:8px 0 0">Max offerta possibile per te ora: <b class="num">${maxBid()}</b></p>
+        ${altHtml(sel)}
       </div>`;
     }
     const cards = shortlist.map(p=>{
@@ -1674,9 +1845,10 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat]");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
+  if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; render(); return; }
   if(t.id==="claimBtn"){
     const sel=$("#claimSel"); if(!sel) return;
     const nm=(state.managers.find(m=>m.id===sel.value)||{}).name||"";
