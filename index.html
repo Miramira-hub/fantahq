@@ -649,13 +649,15 @@ function vorpBase(){
 }
 function vorpPrice(p){ const v = vorpBase().price[p.id]; return v==null ? 1 : Math.max(1, Math.round(v)); }
 /* prezzo consigliato: prezzo d'asta atteso (FVM), tirato verso il valore VORP (entro ±25%),
-   corretto per l'inflazione reale della tua asta e per il giudizio del motore */
+   corretto per l'inflazione reale della tua asta e per il giudizio del motore.
+   NB: la stellina NON alza il prezzo (lo faceva: creava un circolo vizioso nel generatore
+   di obiettivi e gonfiava i tetti — il margine per i tuoi obiettivi è già nel tetto +5%). */
 function suggPrice(p){
   const a = advice(kbFor(p));
   const bump = a.tier==="must"?1.12 : a.tier==="target"?1.05 : a.tier==="avoid"?0.85 : 1;
   const mkt = auctionPrice(p), val = vorpPrice(p);
   const base = Math.max(mkt*0.75, Math.min(mkt*1.25, 0.55*mkt + 0.45*val));
-  return Math.max(1, Math.round(base * inflation() * bump * (p.target?1.05:1)));
+  return Math.max(1, Math.round(base * inflation() * bump));
 }
 function renderHeader(){
   const sel = $("#leagueSel");
@@ -2106,13 +2108,18 @@ document.addEventListener("click", e=>{
         .filter(x=>["must","target","safe","bet"].includes(x.a.tier))
         .sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
       for(const x of cands.slice(0,room)){ if(star(x.p)) added.menu++; tetto(x.p); }
-      /* occasioni: valore reale ≥ 15% sopra il prezzo atteso (e non spiccioli) */
+      /* occasioni: valore reale ≥ 15% sopra il prezzo atteso (e non spiccioli).
+         Tetto per ruolo (slots+5 obiettivi totali): senza, ogni click ne aggiungeva altri. */
+      const totNow = state.players.filter(p=>p.role===r&&p.target).length;
+      const occRoom = Math.max(0, state.settings.slots[r]+5-totNow);
       const occ = cands.slice(room).filter(x=>{ const v=vorpPrice(x.p), c=suggPrice(x.p); return v>=c*1.15 && v>=5; })
         .sort((x,y)=>(vorpPrice(y.p)-suggPrice(y.p))-(vorpPrice(x.p)-suggPrice(x.p)));
-      for(const x of occ.slice(0,2)){ if(star(x.p)) added.occasioni++; tetto(x.p); }
+      for(const x of occ.slice(0,occRoom)){ if(star(x.p)) added.occasioni++; tetto(x.p); }
     }
     save(); render();
-    toast(`★ ${added.piano+added.menu+added.occasioni} obiettivi: ${added.piano} dal piano, ${added.menu} top, ${added.occasioni} occasioni — tetti max compilati`);
+    const tot = added.piano+added.menu+added.occasioni;
+    toast(tot ? `★ ${tot} obiettivi: ${added.piano} dal piano, ${added.menu} top, ${added.occasioni} occasioni — tetti max compilati`
+              : "Nessun nuovo obiettivo: la lista è già completa");
     return;
   }
   if(t.dataset.open!==undefined && !t.dataset.tab){
@@ -2134,7 +2141,15 @@ document.addEventListener("click", e=>{
   if(t.id==="more"){ ui.limit+=300; render(); return; }
   if(t.dataset.preset){ const p={...PRESETS[t.dataset.preset]}; delete p.label; state.settings.split=p; save(); render(); return; }
   if(t.dataset.setmod){ state.lineup.module=t.dataset.setmod; save(); toast(`Modulo ${t.dataset.setmod}: il modificatore ora conta`); render(); return; }
-  if(t.dataset.target){ const p=byId(+t.dataset.target); p.target=!p.target; save(); render(); return; }
+  if(t.dataset.target){
+    const p=byId(+t.dataset.target); p.target=!p.target;
+    /* stella messa a mano: compila il tetto max con la formula del motore (resta modificabile) */
+    if(p.target && !p.maxBid){
+      p.maxBid = Math.max(1, Math.ceil(Math.max(suggPrice(p), vorpPrice(p))*1.05));
+      toast(`★ ${p.name} — tetto max suggerito: ${p.maxBid} (modificalo pure)`);
+    }
+    save(); render(); return;
+  }
   if(t.dataset.sel){ ui.astaSel=+t.dataset.sel; render(); return; }
   if(t.id==="buyCancel"){ ui.astaSel=null; render(); return; }
   if(t.id==="buyMine"||t.id==="buyGone"){
