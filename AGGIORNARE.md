@@ -47,11 +47,26 @@ Tutto dentro `tools/build-kb.mjs`:
 |---|---|---|
 | Note di mercato | `MERCATO_NOTE` | ha la precedenza su tutto, si aggiorna a ogni giro |
 | Trattative aperte | `MERCATO_UNC` | 2 = futuro in bilico → "da monitorare"; azzerare a mercato chiuso |
+| Probabili XI 2026-27 | `XI_STATUS` | T/B+/B-/R per giocatore; corregge la titolarità dai minuti vecchi |
+| Infortunati attuali | `INJURY` | [giornate saltate, nota]; 4+ → inj=3, 2-3 → inj=2 |
+| Minuti esteri nuovi | `EXTRA_US` | stesse colonne di understat; xG=gol dove non verificato (nessun segnale finto) |
 | Rigoristi | `RIG` | 2 = primo, 1 = alternativa |
 | Gerarchie portieri | `GK_RANK` | serve come spareggio: quota e FVM spesso non distinguono |
 | Cambi di ruolo | `ROLE_CHANGE` | senza questa mappa un giocatore che cambia ruolo perde lo storico |
 | Squadre e allenatori | `TEAMS` | rating attacco/difesa + profilo tecnico |
 | Insight statistici | `NOTE` | segnali xG/xA per giocatore |
+
+Il builder VALIDA i nomi di tutte le mappe contro il listone: un nome scritto male viene
+segnalato a console (⚠️) invece di perdersi in silenzio.
+
+### Pesi del motore (index.html, `expFM`)
+
+Calibrati con `node tools/backtest.mjs` sul 2025-26 (quota pre-stagione vs produzione reale
+Understat). Se si cambiano i pesi, rifare girare il backtest e verificare i residui.
+Il campo `xgd` (19° della riga kb) è la correzione di regressione xG calcolata dal builder:
+entra direttamente nella FM attesa. Il prezzo suggerito fonde FVM di mercato (55%) e
+valore VORP (45%, entro ±25%): il VORP distribuisce i crediti dello split per ruolo in
+proporzione al rendimento sopra l'ultimo titolare disponibile.
 
 I segnali 💎 / 🔻 / ⚡ nelle note sono **generati automaticamente** dal confronto tra gol e xG
 (totale, non npxG: escluderebbe i rigori e falserebbe i rigoristi).

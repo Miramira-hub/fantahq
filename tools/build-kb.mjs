@@ -132,7 +132,7 @@ const GK_RANK = {
   "Milan":["Maignan","Terracciano","Torriani"],
   "Monza":["Thiam","Pizzignacco","Strajnar"],
   "Napoli":["Meret","Milinkovic-Savic V.","Contini"],
-  "Parma":["Suzuki","Daffara","Corvi"],
+  "Parma":["Corvi","Daffara","Suzuki"],   // Suzuki in chiusura al PSG: Corvi titolare in amichevole
   "Roma":["Svilar","Gollini","De Marzi"],
   "Sassuolo":["Muric","Turati","Russo A."],
   "Torino":["Paleari","Mascardi","Siviero"],
@@ -170,7 +170,7 @@ const RIG = {
   "Gudmundsson A.":2, "Mandragora":1, "Kean":1,
   "Zaccagni":2,
   "Pellegrino M.":2,
-  "Calò":2, "Colombo":2, "Messias":1, "Vitinha":1,
+  "Calò":2, "Colombo":2, "Messias":1, "Vitinha O.":1,
   "Hojlund":2, "De Bruyne":1,
   "Berardi":2, "Pinamonti":1,
   "Camarda":1, "Krstovic":1, "Davis K.":2, "Mina":2, "Simeone":1, "Pessina":2, "Busio":2
@@ -223,18 +223,32 @@ const NOTE = {
    Zirkzee) NON sono ancora nel listone: qui si annota l'effetto sulla concorrenza
    dei giocatori già in lista. */
 const MERCATO_NOTE = {
-  "Ramos G.":"Record storico del Milan (65M+5 dal PSG) e primo rigorista. Al PSG 6 gol ma xG 8.22: finalizzazione sfortunata con npxG/90 0.51 in soli 1300 minuti. Se gioca con continuità i numeri arrivano.",
+  "Ramos G.":"Record storico del Milan (65M+5 dal PSG) e primo rigorista. Al PSG 6 gol ma xG 8.22: finalizzazione sfortunata in soli 1300 minuti. Occhio all'avvio: nelle amichevoli è partito dietro Camarda.",
   "Hojlund":"Riscattato dal Napoli per 44M: 13 gol con xG 12.5, rendimento in linea. Riferimento offensivo di Allegri e rigorista.",
   "Gila":"Pagato 30M dal Milan: 3° per fantamedia tra i difensori nel 25-26 (7.26). Con Amorim meno clean sheet che alla Lazio, ma qualità alta.",
   "Frattesi":"⚠️ ASSE INTER-JUVENTUS APERTO (scambio con Nico Gonzalez, decollabile dopo Ferragosto; Nico preferirebbe l'Atletico). Gol garantiti quando gioca, ma la squadra può cambiare: verifica prima dell'asta.",
   "Santos A.":"Preso dal Napoli per 20M dallo Sporting: nessun dato in Serie A, deve conquistarsi lo spazio dietro Hojlund.",
   "Boga":"Alla Juventus da Nizza per 4.75M: quota bassa, ruolo di rotazione nell'affollato attacco bianconero.",
   "Stankovic A.":"Riacquistato dall'Inter dal Bruges per 23M: investimento importante ma quota da riserva, titolarità tutta da conquistare.",
-  "Koulierakis":"Arrivato alla Roma dal Wolfsburg: giovane centrale nel sistema Gasperini, dove i difensori fanno bonus.",
+  "Koulierakis":"Titolare al Wolfsburg (29 presenze, 4 gol): arriva alla Roma per giocare, nel sistema Gasperini dove i difensori fanno bonus.",
   "Joao Mario":"In prestito alla Fiorentina dalla Juventus: quota minima, riserva.",
-  "Adzic":"In prestito al Sassuolo dalla Juventus: giovane, spazio da verificare.",
-  "Doekhi":"A parametro zero alla Lazio dall'Union Berlino: difensore fisico, buono nei piazzati.",
-  "Leao":"Ha detto NO al Fenerbahçe (vuole una squadra da Champions) e si allena col Milan; il club chiede 50-60M, Galatasaray alla finestra. A quota 18 è un affare SE resta: decidi all'asta con le ultime notizie.",
+  "Adzic":"In prestito al Sassuolo dalla Juventus: nelle probabili è favorito per la terza maglia di centrocampo.",
+  "Doekhi":"Titolare fisso all'Union Berlino (34 su 34, 5 gol quasi tutti di testa/piazzati): colpo a zero, titolare nelle probabili della Lazio.",
+  "Leao":"Ha detto NO al Fenerbahçe (vuole una squadra da Champions) e si allena col Milan; il club chiede 50-60M, Galatasaray alla finestra. In ritardo di integrazione: partito dalla panchina nelle amichevoli. A quota 18 è un affare SE resta e ritrova il posto.",
+  "Kolo Muani":"⚠️ Stagione 25-26 pessima: 1 gol in 30 presenze al Tottenham (xG 2.69). Alla Juve da prima punta di Spalletti, in A aveva fatto bene, ma a quota 26 il rischio è tutto tuo.",
+  "Nkunku":"Titolare nelle probabili sulla trequarti, MA il Milan lo ha messo sul mercato (~40M) dopo un 25-26 fuori dai meccanismi: futuro incerto, verifica prima dell'asta.",
+  "Di Gregorio":"⚠️ Dato in uscita: la Juve tratta un nuovo titolare (Vicario e Suzuki i nomi caldi). Oggi gioca lui le amichevoli, ma il quadro può ribaltarsi entro fine mercato.",
+  "Suzuki":"In chiusura al PSG (il Parma chiede 40M), già panchinato in amichevole: NON prenderlo.",
+  "Esposito Se.":"Ceduto dal Cagliari (arriva Maldini al suo posto): non sarà in Serie A.",
+  "Paleari":"Titolare oggi, ma il Torino cerca un portiere titolare dal mercato: ricontrolla prima dell'asta.",
+  "Alajbegovic":"9 gol e 3 assist in prestito a Salisburgo: talento in forte ascesa che insidia Conceicao. Scommessa da ultima fascia interessante.",
+  "Ratkov":"Capocannoniere del Salisburgo (9 gol in 17) prima del passaggio alla Lazio a gennaio: ha scavalcato Dia nelle gerarchie da punta.",
+  "Dia":"Scavalcato da Ratkov come punta nelle probabili: quota da riserva.",
+  "Stones":"Solo 439 minuti al City nel 25-26: qualità enorme ma condizione tutta da verificare; ruota con Bisseck.",
+  "Dragusin":"Titolare nelle probabili della Fiorentina, ma nel 25-26 ha giocato appena 515' al Tottenham rientrando dal crociato: condizione da monitorare.",
+  "Camarda":"Amorim gli dà fiducia per l'avvio: favorito su Ramos nelle prime giornate, poi gerarchie da riverificare.",
+  "Krstovic":"⚠️ Sarri punta su Scamacca: nelle probabili parte dietro. A quota 18 il rischio panchina è concreto.",
+  "Bijlow":"Titolare designato del Genoa ma stagione 25-26 rovinata dagli infortuni al Feyenoord (4 presenze): affidabilità fisica da verificare.",
   "Wesley":"⚠️ Molina UFFICIALE alla Roma (13M+4): concorrenza diretta sulla fascia destra. FVM altissimo (90) ma la titolarità non è più scontata: non strapagarlo.",
   "Rensch":"Con Molina ufficiale alla Roma scivola a terza scelta sulla destra: solo da ultimo slot.",
   "Spinazzola":"Gutierrez ceduto al Leverkusen per 30M: la fascia sinistra del Napoli si libera, minuti in più in vista.",
@@ -251,8 +265,144 @@ const MERCATO_NOTE = {
 const MERCATO_UNC = {
   "Frattesi":2,      // asse Inter-Juventus con Nico Gonzalez
   "Leao":2,          // il Fenerbahçe ci prova, quota già crollata a 18
-  "Fruchtl":3        // in chiusura al Salisburgo
+  "Fruchtl":3,       // in chiusura al Salisburgo
+  "Di Gregorio":2,   // la Juve tratta un nuovo titolare (Vicario/Suzuki)
+  "Nkunku":2,        // messo sul mercato dal Milan (~40M)
+  "Suzuki":3,        // in chiusura al PSG, già panchinato in amichevole
+  "Esposito Se.":3   // ceduto dal Cagliari
 };
+
+/* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
+   pazzidifanta/lottomatica + amichevoli). T = titolare · B+ = ballottaggio favorito ·
+   B- = ballottaggio sfavorito · R = riserva chiara. Applicata DOPO il calcolo della
+   titolarità dai minuti: le gerarchie nuove contano più della stagione scorsa. */
+const XI_STATUS = {
+  /* Inter (3-5-2 Chivu) */
+  "Martinez Jo.":"B+","Provedel":"R","Akanji":"T","Bastoni":"T","Stones":"B+","Bisseck":"B+",
+  "Barella":"T","Calhanoglu":"T","Zielinski":"B+","Sucic P.":"B-","Diouf":"B-","Dimarco":"T",
+  "Martinez L.":"T","Thuram":"T","Stankovic A.":"R",
+  /* Napoli (4-3-3 Allegri) */
+  "Meret":"B+","Milinkovic-Savic V.":"B-","Di Lorenzo":"T","Rrahmani":"T","Buongiorno":"B+",
+  "Beukema":"B+","Spinazzola":"B+","Olivera":"B-","De Bruyne":"T","Lobotka":"T","McTominay":"T",
+  "Zambo Anguissa":"B-","Politano":"B+","Vergara":"B-","Hojlund":"T","Santos A.":"B+","Neres":"B-","Lukaku":"R",
+  /* Roma (3-4-2-1 Gasperini) */
+  "Svilar":"T","Mancini":"T","N'Dicka":"T","Ghilardi":"B+","Hermoso":"B-","Koulierakis":"B+",
+  "Cristante":"T","Konè M.":"T","Wesley":"B+","Rensch":"R","Soulè":"B+","Dybala":"B+","Malen":"T",
+  "Castro S.":"B-","Pisilli":"B-",
+  /* Milan (3-4-2-1 Amorim) */
+  "Maignan":"T","Gila":"T","Gabbia":"B+","Tomori":"B-","Pavlovic":"T","Saelemaekers":"T",
+  "Modric":"B+","Rabiot":"T","Bartesaghi":"B+","Estupinan":"B-","Pulisic":"T","Nkunku":"B+",
+  "Leao":"B-","Ramos G.":"B+","Camarda":"B-","Gimenez":"R","Chukwueze":"R","Loftus-Cheek":"R",
+  /* Juventus (4-2-3-1 Spalletti) */
+  "Di Gregorio":"B+","Perin":"R","Kalulu":"T","Bremer":"T","Kelly L.":"T","Cambiaso":"T",
+  "Locatelli":"T","Thuram K.":"B+","Conceicao":"B+","Alajbegovic":"B-","McKennie":"B+",
+  "Yildiz":"T","Kolo Muani":"T","Boga":"R","David":"R",
+  /* Como (4-2-3-1 Fabregas) */
+  "Butez":"T","Smolcic I.":"B+","Van Der Brempt":"B-","Ramon":"B+","Kempf":"B+","Cuenca A.":"B-",
+  "Kaiki":"B+","Valle":"B-","Da Cunha":"T","Perrone":"B+","Diao":"B+","Paz N.":"T","Baturina":"B+",
+  "Douvikas":"T","Rodriguez Je.":"R",
+  /* Atalanta (4-3-3 Sarri) */
+  "Carnesecchi":"T","Zappacosta":"T","Bellanova":"R","Scalvini":"T","Hien":"T","Djimsiti":"B+",
+  "Ahanor":"B+","Bernasconi":"B-","Kolasinac":"B-","Ederson D.S.":"T","Pasalic":"B+","Samardzic":"B-",
+  "De Ketelaere":"T","Scamacca":"B+","Krstovic":"B-","Raspadori":"B+",
+  /* Bologna (4-3-3 Tedesco) */
+  "Skorupski":"T","Zortea":"B+","Holm":"B-","Heggem":"T","Lucumì":"B+","Vitik":"B-","Casale":"R",
+  "Miranda J.":"T","Ferguson":"T","Pobega":"B+","Odgaard":"B+","Bernardeschi":"B-","Orsolini":"T",
+  "Dovbyk":"T","Dallinga":"R","Rowe":"T","Cambiaghi":"R","Helland":"B-",
+  /* Lazio (4-3-3 Gattuso) */
+  "Mandas":"B+","Motta":"B-","Marusic":"B+","Lazzari":"B-","Doekhi":"T","Provstgaard":"B+",
+  "Tavares N.":"B+","Pedraza":"B-","Rovella":"T","Cataldi":"B-","Taylor K.":"T","Isaksen":"B+",
+  "Cancellieri":"B-","Zaccagni":"T","Ratkov":"B+","Dia":"B-",
+  /* Fiorentina (4-3-2-1 Grosso) */
+  "De Gea":"T","Dodò":"B+","Joao Mario":"B-","Dragusin":"T","Viery":"B+","Pongracic":"B-",
+  "Ranieri L.":"B-","Jimenez A.":"B+","Oulai":"B+","Fagioli":"B+","Mandragora":"B-","Ndour":"B+",
+  "Atta":"B+","Gudmundsson A.":"T","Kean":"T","Piccoli":"B-",
+  /* Udinese (3-5-2 Runjaic) */
+  "Okoye":"T","Kristensen T.":"T","Kabasele":"T","Solet":"T","Vojvoda":"B+","Zanoli":"B-",
+  "Ekkelenkamp":"T","Kamara H.":"B+","Zaniolo":"T","Davis K.":"T",
+  /* Torino (3-5-2 Abate) */
+  "Paleari":"B+","Comuzzo":"B+","Ismajli":"B+","Comert":"B-","Coco":"T","Pedersen":"T",
+  "Casadei":"T","Vlasic":"T","Biraghi":"B-","Simeone":"T","Zapata D.":"B+","Adams C.":"B-","Oristanio":"B+",
+  /* Cagliari (3-5-2 Pisacane) */
+  "Caprile":"T","Zè Pedro":"B+","Mina":"T","Rodriguez Ju.":"B+","Zappa":"B+","Obert":"B+",
+  "Fazzini":"B+","Deiola":"B-","Borrelli":"B+","Mendy P.":"B+","Felici":"B-",
+  /* Genoa (3-4-2-1 De Rossi) */
+  "Bijlow":"B+","Marcandalli":"T","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T","Frendrup":"T",
+  "Ellertsson":"B+","Masini":"B-","Mitaj":"B+","Martin":"B-","Baldanzi":"B+","Vitinha O.":"B+",
+  "Messias":"B-","Colombo":"T","Amorim":"B-","Traorè Hj.":"B-",
+  /* Parma (3-5-2 Cuesta) */
+  "Corvi":"B+","Daffara":"B-","Suzuki":"R","Circati":"T","Troilo":"B+","Valenti":"B+","Delprato":"T",
+  "Nicolussi Caviglia":"B+","Valeri":"T","Pellegrino M.":"T","Elphege":"B-","Britschgi":"B-",
+  /* Sassuolo (4-3-3 Aquilani) */
+  "Muric":"B+","Turati":"B-","Walukiewicz":"B+","Idzes":"T","Doig":"B+","Thorstvedt":"T",
+  "Adzic":"B+","Berardi":"T","Pinamonti":"B+","Laurientè":"T","Bowie":"B-","Volpato":"B-","Lipani":"B-",
+  /* Lecce (4-3-3 Di Francesco) */
+  "Falcone":"T","Veiga D.":"T","Gaspar K.":"B+","Siebert":"B-","Tiago Gabriel":"T","Gallo":"T",
+  "Berisha M.":"B+","Pierotti":"B+","Geubbels":"B+","Stulic":"B-","N'Dri":"B+","Maleh":"B-",
+  /* Monza (3-4-2-1 Juric) */
+  "Thiam":"T","Kouadio":"B+","Delli Carri":"B+","Lucchesi":"B-","Carboni A.":"B+","Birindelli":"T",
+  "Pessina":"T","Akinsanmiro":"B+","Mangas":"T","Colpani":"T","Mota":"B+","Cutrone":"T",
+  "Petagna":"R","Ciurria":"B-",
+  /* Venezia (3-5-2 Stroppa) */
+  "Stankovic F.":"T","Bella-Kotchap":"T","Schingtienne":"B+","Sverko":"B+","Correia T.":"B+",
+  "Hainaut":"B-","Busio":"T","Sohm":"B+","Haps":"B+","Moreno M.":"B-","Adams A.":"B+",
+  "Rrahmani Al.":"B+","Yeboah J.":"B-",
+  /* Frosinone (4-3-3 Alvini) */
+  "Palmisani":"B+","Desplanches":"B-","Oyono A.":"T","Calvani":"B+","Monterisi":"T","Bracaglia":"T",
+  "Calò":"T","Hasa":"B+","Gelli F.":"B-","Ghedjemis":"T","Raimondo":"B+","Kvernadze":"B+","Zerbin":"B-"
+};
+const XI_ADJ = {
+  "T":  t => Math.max(t, 88),
+  "B+": t => Math.min(Math.max(t, 74), 84),
+  "B-": t => Math.min(t, 60),
+  "R":  t => Math.min(t, 42)
+};
+
+/* ================= INFORTUNATI (ricerca 5 agosto: fantacalcio.it/sosfanta/sky) =================
+   [giornate saltate stimate, nota]. 4+ giornate → inj=3; 2-3 → inj>=2; 0-1 → solo nota. */
+const INJURY = {
+  "Hien":[5,"Operato al tendine della coscia: rientro a inizio ottobre (~5 giornate)."],
+  "Idrissi R.":[8,"Crociato (gennaio): rientro a fine ottobre."],
+  "Parisi":[9,"Lesione al crociato: rientro a novembre."],
+  "Buongiorno":[5,"Operato al menisco (23 luglio): rientro a inizio ottobre."],
+  "Neres":[4,"Operato alla caviglia a gennaio, non ha ancora toccato il pallone: rientro indefinito."],
+  "Candè":[5,"Crociato (gennaio): rientro tra fine settembre e ottobre."],
+  "Konè I.":[13,"Frattura tibia e perone (giugno): rientro a dicembre/gennaio."],
+  "Zanoli":[4,"Crociato (gennaio): rientro a ottobre."],
+  "Sverko":[8,"Operato all'anca: rientro a fine ottobre."],
+  "Nicolussi Caviglia":[2,"Lesione alla coscia (luglio): rientro a inizio settembre."],
+  "Holm":[2,"Problema al soleo: in dubbio fino alla 3ª giornata."],
+  "Pulisic":[1,"Microfrattura al perone: rientro previsto per fine agosto."],
+  "Gimenez":[1,"Distorsione alla caviglia: rientro a fine agosto."],
+  "Thuram K.":[2,"Sindrome femoro-rotulea al ginocchio: gestione prudente, rientro incerto."],
+  "Ekhator":[1,"Lesione al bicipite femorale: da valutare per la 1ª giornata."],
+  "Beukema":[1,"Tendinopatia achillea bilaterale: a rischio per la 1ª giornata."],
+  "Berardi":[0,"Acciaccato: in dubbio per la 1ª giornata."],
+  "Walukiewicz":[0,"Acciaccato: in dubbio per la 1ª giornata."],
+  "Messias":[0,"Problema all'adduttore: in dubbio per la 1ª giornata."],
+  "Gila":[0,"Affaticamento al retto femorale (nessuna lesione): rientro a fine agosto."],
+  "Isaksen":[0,"Post operazione al pube: rientro in gruppo ~10 agosto."],
+  "Cataldi":[0,"Post operazione al pube: rientro in gruppo ~10 agosto."],
+  "Tavares N.":[0,"Infiammazione al ginocchio superata: rientro in gruppo a breve."],
+  "Pellegrini Lu.":[0,"Problema alla caviglia: recupero in corso, dubbio per la 1ª."]
+};
+
+/* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
+   Stesse colonne di understat: [nome, squadra 25-26, min, presenze, gol, xG, assist, xA, npxG, tiri, kp].
+   Dove xG/xA non sono verificabili si usano gol/assist (delta zero: nessun segnale inventato).
+   Servono a far calcolare titolarità e xgd anche a chi non ha dati Serie A. */
+const EXTRA_US = [
+  ["Goncalo Ramos","PSG",1318,30,6,8.22,1,1,6.7,0,0],
+  ["Randal Kolo Muani","Tottenham",1670,30,1,2.69,1,1,2.69,0,0],
+  ["Danilho Doekhi","Union Berlin",3060,34,5,5,0,0,5,0,0],
+  ["Konstantinos Koulierakis","Wolfsburg",2482,29,4,4,1,1,4,0,0],
+  ["Aleksandar Stankovic","Club Brugge",1911,24,4,4,1,1,4,0,0]
+];
+for (const r of EXTRA_US) {
+  const u = { n:r[0], t:r[1], min:r[2], gp:r[3], gol:r[4], xg:r[5], ass:r[6], xa:r[7], npxg:r[8], tiri:r[9], kp:r[10] };
+  US.push(u);
+  for (const t of toks(u.n)) { if (!USBY.has(t)) USBY.set(t, []); if (!USBY.get(t).includes(u)) USBY.get(t).push(u); }
+}
 
 /* ---- squadre 2026-27 con profili allenatore data-driven ---- */
 const TEAMS = {
@@ -306,16 +456,41 @@ for (const role of ["P","D","C","A"]) {
     /* Per i PORTIERI la gerarchia dichiarata pesa sempre più dei minuti passati: il ruolo è
        binario (o giochi tutte o nessuna) e un vice che l'anno prima era titolare altrove
        resta un vice. Negli altri ruoli i minuti reali sono il segnale migliore. */
-    const tit = !u
+    let tit = !u
       ? rankTit(p)
       : p.r === "P"    ? Math.round(titFromMinutes(u) * 0.4 + rankTit(p) * 0.6)
       : changedTeam    ? Math.round(titFromMinutes(u) * 0.3 + rankTit(p) * 0.7)
                        : titFromMinutes(u);
+    /* le probabili formazioni 2026-27 correggono la storia: gerarchie nuove > minuti vecchi */
+    if (XI_STATUS[p.n]) tit = XI_ADJ[XI_STATUS[p.n]](tit);
     const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
-    const inj  = o ? o.inj : 0;
+    let inj  = o ? o.inj : 0;
+    let injNote = "";
+    if (INJURY[p.n]) {
+      const [gior, txt] = INJURY[p.n];
+      if (gior >= 4) inj = 3; else if (gior >= 2) inj = Math.max(inj, 2);
+      injNote = `⚕️ ${txt}`;
+    }
     const age  = o && o.age ? o.age : 26;
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     const newT = o ? (norm(o.t) !== norm(p.t) ? 1 : 0) : 1;
+
+    /* ---- xgd: correzione numerica di regressione verso la media (in punti FM) ----
+       Il backtest 25-26 (tools/backtest.mjs) mostra che chi segna 3+ gol sopra il proprio
+       xG porta ~+0.3 FM NON sostenibili (e viceversa): la parte fortunata va scontata.
+       Fattore 0.65 = quota della sovra/sotto-performance che regredisce (xG predice i gol
+       futuri meglio dei gol stessi); un gol vale 3 punti, un assist 1, spalmati sulle presenze.
+       In più: il bump rigorista del motore (+0.15) ha senso solo per chi i rigori li ha PRESI
+       ORA; chi li tirava già ce li ha dentro FM e quota (backtest: residuo -0.14 sui rigoristi
+       confermati) → compensazione -0.10 se l'anno scorso ha calciato rigori (xG-npxG >= 1.5). */
+    let xgd = 0;
+    if (u && u.min >= 700 && u.gp > 0) {
+      const adj = -( (u.gol - u.xg) * 0.65 * 3 + (u.ass - u.xa) * 0.60 * 1 ) / u.gp;
+      xgd = Math.max(-0.35, Math.min(0.35, adj));
+      if ((RIG[p.n] ?? 0) === 2 && (u.xg - u.npxg) >= 1.5) xgd -= 0.10;
+      xgd = Math.max(-0.40, Math.min(0.40, xgd));
+      xgd = Math.round(xgd * 100) / 100;
+    }
 
     /* ---- segnali di regressione dai dati reali: le occasioni nascoste ----
        gol molto sotto npxG = ha creato più di quanto ha segnato → risalirà (e viceversa).
@@ -332,11 +507,18 @@ for (const role of ["P","D","C","A"]) {
       else if (p90 >= 0.45 && u.min < 1600) signal = `⚡ ${p90.toFixed(2)} npxG/90 in sole ${Math.round(u.min/90)} partite piene: rendimento alto con pochi minuti, se gioca di più esplode.`;
     }
     const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
-    const note = [baseNote, signal].filter(Boolean).join(" ");
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0}]`;
+    const note = [injNote, baseNote, signal].filter(Boolean).join(" ");
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }
+}
+
+/* verifica: ogni nome nelle mappe deve esistere nel listone (un typo = dato perso in silenzio) */
+const LNAMES = new Set(L.map(p => p.n));
+for (const [label, map] of [["XI_STATUS", XI_STATUS], ["INJURY", INJURY], ["MERCATO_NOTE", MERCATO_NOTE], ["MERCATO_UNC", MERCATO_UNC], ["RIG", RIG], ["NOTE", NOTE]]) {
+  const missing = Object.keys(map).filter(n => !LNAMES.has(n));
+  if (missing.length) console.warn(`⚠️ ${label}: nomi non nel listone → ${missing.join(", ")}`);
 }
 
 const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (listone ufficiale).
@@ -345,12 +527,15 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    - teams: rating attacco/difesa 1-5 + allenatore (profili ricavati dai dati storici dei tecnici)
    - kb: [ruolo, nome, squadra, quotaUfficiale, fantamedia, fmStimata(0/1), presenze, gol, assist,
           rigorista(2=primo,1=alternativa,0=no), titolarità%, upside0-5, rischioInfortuni0-3,
-          età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota, idUfficiale, FVM(fantavalore su base 1000)]
+          età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota, idUfficiale, FVM(fantavalore su base 1000),
+          xgd(correzione FM da regressione xG, ±0.40)]
    Nomi allineati al listone ufficiale ("Cognome I."): l'app aggancia per NOME+RUOLO.
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
-   regressione calibrata per ruolo sui giocatori con dati reali (est=1). */
+   regressione calibrata per ruolo sui giocatori con dati reali (est=1).
+   Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
+   e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("5 agosto 2026 — listone ufficiale + mercato")},
+  date: ${JSON.stringify("5 agosto 2026 — listone + mercato + probabili formazioni e infortuni")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [

@@ -282,7 +282,7 @@ let undoStack = [];
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
 
 const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
-  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0 }));
+  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0, xgd:+r[19]||0 }));
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
@@ -477,14 +477,20 @@ const ROLE_MEAN = {P:5.5, D:6.3, C:6.45, A:6.7};
 const TH = {P:[5.85,5.60], D:[6.85,6.50], C:[7.00,6.60], A:[7.30,6.85]};
 
 function expFM(k){
+  /* Pesi ricalibrati col backtest 25-26 (tools/backtest.mjs):
+     - attacco squadra dimezzato (0.10→0.05): quota e FM lo prezzano già in gran parte
+     - 35-37 anni ammorbidito (-0.15→-0.10) e bonus U21 rimosso (il dato non lo supporta)
+     - xgd = correzione regressione xG calcolata dal builder (chi ha segnato sopra il
+       proprio xG scende, chi ha raccolto meno di quanto creato sale) */
   const rm = ROLE_MEAN[k.r];
   const w = Math.min(1,(k.pres||0)/30);
   let v = rm + (k.fm-rm)*(0.35+0.65*w);
   if(k.est) v = rm + (v-rm)*0.9;
   const t = TEAMS[k.t]||{atk:3,def:3};
-  v += (k.r==="A"||k.r==="C") ? (t.atk-3)*0.10 : (t.def-3)*(k.r==="P"?0.13:0.10);
-  if(k.rig===2) v += 0.15; else if(k.rig===1) v += 0.05;
-  if(k.age>=38) v -= 0.25; else if(k.age>=35) v -= 0.15; else if(k.age<=21) v += 0.05;
+  v += (k.r==="A"||k.r==="C") ? (t.atk-3)*0.05 : (t.def-3)*(k.r==="P"?0.13:0.10);
+  if(k.rig===2) v += 0.15; else if(k.rig===1) v += 0.05;   // xgd compensa chi li tirava già
+  v += k.xgd||0;
+  if(k.age>=38) v -= 0.25; else if(k.age>=35) v -= 0.10;
   if(k.inj>=3) v -= 0.20; else if(k.inj===2) v -= 0.10;
   if(k.newT) v -= 0.08;
   v += (RULE_MULT[ruleMod()]||RULE_MULT.no)[k.r] || 0;   // regolamento della lega (modificatore difesa)
@@ -510,6 +516,7 @@ function advice(k){
   else if(exp>=hi && aff>=78) tier = "must";
   else if(exp>=mid && aff>=68) tier = "target";
   else if(k.up>=3 && (k.age<=23 || aff<70)) tier = "bet";
+  else if(exp>=hi-0.15 && aff>=45) tier = "bet";   // forte ma senza posto fisso: scommessa, non completamento
   else if(k.inj>=2) tier = "watch";
   else if(aff>=85 && exp>=mid-0.35) tier = "safe";
   else if(exp<mid-0.45 && k.qta>=14) tier = "avoid";
@@ -618,12 +625,37 @@ function auctionPrice(p){
   const base = b.hasFVM ? fvmOf(p) : Math.pow(p.qta, 1.75);
   return Math.max(1, Math.round(1 + b.K * base));
 }
-/* prezzo consigliato: prezzo d'asta atteso, corretto per l'inflazione reale della tua
-   asta e per il valore che il motore attribuisce al giocatore */
+/* ---- VORP: valore sopra il sostituto ----
+   Quanto un giocatore rende PIÙ dell'ultimo titolare che prenderesti comunque a 1 credito
+   nello stesso ruolo. I crediti che la lega spende per ruolo (split di Strategia) vengono
+   distribuiti in proporzione al VORP: è il "valore vero", che corregge il prezzo di mercato
+   (i portieri hanno spread piccolo → mai strapagarli; gli attaccanti enorme). */
+let _vorpCache = null;
+function vorpBase(){
+  const s = state.settings, nT = Math.max(2, s.nTeams||8);
+  const key = `${store.current}|${nT}|${ROLES.map(r=>s.slots[r]).join(",")}|${s.budget}|${ROLES.map(r=>s.split[r]).join(",")}|${state.players.length}|${ruleMod()}`;
+  if(_vorpCache && _vorpCache.key===key) return _vorpCache;
+  const price = {};
+  for(const r of ROLES){
+    const N = s.slots[r]*nT;
+    const pool = state.players.filter(p=>p.role===r).map(p=>({p, e:advice(kbFor(p)).exp||0})).sort((a,b)=>b.e-a.e).slice(0, N);
+    const repl = pool.length ? pool[pool.length-1].e : 0;
+    const tot = pool.reduce((t,x)=>t+Math.max(0, x.e-repl), 0);
+    const B = Math.max(0, s.budget*nT*(s.split[r]||0)/100 - N);   // crediti oltre l'1 minimo a testa
+    for(const x of pool) price[x.p.id] = 1 + (tot ? B*Math.max(0, x.e-repl)/tot : 0);
+  }
+  _vorpCache = { key, price };
+  return _vorpCache;
+}
+function vorpPrice(p){ const v = vorpBase().price[p.id]; return v==null ? 1 : Math.max(1, Math.round(v)); }
+/* prezzo consigliato: prezzo d'asta atteso (FVM), tirato verso il valore VORP (entro ±25%),
+   corretto per l'inflazione reale della tua asta e per il giudizio del motore */
 function suggPrice(p){
   const a = advice(kbFor(p));
   const bump = a.tier==="must"?1.12 : a.tier==="target"?1.05 : a.tier==="avoid"?0.85 : 1;
-  return Math.max(1, Math.round(auctionPrice(p) * inflation() * bump * (p.target?1.05:1)));
+  const mkt = auctionPrice(p), val = vorpPrice(p);
+  const base = Math.max(mkt*0.75, Math.min(mkt*1.25, 0.55*mkt + 0.45*val));
+  return Math.max(1, Math.round(base * inflation() * bump * (p.target?1.05:1)));
 }
 function renderHeader(){
   const sel = $("#leagueSel");
@@ -1012,6 +1044,8 @@ function detailRow(p, colspan){
       ${stat("Affidabilità", a.aff+"/100")}
       ${stat("Squadra", `${esc(k.t)} · ${esc(t.coach||"")}`)}
       ${p.fvm?stat("FVM", p.fvm):""}
+      ${stat("Valore VORP", vorpPrice(p)+" cr")}
+      ${stat("Prezzo sugg.", suggPrice(p)+" cr")}
     </div>
     <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(chipHtml).join("")}</div>
     <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
