@@ -115,7 +115,10 @@ const titFromMinutes = u => {
 const rankTit = (p) => {
   const same = L.filter(x => x.t === p.t && x.r === p.r).sort((a,b) => b.q - a.q);
   const i = same.findIndex(x => x.id === p.id);
-  const slots = { P:1, D:4, C:4, A:2 }[p.r];
+  /* I PORTIERI sono un caso a sé: gioca solo il primo, il secondo sta in panchina tutto
+     l'anno (2-3 presenze). Negli altri ruoli le riserve ruotano davvero. */
+  if (p.r === "P") return i === 0 ? (p.q >= same[0].q * 0.7 ? 90 : 80) : 22;
+  const slots = { D:4, C:4, A:2 }[p.r];
   if (i < slots) return p.q >= same[0].q * 0.7 ? 88 : 80;
   if (i < slots + 2) return 60;
   return 40;

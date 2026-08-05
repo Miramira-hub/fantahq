@@ -1298,9 +1298,11 @@ function squadHtml(){
 function alternatives(p, k){
   const a = advice(kbFor(p)); if(a.exp==null) return [];
   const base = suggPrice(p);
+  /* Un'alternativa serve solo se GIOCA: niente riserve con fantamedia gonfiata dalla
+     stagione passata in un'altra squadra (es. un vice-portiere ex titolare altrove). */
   return state.players.filter(x=>x.status==="free" && x.role===p.role && x.id!==p.id)
-    .map(x=>({ x, e:advice(kbFor(x)).exp||0, c:Math.max(1,suggPrice(x)) }))
-    .filter(o=>o.e >= a.exp - 0.45 && o.c <= base)
+    .map(x=>{ const ad = advice(kbFor(x)); return { x, e:ad.exp||0, aff:ad.aff||0, c:Math.max(1,suggPrice(x)) }; })
+    .filter(o=>o.e >= a.exp - 0.45 && o.c <= base && o.aff >= 65)
     .sort((m,n)=>(n.e-n.c/100) - (m.e-m.c/100))
     .slice(0, k||3);
 }
