@@ -279,7 +279,7 @@ let undoStack = [];
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
 
 const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
-  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"" }));
+  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0 }));
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
@@ -312,7 +312,7 @@ function mkPlayer(id,name,team,role,qta,fvm,kbi){
 function freshState(){
   /* Il database interno porta già le quotazioni ufficiali e i codici Id del listone:
      official=true evita l'avviso "quote stimate" e abilita l'export CSV senza import. */
-  const players = KBI.map((k,ix)=>{ const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i); p.extId = k.extId||""; return p; });
+  const players = KBI.map((k,ix)=>{ const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, k.fvm||0, k.i); p.extId = k.extId||""; return p; });
   return { official: !!DATA.official, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"}, nTeams:8 },
     players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" } };
@@ -542,14 +542,48 @@ function totSlotsLeft(){ return ROLES.reduce((s,r)=>s+Math.max(0,slotsLeft(r)),0
 function maxBid(){ return Math.max(0, budgetLeft() - Math.max(0, totSlotsLeft()-1)); }
 function inflation(){
   const sold = state.players.filter(p=>p.status!=="free" && p.paid>0);
-  const paid = sold.reduce((s,p)=>s+p.paid,0), base = sold.reduce((s,p)=>s+p.qta,0);
+  const paid = sold.reduce((s,p)=>s+p.paid,0), base = sold.reduce((s,p)=>s+auctionPrice(p),0);
   const raw = base>0 ? paid/base : 1;
   return 1 + (raw-1)*Math.min(1, sold.length/12);
 }
+
+/* ================= PREZZO D'ASTA ATTESO =================
+   La quota del listone NON è il prezzo d'asta: è un indice di valore. Il prezzo vero lo dà
+   il FVM (Fantavalore di Mercato), la stima ufficiale su base 1000 crediti costruita
+   sull'andamento reale delle aste. Va però PARAMETRIZZATO sulla lega: si normalizza in modo
+   che la somma dei prezzi dei giocatori che verranno assegnati esaurisca esattamente i
+   crediti in circolazione (budget × numero squadre).
+   Fallback sulla quota per chi non ha FVM (es. listoni importati senza quella colonna). */
+const fvmOf = p => { const k = kbFor(p); return (p.fvm || (k && k.fvm) || 0); };
+let _auctionCache = null;
+function auctionBase(){
+  const s = state.settings;
+  const nTeams = Math.max(2, s.nTeams || 8);
+  const slots = ROLES.reduce((t,r)=>t+s.slots[r], 0);
+  const key = `${nTeams}|${slots}|${s.budget}|${state.players.length}`;
+  if(_auctionCache && _auctionCache.key === key) return _auctionCache;
+  const N = slots * nTeams;                                   // giocatori che verranno assegnati
+  const B = s.budget * nTeams;                                // crediti totali in circolazione
+  const vals = state.players.map(p=>({ v: fvmOf(p), q: p.qta }));
+  const hasFVM = vals.some(x=>x.v > 0);
+  const key2 = hasFVM ? "v" : "q";
+  const top = vals.sort((a,b)=>b[key2]-a[key2]).slice(0, N);
+  const sum = top.reduce((t,x)=>t + (hasFVM ? x.v : Math.pow(x.q, 1.75)), 0);
+  _auctionCache = { key, hasFVM, K: Math.max(0, B - N) / (sum || 1) };
+  return _auctionCache;
+}
+/* prezzo atteso al tavolo, prima delle correzioni */
+function auctionPrice(p){
+  const b = auctionBase();
+  const base = b.hasFVM ? fvmOf(p) : Math.pow(p.qta, 1.75);
+  return Math.max(1, Math.round(1 + b.K * base));
+}
+/* prezzo consigliato: prezzo d'asta atteso, corretto per l'inflazione reale della tua
+   asta e per il valore che il motore attribuisce al giocatore */
 function suggPrice(p){
   const a = advice(kbFor(p));
   const bump = a.tier==="must"?1.12 : a.tier==="target"?1.05 : a.tier==="avoid"?0.85 : 1;
-  return Math.max(1, Math.round(p.qta * inflation() * bump * (p.target?1.05:1)));
+  return Math.max(1, Math.round(auctionPrice(p) * inflation() * bump * (p.target?1.05:1)));
 }
 function renderHeader(){
   const sel = $("#leagueSel");
@@ -616,7 +650,7 @@ function syncWithKB(){
   const players = KBI.map((k,ix)=>{
     const key = norm(k.n)+"|"+k.r;
     const old = byKey.get(key);
-    const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i);
+    const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, k.fvm||0, k.i);
     p.extId = k.extId||"";
     if(old){
       used.add(key);
@@ -1185,7 +1219,7 @@ function optimalSquad(strategy){
   for(const r of ROLES){
     base[r] = totRes > budget
       ? Math.max(slotN[r], Math.floor(budget * (reserve[r] / (totRes||1))))
-      : reserve[r] + Math.round(extra * (split[r]||0) / 100);
+      : reserve[r] + Math.floor(extra * (split[r]||0) / 100);   // floor: gli arrotondamenti non devono far sforare il totale
     roles[r] = solveRole(r, slotN[r], base[r], needLeft[r]);
     if(!roles[r].ok && slotN[r]) ok = false;
   }
@@ -1234,13 +1268,13 @@ function squadHtml(){
     </tr>`).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} — ${g.cost} di ${g.budget} crediti</h3>
       <div class="twrap"><table>
-        <thead><tr><th>R</th><th>Giocatore</th><th></th><th class="r">FM att.</th><th class="r">Prezzo stimato</th></tr></thead>
+        <thead><tr><th>R</th><th>Giocatore</th><th></th><th class="r">FM att.</th><th class="r">Prezzo atteso</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
   }).join("");
   const residuo = budgetNow - plan.total;
   return `<div class="card">
     <h2>Rosa ideale — il piano d'acquisto del motore</h2>
-    <p class="sub">Con i tuoi <b>${state.settings.budget} crediti</b> e i tuoi slot, il motore calcola la <b>combinazione migliore</b> di giocatori ancora liberi: non i più forti in assoluto, ma quelli che insieme rendono di più stando nel budget. I titolari (modulo ${state.lineup.module}) pesano pieno, le riserve molto meno. I prezzi sono stimati e si adattano all'inflazione dell'asta.</p>
+    <p class="sub">Con i tuoi <b>${state.settings.budget} crediti</b> e i tuoi slot, il motore calcola la <b>combinazione migliore</b> di giocatori ancora liberi: non i più forti in assoluto, ma quelli che insieme rendono di più stando nel budget. I titolari (modulo ${state.lineup.module}) pesano pieno, le riserve molto meno. I prezzi sono quelli <b>attesi davvero al tavolo</b>: calcolati sui crediti in circolazione nella tua lega (${state.settings.budget}×${state.settings.nTeams||8} squadre), non sulla quota del listone — e si adattano all'inflazione reale della tua asta.</p>
     <div class="toolbar">
       ${Object.entries(PRESETS).map(([k,p])=>`<button class="fchip ${ui.squadStrategy===k?"on":""}" data-sqstrat="${k}">${p.label}</button>`).join("")}
       <button class="fchip ${!ui.squadStrategy?"on":""}" data-sqstrat="">La mia ripartizione</button>
