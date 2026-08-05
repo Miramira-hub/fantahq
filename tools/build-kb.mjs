@@ -112,12 +112,45 @@ const titFromMinutes = u => {
 };
 
 /* ---- titolarità stimata dal rango della quota dentro squadra+ruolo (fallback) ---- */
+/* ---- GERARCHIE PORTIERI 2026-27 (fonte: FantaMaster/Goal/SosFanta) ----
+   Servono come SPAREGGIO: quota e FVM spesso non distinguono secondo e terzo (alla Roma
+   Gollini e De Marzi hanno entrambi quota 1 e FVM 1, al Torino tutti e tre). Dove invece
+   il FVM è chiaro comanda lui, perché è il dato ufficiale più aggiornato. */
+const GK_RANK = {
+  "Atalanta":["Carnesecchi","Sportiello","Rossi F."],
+  "Bologna":["Skorupski","Pessina Mas.","Happonen"],
+  "Cagliari":["Caprile","Sherri","Ciocci"],
+  "Como":["Butez","Tornqvist","Vigorito"],
+  "Fiorentina":["De Gea","Christensen O.","Lezzerini"],
+  "Frosinone":["Palmisani","Desplanches","Lolic"],
+  "Genoa":["Bijlow","Stolz","Sommariva"],
+  "Inter":["Martinez Jo.","Provedel","Di Gennaro"],
+  "Juventus":["Di Gregorio","Perin","Pinsoglio"],
+  "Lazio":["Mandas","Motta","Renzetti"],
+  "Lecce":["Falcone","Fruchtl","Samooja"],
+  "Milan":["Maignan","Terracciano","Torriani"],
+  "Monza":["Thiam","Pizzignacco","Strajnar"],
+  "Napoli":["Meret","Milinkovic-Savic V.","Contini"],
+  "Parma":["Suzuki","Daffara","Corvi"],
+  "Roma":["Svilar","Gollini","De Marzi"],
+  "Sassuolo":["Muric","Turati","Russo A."],
+  "Torino":["Paleari","Mascardi","Siviero"],
+  "Udinese":["Okoye","Padelli","Piana"],
+  "Venezia":["Stankovic F.","Grandi","Pozzi"]
+};
+const gkRank = p => { const l = GK_RANK[p.t] || []; const i = l.findIndex(n => norm(n) === norm(p.n)); return i < 0 ? 99 : i; };
+
 const rankTit = (p) => {
+  /* I PORTIERI sono un caso a sé: gioca solo il primo. Il secondo fa 2-3 presenze,
+     il terzo praticamente nessuna. Negli altri ruoli le riserve ruotano davvero. */
+  if (p.r === "P") {
+    const same = L.filter(x => x.t === p.t && x.r === "P")
+      .sort((a,b) => (b.fvm - a.fvm) || (gkRank(a) - gkRank(b)));
+    const i = same.findIndex(x => x.id === p.id);
+    return i === 0 ? 90 : (i === 1 ? 25 : 14);
+  }
   const same = L.filter(x => x.t === p.t && x.r === p.r).sort((a,b) => b.q - a.q);
   const i = same.findIndex(x => x.id === p.id);
-  /* I PORTIERI sono un caso a sé: gioca solo il primo, il secondo sta in panchina tutto
-     l'anno (2-3 presenze). Negli altri ruoli le riserve ruotano davvero. */
-  if (p.r === "P") return i === 0 ? (p.q >= same[0].q * 0.7 ? 90 : 80) : 22;
   const slots = { D:4, C:4, A:2 }[p.r];
   if (i < slots) return p.q >= same[0].q * 0.7 ? 88 : 80;
   if (i < slots + 2) return 60;
@@ -255,9 +288,14 @@ for (const role of ["P","D","C","A"]) {
        nella nuova rosa), perché lo storico dice quanto giocava altrove, non qui.
        Es. Provedel: titolare alla Lazio ma quota 2 da vice all'Inter → resta una riserva. */
     const changedTeam = !u || norm(u.t) !== norm(p.t);
-    const tit = u
-      ? (changedTeam ? Math.round(titFromMinutes(u) * 0.3 + rankTit(p) * 0.7) : titFromMinutes(u))
-      : rankTit(p);
+    /* Per i PORTIERI la gerarchia dichiarata pesa sempre più dei minuti passati: il ruolo è
+       binario (o giochi tutte o nessuna) e un vice che l'anno prima era titolare altrove
+       resta un vice. Negli altri ruoli i minuti reali sono il segnale migliore. */
+    const tit = !u
+      ? rankTit(p)
+      : p.r === "P"    ? Math.round(titFromMinutes(u) * 0.4 + rankTit(p) * 0.6)
+      : changedTeam    ? Math.round(titFromMinutes(u) * 0.3 + rankTit(p) * 0.7)
+                       : titFromMinutes(u);
     const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
     const inj  = o ? o.inj : 0;
     const age  = o && o.age ? o.age : 26;
