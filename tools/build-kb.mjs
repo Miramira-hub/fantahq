@@ -2,16 +2,17 @@
    Copertura: TUTTI i giocatori del listone (494), non solo i noti. */
 import fs from "fs";
 
-const SCRATCH = "C:/Users/snake/AppData/Local/Temp/claude/C--Users-snake-Desktop-Strumenti-Vari/2089b824-a8c6-4bb8-86c9-94e6decb2325/scratchpad";
-const REPO = "C:/Users/snake/Desktop/Strumenti Vari/fantahq";
+import path from "path";
+import { fileURLToPath } from "url";
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const rows = JSON.parse(fs.readFileSync(`${SCRATCH}/q27.json`, "utf8")).slice(2);
+const rows = JSON.parse(fs.readFileSync(`${REPO}/data/listone-2026-27.json`, "utf8")).slice(2);
 const L = rows.map(x => ({ id:x[0], r:x[1], rm:x[2], n:x[3], t:x[4], q:+x[5], fvm:+x[11] }));
 
 /* ---- KB 2025-26 (fantamedie reali e attributi già raccolti).
    Letto da uno SNAPSHOT immutabile, non dal file di destinazione: altrimenti a ogni
    riesecuzione lo script si ri-alimenterebbe con i propri output (feedback loop). ---- */
-const old = [...fs.readFileSync(`${SCRATCH}/kb-2025-26.js`, "utf8")
+const old = [...fs.readFileSync(`${REPO}/data/kb-2025-26-snapshot.js`, "utf8")
   .matchAll(/^\["([PDCA])","([^"]+)","([^"]+)",(\d+),([\d.]+),(\d),(\d+),(\d+),(\d+),(\d),(\d+),(\d),(\d),(\d+),(\d),(\d),"([^"]*)"\]/gm)]
   .map(m => ({ r:m[1], n:m[2], t:m[3], q:+m[4], fm:+m[5], est:+m[6], pres:+m[7], gol:+m[8], ass:+m[9],
                rig:+m[10], tit:+m[11], up:+m[12], inj:+m[13], age:+m[14], unc:+m[15], newT:+m[16], note:m[17] }));
@@ -70,7 +71,7 @@ const estFM = (role,q) => {
    [nome, squadra25-26, minuti, presenze, gol, xG, assist, xA, npxG, tiri, keyPasses]
    Danno: minuti/titolarità REALI (non stimati), gol+assist reali e soprattutto i segnali di
    regressione (gol vs npxG, assist vs xA) = le occasioni nascoste. */
-const US = JSON.parse(fs.readFileSync(`${SCRATCH}/understat2526.json`, "utf8"))
+const US = JSON.parse(fs.readFileSync(`${REPO}/data/understat-2025-26.json`, "utf8"))
   .map(r => ({ n:r[0], t:r[1], min:r[2], gp:r[3], gol:r[4], xg:r[5], ass:r[6], xa:r[7], npxg:r[8], tiri:r[9], kp:r[10] }));
 
 /* Il listone scrive "Cognome I." / "Cognome N.C.", Understat il nome completo:
