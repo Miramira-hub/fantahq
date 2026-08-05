@@ -216,21 +216,35 @@ const NOTE = {
   "Gila":"Al Milan: 3° difensore per FM 25-26 (7.26), con Amorim però meno clean sheet della Lazio."
 };
 
-/* ================= AGGIORNAMENTO MERCATO — 5 agosto 2026 =================
+/* ================= AGGIORNAMENTO MERCATO — 5 agosto 2026 (sera) =================
    Blocco separato che ha la precedenza su NOTE e UNC: si aggiorna qui a ogni giro di
-   mercato, senza toccare le mappe storiche. */
+   mercato, senza toccare le mappe storiche.
+   NB: molti nuovi acquisti (Molina, Mastantuono, Chalobah, Couto, Badiashile, Touré,
+   Zirkzee) NON sono ancora nel listone: qui si annota l'effetto sulla concorrenza
+   dei giocatori già in lista. */
 const MERCATO_NOTE = {
   "Ramos G.":"Record storico del Milan (65M+5 dal PSG) e primo rigorista. Al PSG 6 gol ma xG 8.22: finalizzazione sfortunata con npxG/90 0.51 in soli 1300 minuti. Se gioca con continuità i numeri arrivano.",
   "Hojlund":"Riscattato dal Napoli per 44M: 13 gol con xG 12.5, rendimento in linea. Riferimento offensivo di Allegri e rigorista.",
   "Gila":"Pagato 30M dal Milan: 3° per fantamedia tra i difensori nel 25-26 (7.26). Con Amorim meno clean sheet che alla Lazio, ma qualità alta.",
-  "Frattesi":"⚠️ ASSE INTER-JUVENTUS APERTO (possibile scambio con Nico Gonzalez): gol garantiti quando gioca, ma la squadra può cambiare. Verifica prima di puntarci all'asta.",
+  "Frattesi":"⚠️ ASSE INTER-JUVENTUS APERTO (scambio con Nico Gonzalez, decollabile dopo Ferragosto; Nico preferirebbe l'Atletico). Gol garantiti quando gioca, ma la squadra può cambiare: verifica prima dell'asta.",
   "Santos A.":"Preso dal Napoli per 20M dallo Sporting: nessun dato in Serie A, deve conquistarsi lo spazio dietro Hojlund.",
   "Boga":"Alla Juventus da Nizza per 4.75M: quota bassa, ruolo di rotazione nell'affollato attacco bianconero.",
   "Stankovic A.":"Riacquistato dall'Inter dal Bruges per 23M: investimento importante ma quota da riserva, titolarità tutta da conquistare.",
   "Koulierakis":"Arrivato alla Roma dal Wolfsburg: giovane centrale nel sistema Gasperini, dove i difensori fanno bonus.",
   "Joao Mario":"In prestito alla Fiorentina dalla Juventus: quota minima, riserva.",
   "Adzic":"In prestito al Sassuolo dalla Juventus: giovane, spazio da verificare.",
-  "Doekhi":"A parametro zero alla Lazio dall'Union Berlino: difensore fisico, buono nei piazzati."
+  "Doekhi":"A parametro zero alla Lazio dall'Union Berlino: difensore fisico, buono nei piazzati.",
+  "Leao":"Ha detto NO al Fenerbahçe (vuole una squadra da Champions) e si allena col Milan; il club chiede 50-60M, Galatasaray alla finestra. A quota 18 è un affare SE resta: decidi all'asta con le ultime notizie.",
+  "Wesley":"⚠️ Molina UFFICIALE alla Roma (13M+4): concorrenza diretta sulla fascia destra. FVM altissimo (90) ma la titolarità non è più scontata: non strapagarlo.",
+  "Rensch":"Con Molina ufficiale alla Roma scivola a terza scelta sulla destra: solo da ultimo slot.",
+  "Spinazzola":"Gutierrez ceduto al Leverkusen per 30M: la fascia sinistra del Napoli si libera, minuti in più in vista.",
+  "Olivera":"Gutierrez ceduto al Leverkusen: torna in corsa per la maglia da titolare a sinistra, occhio però al Napoli su Badiashile.",
+  "Beukema":"Napoli vicino a Badiashile dal Chelsea: un centrale in più significa meno spazio per lui.",
+  "Atta":"Passato alla Fiorentina con quota raddoppiata (8→17), ma ⚠️ Mastantuono in arrivo dal Real Madrid: concorrenza pesante sulla trequarti. Non pagarlo a prezzo pieno.",
+  "Gudmundsson A.":"Mastantuono in chiusura alla Fiorentina dal Real Madrid: un creativo in più che può togliergli il posto o spostarlo.",
+  "Ramon":"Chalobah ha fatto le visite col Como (30M+3 dal Chelsea): gerarchie dei centrali da rivedere, titolarità a rischio.",
+  "Pellegrino M.":"El Bilal Touré in prestito al Parma dall'Atalanta: concorrenza vera in attacco, non è più l'unica punta.",
+  "David":"Zirkzee in prestito dal Manchester United è un'ipotesi concreta: attacco Juve ancora più affollato, già oggi è dietro Kolo Muani e Yildiz."
 };
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
