@@ -166,6 +166,30 @@ const NOTE = {
   "Gila":"Al Milan: 3° difensore per FM 25-26 (7.26), con Amorim però meno clean sheet della Lazio."
 };
 
+/* ================= AGGIORNAMENTO MERCATO — 5 agosto 2026 =================
+   Blocco separato che ha la precedenza su NOTE e UNC: si aggiorna qui a ogni giro di
+   mercato, senza toccare le mappe storiche. */
+const MERCATO_NOTE = {
+  "Ramos G.":"Record storico del Milan (65M+5 dal PSG) e primo rigorista. Al PSG 6 gol ma xG 8.22: finalizzazione sfortunata con npxG/90 0.51 in soli 1300 minuti. Se gioca con continuità i numeri arrivano.",
+  "Hojlund":"Riscattato dal Napoli per 44M: 13 gol con xG 12.5, rendimento in linea. Riferimento offensivo di Allegri e rigorista.",
+  "Gila":"Pagato 30M dal Milan: 3° per fantamedia tra i difensori nel 25-26 (7.26). Con Amorim meno clean sheet che alla Lazio, ma qualità alta.",
+  "Frattesi":"⚠️ ASSE INTER-JUVENTUS APERTO (possibile scambio con Nico Gonzalez): gol garantiti quando gioca, ma la squadra può cambiare. Verifica prima di puntarci all'asta.",
+  "Santos A.":"Preso dal Napoli per 20M dallo Sporting: nessun dato in Serie A, deve conquistarsi lo spazio dietro Hojlund.",
+  "Boga":"Alla Juventus da Nizza per 4.75M: quota bassa, ruolo di rotazione nell'affollato attacco bianconero.",
+  "Stankovic A.":"Riacquistato dall'Inter dal Bruges per 23M: investimento importante ma quota da riserva, titolarità tutta da conquistare.",
+  "Koulierakis":"Arrivato alla Roma dal Wolfsburg: giovane centrale nel sistema Gasperini, dove i difensori fanno bonus.",
+  "Joao Mario":"In prestito alla Fiorentina dalla Juventus: quota minima, riserva.",
+  "Adzic":"In prestito al Sassuolo dalla Juventus: giovane, spazio da verificare.",
+  "Doekhi":"A parametro zero alla Lazio dall'Union Berlino: difensore fisico, buono nei piazzati."
+};
+/* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
+   3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
+const MERCATO_UNC = {
+  "Frattesi":2,      // asse Inter-Juventus con Nico Gonzalez
+  "Leao":2,          // il Fenerbahçe ci prova, quota già crollata a 18
+  "Fruchtl":3        // in chiusura al Salisburgo
+};
+
 /* ---- squadre 2026-27 con profili allenatore data-driven ---- */
 const TEAMS = {
   "Inter":{atk:5,def:5,coach:"Chivu",cn:"Campione d'Italia; Chivu 0.94 gol subiti/gara (3° storico): difesa top + attacco fortissimo"},
@@ -218,7 +242,7 @@ for (const role of ["P","D","C","A"]) {
     const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
     const inj  = o ? o.inj : 0;
     const age  = o && o.age ? o.age : 26;
-    const unc  = 0;                       // mercato quasi chiuso: azzerato, si aggiorna nei recap
+    const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     const newT = o ? (norm(o.t) !== norm(p.t) ? 1 : 0) : 1;
 
     /* ---- segnali di regressione dai dati reali: le occasioni nascoste ----
@@ -235,7 +259,7 @@ for (const role of ["P","D","C","A"]) {
       else if (dA <= -2.5) signal = `💎 ${u.ass} assist ma ${u.xa.toFixed(1)} attesi: crea occasioni che i compagni sprecano, gli assist arriveranno.`;
       else if (p90 >= 0.45 && u.min < 1600) signal = `⚡ ${p90.toFixed(2)} npxG/90 in sole ${Math.round(u.min/90)} partite piene: rendimento alto con pochi minuti, se gioca di più esplode.`;
     }
-    const baseNote = NOTE[p.n] || (o ? o.note : "");
+    const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
     const note = [baseNote, signal].filter(Boolean).join(" ");
     const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}"]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
