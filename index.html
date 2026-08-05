@@ -360,19 +360,31 @@ function rivalStats(){
   });
 }
 /* sorveglianza reparti: dove la mia asta è in sofferenza + il miglior colpo libero */
+/* Allerta reparti: non conta QUANTI giocatori restano (ce ne sono sempre a decine), ma
+   quanta QUALITÀ resta rispetto a quella che si poteva avere, e solo per gli slot da
+   TITOLARE ancora scoperti — le riserve si riempiono sempre. */
 function roleWatch(){
+  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+  const needTit = { P:1, ...mod };
+  const avgTop = (list, n) => { const s = list.slice(0, n); return s.length ? s.reduce((t,x)=>t+x,0)/s.length : 0; };
   return ROLES.map(r=>{
-    const need = Math.max(0, slotsLeft(r));
-    const free = state.players.filter(p=>p.role===r && p.status==="free");
-    const ranked = free.map(p=>({p,a:advice(kbFor(p))})).sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
+    const slotFree = Math.max(0, slotsLeft(r));
+    const haveR = mine().filter(p=>p.role===r).length;
+    const need = Math.max(0, needTit[r] - haveR);          // titolari ancora da prendere
+    const all = state.players.filter(p=>p.role===r).map(p=>advice(kbFor(p)).exp||0).sort((a,b)=>b-a);
+    const ranked = state.players.filter(p=>p.role===r && p.status==="free")
+      .map(p=>({p,a:advice(kbFor(p))})).sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
+    const freeExp = ranked.map(x=>x.a.exp||0);
+    const n = Math.max(1, need);
+    const perdita = avgTop(all, n) - avgTop(freeExp, n);    // quanto si è già impoverito il reparto
     const topLeft = ranked.filter(x=>x.a.tier==="must"||x.a.tier==="target").length;
-    const best = ranked[0]||null;
+    const best = ranked[0] || null;
     let level = "ok";
-    if(need>0){
-      if(topLeft===0) level = "crit";
-      else if(topLeft <= need) level = "warn";
+    if(need > 0 && slotFree > 0){
+      if(perdita >= 0.45 || topLeft === 0) level = "crit";
+      else if(perdita >= 0.22) level = "warn";
     }
-    return { r, need, topLeft, best, level };
+    return { r, need, slotFree, topLeft, perdita, best, level };
   });
 }
 /* Come il regolamento della lega sposta il valore dei reparti:
@@ -386,6 +398,12 @@ const RULE_MULT = {
 };
 const RULE_LABEL = { no:"Nessun modificatore difesa", dif4:"Modificatore sui 4 difensori", reparto:"Modificatore difensori + portiere" };
 function ruleMod(){ return (state && state.settings && state.settings.rules && state.settings.rules.modDef) || "no"; }
+/* Il modificatore difesa si applica solo schierando ALMENO 4 difensori: con una difesa a 3
+   non scatta, quindi moduli come il 3-4-3 vanificano il vantaggio del regolamento. */
+const MOD_MIN_DIF = 4;
+function modDifAttivo(){ const m = MODULES[state.lineup.module] || MODULES["3-4-3"]; return (m.D||0) >= MOD_MIN_DIF; }
+function moduloCompatibile(){ return ruleMod()==="no" || modDifAttivo(); }
+function moduliConModificatore(){ return Object.keys(MODULES).filter(k=>MODULES[k].D >= MOD_MIN_DIF); }
 const uid = ()=> "l" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36);
 function freshLeague(name){ return { name: name || "Lega 1", state: freshState() }; }
 function newStore(firstLeague){
@@ -1117,6 +1135,8 @@ function vStrategia(){
       ? "Con il modificatore sui 4 difensori il motore <b>valorizza i difensori titolari e regolari</b> (media voto alta), non solo quelli da bonus."
       : "Con il modificatore su difensori + portiere il motore <b>valorizza anche un ottimo portiere</b> e i difensori da media voto alta."}
       ${ruleMod()!=="no"?` <button class="btn sm" data-preset="modificatore">Applica ripartizione difesa</button>`:""}</p>
+    ${ruleMod()!=="no" && !modDifAttivo() ? `<div class="alert crit"><div class="txt"><b>⚠️ Il modulo ${state.lineup.module} annulla il tuo modificatore:</b> per farlo scattare devi schierare <b>almeno ${MOD_MIN_DIF} difensori</b>. Con una difesa a 3 paghi difensori forti senza incassarne il bonus. Passa a ${moduliConModificatore().slice(0,3).join(", ")}… dal tab <b>Formazione</b>.</div></div>` : ""}
+    <p class="help" style="display:none"></p>
   </div>
   <div class="card">
     <h2>Ripartizione del budget</h2>
@@ -1326,9 +1346,10 @@ function alertsHtml(){
   w.sort((a,b)=>order[a.level]-order[b.level]);
   return w.map(x=>{
     const b = x.best;
+    const quanti = x.need===1 ? "1 titolare" : `${x.need} titolari`;
     const msg = x.level==="crit"
-      ? `<b>${ROLE_NAMES[x.r]}: nessun top rimasto</b> e ti mancano ${x.need} slot. Non aspettare oltre.`
-      : `<b>${ROLE_NAMES[x.r]} in sofferenza</b>: restano solo ${x.topLeft} giocatori di valore per ${x.need} slot. Muoviti a breve.`;
+      ? `<b>${ROLE_NAMES[x.r]}: i migliori sono finiti</b> — ti manca ancora ${quanti} e quello che resta rende <b>${x.perdita.toFixed(2)}</b> di fantamedia in meno. Prendi ora, dopo peggiora.`
+      : `<b>${ROLE_NAMES[x.r]}: la qualità si sta esaurendo</b> — ti manca ${quanti} e il livello disponibile è già sceso di <b>${x.perdita.toFixed(2)}</b> di fantamedia. Muoviti a breve.`;
     return `<div class="alert ${x.level}">
       ${roleChip(x.r)}
       <div class="txt">${msg}${b?` Miglior colpo libero: <span class="pick">${esc(b.p.name)}</span> (FM att. ${fmt1(b.a.exp)}).`:""}</div>
@@ -1710,7 +1731,11 @@ function vFormazione(){
   <div class="card">
     <h2>Formazione consigliata</h2>
     <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per difficoltà dell'avversario e disponibilità (✓/?/✗). Segna "out" infortunati e squalificati: escono dai titolari. Verifica sempre le probabili formazioni.</p>
-    <div class="toolbar"><label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option ${state.lineup.module===m?"selected":""}>${m}</option>`).join("")}</select></label></div>
+    <div class="toolbar">
+      <label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option value="${m}" ${state.lineup.module===m?"selected":""}>${m}${ruleMod()!=="no"&&MODULES[m].D<MOD_MIN_DIF?" ⚠️":""}</option>`).join("")}</select></label>
+      ${ruleMod()!=="no"?`<span class="help">Con il modificatore difesa servono almeno ${MOD_MIN_DIF} difensori: i moduli con ⚠️ lo annullano.</span>`:""}
+    </div>
+    ${ruleMod()!=="no" && !modDifAttivo() ? `<div class="alert crit"><div class="txt"><b>Con il ${state.lineup.module} non prendi il modificatore.</b> Ti serve una difesa da almeno ${MOD_MIN_DIF}: scegli ${moduliConModificatore().slice(0,3).join(" / ")}.</div></div>` : ""}
     ${sections}
   </div>
   <div class="card">
