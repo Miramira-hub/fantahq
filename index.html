@@ -1424,7 +1424,7 @@ function vAsta(){
   const kpis = `<div class="kpis">
     <div class="kpi gold"><div class="l">Crediti residui</div><div class="v">${fmt(budgetLeft())}</div><div class="s">su ${state.settings.budget}</div></div>
     <div class="kpi"><div class="l">Max offerta</div><div class="v">${fmt(maxBid())}</div><div class="s">slot liberi: ${totSlotsLeft()}</div></div>
-    <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">prezzi pagati vs quota</div></div>
+    <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">pagato vs valore reale</div></div>
     <div class="kpi"><div class="l">Rosa</div><div class="v">${mine().length}/${ROLES.reduce((s,r)=>s+state.settings.slots[r],0)}</div><div class="s">${ROLES.map(r=>`${r}:${state.settings.slots[r]-slotsLeft(r)}/${state.settings.slots[r]}`).join(" ")}</div></div>
   </div>`;
   const switchbar = `<div class="switchbar"><button class="btn ${ui.fast?"pri":""}" id="fastToggle">${ui.fast?"↩ Modalità completa":"📱 Modalità asta rapida"}</button></div>`;
