@@ -114,6 +114,9 @@
   .pname:hover b{color:var(--accent)}
 
   tr.detail>td{background:var(--surface2);white-space:normal;padding:12px 14px}
+  tr.flash>td{animation:rowflash 1.6s ease-out 1}
+  @keyframes rowflash{0%,45%{background:var(--gold-bg)}}
+  @media (prefers-reduced-motion:reduce){tr.flash>td{animation:none}}
   .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px}
   .dstat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
   .dstat .l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
@@ -271,7 +274,7 @@ const KB = DATA.kb;
 /* ================= stato ================= */
 let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
-let ui = { tab:"consigli", search:"", role:"", team:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
+let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
            cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null };
 let undoStack = [];
@@ -532,6 +535,15 @@ function chipsOf(k){
   if((k.r==="P"||k.r==="D") && t.def>=5) c.push(["Difesa top","good"]);
   return c;
 }
+/* tag filtrabili: i 4 più usati come chip fissi, gli altri nella tendina "+ altri".
+   Le etichette dinamiche ("36 anni", "Solo N presenze") restano solo informative. */
+const TAGS_MAIN = ["Rigorista","Titolare fisso","Attacco top","Difesa top"];
+const TAGS_MORE = ["Rigore n.2","Ballottaggio","Rischio panchina","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
+const TAG_SET = new Set([...TAGS_MAIN, ...TAGS_MORE]);
+function hasTag(p, tag){ const k=kbFor(p); return !!k && chipsOf(k).some(c=>c[0]===tag); }
+const chipHtml = ([t,c]) => TAG_SET.has(t)
+  ? `<span class="kchip ${c}" data-tagf="${t}" style="cursor:pointer" title="Filtra il listone: ${t}">${t}</span>`
+  : `<span class="kchip ${c}">${t}</span>`;
 const advBadge = a=>`<span class="adv ${a.tier}">${ADV_META[a.tier].label}</span>`;
 const fmt1 = v=>v==null?"—":v.toFixed(2);
 
@@ -541,6 +553,16 @@ const esc = s=>String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&g
 const fmt = n=>Math.round(n).toString();
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200); }
 const byId = id=>state.players.find(p=>p.id===id);
+/* salto diretto alla scheda nel Listone: azzera TUTTI i filtri (il giocatore deve
+   sempre comparire), apre la scheda e scrolla alla riga evidenziandola */
+function jumpToPlayer(id){
+  ui.tab="listone"; ui.openId=id;
+  ui.search=""; ui.role=""; ui.team=""; ui.tag=""; ui.onlyTarget=false; ui.limit=500;
+  render();
+  const row = document.querySelector("tr.detail");
+  const tr = row && row.previousElementSibling;
+  if(tr){ tr.scrollIntoView({block:"center"}); tr.classList.add("flash"); row.classList.add("flash"); }
+}
 const mine = ()=>state.players.filter(p=>p.status==="mine");
 const roleChip = r=>`<span class="role ${r}">${r}</span>`;
 
@@ -942,7 +964,7 @@ function vConsigli(){
         <div class="mid">
           <span class="nm pname" data-open="${p.id}">${esc(p.name)}</span>
           <span class="tm">${esc(p.team)} · ${esc((TEAMS[p.team]||{}).coach||"")}${p.status==="mine"?' · <span class="badge mine">MIO</span>':""}</span>
-          <div class="chipset" style="margin-top:3px">${chipsOf(k).map(([t,c])=>`<span class="kchip ${c}">${t}</span>`).join("")}</div>
+          <div class="chipset" style="margin-top:3px">${chipsOf(k).map(chipHtml).join("")}</div>
           ${k.note?`<div class="note">${esc(k.note)}</div>`:""}
         </div>
         <div class="fm">
@@ -991,7 +1013,7 @@ function detailRow(p, colspan){
       ${stat("Squadra", `${esc(k.t)} · ${esc(t.coach||"")}`)}
       ${p.fvm?stat("FVM", p.fvm):""}
     </div>
-    <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(([x,c])=>`<span class="kchip ${c}">${x}</span>`).join("")}</div>
+    <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(chipHtml).join("")}</div>
     <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
     ${noteBox(p)}
   </td></tr>`;
@@ -1001,7 +1023,7 @@ function vListone(){
   const teams = [...new Set(state.players.map(p=>p.team))].sort();
   let list = state.players.filter(p=>
     (!ui.role || p.role===ui.role) && (!ui.team || p.team===ui.team) &&
-    (!ui.onlyTarget || p.target) &&
+    (!ui.onlyTarget || p.target) && (!ui.tag || hasTag(p, ui.tag)) &&
     (!ui.search || (p.name+" "+p.team).toLowerCase().includes(ui.search.toLowerCase()))
   );
   const expOf = p=>{ const k=kbFor(p); return k?advice(k).exp:0; };
@@ -1044,6 +1066,14 @@ function vListone(){
         <option value="team" ${ui.sort==="team"?"selected":""}>Squadra</option>
       </select>
       <button class="fchip ${ui.onlyTarget?"on":""}" id="ftarget">★ obiettivi</button>
+    </div>
+    <div class="toolbar" style="margin-top:-4px">
+      ${TAGS_MAIN.map(t=>`<button class="fchip ${ui.tag===t?"on":""}" data-ftag="${t}">${t}</button>`).join("")}
+      <select id="ftagMore" ${TAGS_MORE.includes(ui.tag)?'style="border-color:var(--accent);color:var(--accent);font-weight:700"':""}>
+        <option value="">＋ altri tag</option>
+        ${TAGS_MORE.map(t=>`<option ${ui.tag===t?"selected":""}>${t}</option>`).join("")}
+      </select>
+      ${ui.tag?`<button class="fchip" data-ftag="${ui.tag}" title="Togli il filtro">✕ ${ui.tag}</button>`:""}
     </div>
     <div class="twrap"><table>
       <thead><tr><th>R</th><th>Giocatore</th><th>Fascia</th><th class="r">Quota</th><th class="r">FM 25-26</th><th class="r">FM att.</th><th>Consiglio</th><th>Voto</th><th>★ / Max</th><th>Stato</th></tr></thead>
@@ -1953,7 +1983,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat]");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat]");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
   if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; render(); return; }
@@ -2032,14 +2062,19 @@ document.addEventListener("click", e=>{
   }
   if(t.dataset.open!==undefined && !t.dataset.tab){
     const id = +t.dataset.open;
-    if(ui.tab==="consigli"){ ui.tab="listone"; ui.openId=id; ui.search=""; ui.role=""; ui.limit=500; }
-    else ui.openId = ui.openId===id ? 0 : id;
-    render();
+    if(ui.tab==="consigli"){ jumpToPlayer(id); }
+    else { ui.openId = ui.openId===id ? 0 : id; render(); }
     return;
   }
   if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; ui.confirmWipe=false; render(); return; }
   if(t.dataset.crole!==undefined){ ui.consRole=t.dataset.crole; render(); return; }
   if(t.dataset.frole!==undefined){ ui.role = ui.role===t.dataset.frole?"":t.dataset.frole; ui.limit=200; render(); return; }
+  if(t.dataset.ftag!==undefined){ ui.tag = ui.tag===t.dataset.ftag?"":t.dataset.ftag; ui.limit=200; render(); return; }
+  if(t.dataset.tagf!==undefined){
+    ui.tab="listone"; ui.tag=t.dataset.tagf; ui.search=""; ui.role=""; ui.team=""; ui.onlyTarget=false; ui.openId=0; ui.limit=200;
+    render(); window.scrollTo({top:0}); toast(`Listone filtrato: ${t.dataset.tagf}`);
+    return;
+  }
   if(t.id==="ftarget"){ ui.onlyTarget=!ui.onlyTarget; render(); return; }
   if(t.id==="more"){ ui.limit+=300; render(); return; }
   if(t.dataset.preset){ const p={...PRESETS[t.dataset.preset]}; delete p.label; state.settings.split=p; save(); render(); return; }
@@ -2099,13 +2134,13 @@ document.addEventListener("click", e=>{
     try{ localStorage.removeItem(KEY); localStorage.removeItem(OLD2); localStorage.removeItem(OLD1); }catch(_){}
     store=newStore(); state=currentLeague().state; undoStack=[];
     Object.assign(ui,{confirmWipe:false,confirmReset:false,confirmDel:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[],
-      search:"",astaSearch:"",tradeSearch:"",cmpSearch:"",role:"",team:"",astaRole:"",consRole:"",onlyTarget:false});
+      search:"",astaSearch:"",tradeSearch:"",cmpSearch:"",role:"",team:"",tag:"",astaRole:"",consRole:"",onlyTarget:false});
     save(); toast("Tutto azzerato: sei ripartito da una sola lega vuota"); render(); return;
   }
 });
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-open2]");
-  if(t){ ui.tab="listone"; ui.openId=+t.dataset.open2; ui.search=""; ui.role=""; ui.limit=500; render(); }
+  if(t){ jumpToPlayer(+t.dataset.open2); }
 });
 
 document.addEventListener("input", e=>{
@@ -2126,6 +2161,7 @@ document.addEventListener("change", e=>{
   const el = e.target;
   if(el.id==="leagueSel"){ selectLeague(el.value); render(); return; }
   if(el.id==="fteam"){ ui.team=el.value; render(); return; }
+  if(el.id==="ftagMore"){ ui.tag=el.value; ui.limit=200; render(); return; }
   if(el.id==="fsort"){ ui.sort=el.value; render(); return; }
   if(el.id==="setBudget"){ state.settings.budget=Math.max(50,+el.value||500); save(); render(); return; }
   if(el.dataset.slot){ state.settings.slots[el.dataset.slot]=Math.max(0,Math.min(15,+el.value||0)); save(); render(); return; }
