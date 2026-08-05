@@ -506,7 +506,9 @@ function chipsOf(k){
   if(k.age>=35) c.push([k.age+" anni",""]);
   if(k.inj>=2) c.push(["Rischio infortuni","bad"]);
   if(k.tit>=90) c.push(["Titolare fisso","good"]);
+  else if(k.tit<60) c.push(["Rischio panchina","bad"]);
   else if(k.tit<70) c.push(["Ballottaggio",""]);
+  if(k.pres>0 && k.pres<12) c.push([`Solo ${k.pres} presenze`,"bad"]);   // campione ridotto: giudizio meno affidabile
   if(k.up>=4) c.push(["Upside alto","good"]);
   if((k.r==="A"||k.r==="C") && t.atk>=5) c.push(["Attacco top","good"]);
   if((k.r==="P"||k.r==="D") && t.def>=5) c.push(["Difesa top","good"]);

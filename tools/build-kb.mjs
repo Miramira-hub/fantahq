@@ -94,9 +94,22 @@ function findUS(p){
   if (byTeam.length === 1) return byTeam[0];
   return null;                                                  // ambiguo: meglio nessun dato che dati sbagliati
 }
-const MAXMIN = 38 * 90;
-/* titolarità reale dai minuti giocati (quota parte della stagione effettivamente in campo) */
-const titFromMinutes = u => Math.max(10, Math.min(97, Math.round(u.min / MAXMIN * 100)));
+/* ---- TITOLARITÀ ATTESA dai minuti reali ----
+   Non conta il totale stagionale (penalizzerebbe chi è arrivato a gennaio o si è
+   infortunato), ma soprattutto QUANTO GIOCA QUANDO C'È: è quello che distingue un
+   titolare da un subentrante.
+     - share = minuti per presenza / 85' → 1.0 se giocare sempre tutta la partita
+     - avail = presenze / 28 → continuità nell'arco della stagione
+   Con poche presenze il campione è debole (un gol in 2 partite non fa un titolare):
+   sotto le 10 presenze il valore viene fortemente ridimensionato. */
+const titFromMinutes = u => {
+  const perGame = u.gp ? u.min / u.gp : 0;
+  const share = Math.min(1, perGame / 85);
+  const avail = Math.min(1, u.gp / 28);
+  let t = (share * 0.7 + avail * 0.3) * 100;
+  if (u.gp < 10) t *= (0.45 + u.gp * 0.055);       // campione insufficiente
+  return Math.max(8, Math.min(97, Math.round(t)));
+};
 
 /* ---- titolarità stimata dal rango della quota dentro squadra+ruolo (fallback) ---- */
 const rankTit = (p) => {
@@ -235,9 +248,12 @@ for (const role of ["P","D","C","A"]) {
     const rig  = RIG[p.n] ?? (o ? o.rig : 0);
     /* Cancello titolarità. Priorità ai MINUTI REALI giocati; chi ha cambiato squadra riparte
        dalle gerarchie nuove (un titolare altrove può essere riserva qui: Provedel, Lazio → vice Inter). */
+    /* Chi ha cambiato squadra: pesa soprattutto la GERARCHIA NUOVA (dedotta dalla quota
+       nella nuova rosa), perché lo storico dice quanto giocava altrove, non qui.
+       Es. Provedel: titolare alla Lazio ma quota 2 da vice all'Inter → resta una riserva. */
     const changedTeam = !u || norm(u.t) !== norm(p.t);
     const tit = u
-      ? (changedTeam ? Math.round((titFromMinutes(u) + rankTit(p)) / 2) : titFromMinutes(u))
+      ? (changedTeam ? Math.round(titFromMinutes(u) * 0.3 + rankTit(p) * 0.7) : titFromMinutes(u))
       : rankTit(p);
     const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
     const inj  = o ? o.inj : 0;
@@ -278,7 +294,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
    regressione calibrata per ruolo sui giocatori con dati reali (est=1). */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("4 agosto 2026 — listone ufficiale 2026/27")},
+  date: ${JSON.stringify("5 agosto 2026 — listone ufficiale + mercato")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
