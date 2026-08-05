@@ -276,7 +276,7 @@ let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
-           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null };
+           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -453,7 +453,7 @@ function selectLeague(id){
   if(!store.leagues[id]) return;
   store.current = id; state = currentLeague().state;
   undoStack = [];
-  Object.assign(ui, { astaSel:null, openId:0, tradeGive:[], tradeGet:[], cmp:[], confirmReset:false });
+  Object.assign(ui, { astaSel:null, openId:0, tradeGive:[], tradeGet:[], cmp:[], confirmReset:false, confirmSample:false });
   save();
 }
 function createLeague(name){
@@ -1142,11 +1142,11 @@ function vListone(){
       <button class="btn" id="expJson">Esporta backup (JSON)</button>
       <label class="btn" style="display:inline-block">Importa backup<input type="file" id="impJson" accept=".json" style="display:none"></label>
       <button class="btn pri" id="syncKB">🔄 Aggiorna al database ${esc(DATA_DATE)}</button>
-      <button class="btn" id="loadSample">Ripristina database interno</button>
+      <button class="btn warn" id="loadSample">${ui.confirmSample?"Confermi? Ricarica e cancella":"Ricarica il listone da zero (cancella la lega)"}</button>
       <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Azzera questa lega":`Azzera questa lega (${esc(currentLeague().name)})`}</button>
       <button class="btn warn" id="resetEverything">${ui.confirmWipe?"Confermi? CANCELLA TUTTO":`Azzera tutto — ${store.order.length} leghe`}</button>
     </div>
-    <p class="help" style="margin-top:8px"><b>Azzera questa lega</b> svuota solo la lega selezionata. <b>Azzera tutto</b> cancella <b>tutte le ${store.order.length} leghe</b> e riparte da zero con una lega vuota: usalo per ripulire i dati di prova prima di una nuova stagione.</p>
+    <p class="help" style="margin-top:8px">I tre bottoni rossi <b>cancellano dati</b> e chiedono conferma. <b>Ricarica il listone da zero</b> rimette l'elenco giocatori originale <b>perdendo rosa, voti, obiettivi e impostazioni</b> di questa lega: serve solo se hai importato un listone sbagliato — per il normale aggiornamento usa <b>🔄 Aggiorna al database</b> qui sopra, che conserva tutto. <b>Azzera questa lega</b> svuota solo la lega selezionata. <b>Azzera tutto</b> cancella <b>tutte le ${store.order.length} leghe</b> e riparte da zero con una lega vuota.</p>
   </div>`;
 }
 /* ================= tab: STRATEGIA ================= */
@@ -2128,7 +2128,7 @@ document.addEventListener("click", e=>{
     else { ui.openId = ui.openId===id ? 0 : id; render(); }
     return;
   }
-  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; ui.confirmWipe=false; render(); return; }
+  if(t.dataset.tab){ ui.tab=t.dataset.tab; ui.confirmReset=false; ui.confirmDel=false; ui.confirmWipe=false; ui.confirmSample=false; render(); return; }
   if(t.dataset.crole!==undefined){ ui.consRole=t.dataset.crole; render(); return; }
   if(t.dataset.frole!==undefined){ ui.role = ui.role===t.dataset.frole?"":t.dataset.frole; ui.limit=200; render(); return; }
   if(t.dataset.ftag!==undefined){ ui.tag = ui.tag===t.dataset.ftag?"":t.dataset.ftag; ui.limit=200; render(); return; }
@@ -2195,16 +2195,23 @@ document.addEventListener("click", e=>{
     toast(parti.length ? `Allineato: ${parti.join(", ")}` : "Era già allineato all'ultimo database");
     render(); return;
   }
-  if(t.id==="loadSample"){ currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; save(); toast("Database interno ripristinato (questa lega)"); render(); return; }
+  if(t.id==="loadSample"){
+    /* distruttivo quanto "azzera lega": rimette il listone originale ma perde rosa,
+       voti, obiettivi e impostazioni → richiede conferma come gli altri due */
+    if(!ui.confirmSample){ ui.confirmSample=true; ui.confirmReset=false; ui.confirmWipe=false; render(); return; }
+    currentLeague().state=freshState(); state=currentLeague().state; undoStack=[];
+    Object.assign(ui,{confirmSample:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[]});
+    save(); toast("Listone ricaricato da zero: rosa, voti e obiettivi di questa lega azzerati"); render(); return;
+  }
   if(t.id==="resetAll"){
-    if(!ui.confirmReset){ ui.confirmReset=true; ui.confirmWipe=false; render(); return; }
+    if(!ui.confirmReset){ ui.confirmReset=true; ui.confirmSample=false; ui.confirmWipe=false; render(); return; }
     currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; Object.assign(ui,{confirmReset:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[]}); save(); toast(`Lega "${currentLeague().name}" azzerata`); render(); return;
   }
   if(t.id==="resetEverything"){
-    if(!ui.confirmWipe){ ui.confirmWipe=true; ui.confirmReset=false; render(); return; }
+    if(!ui.confirmWipe){ ui.confirmWipe=true; ui.confirmReset=false; ui.confirmSample=false; render(); return; }
     try{ localStorage.removeItem(KEY); localStorage.removeItem(OLD2); localStorage.removeItem(OLD1); }catch(_){}
     store=newStore(); state=currentLeague().state; undoStack=[];
-    Object.assign(ui,{confirmWipe:false,confirmReset:false,confirmDel:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[],
+    Object.assign(ui,{confirmWipe:false,confirmReset:false,confirmDel:false,confirmSample:false,tradeGive:[],tradeGet:[],astaSel:null,openId:0,cmp:[],
       search:"",astaSearch:"",tradeSearch:"",cmpSearch:"",role:"",team:"",tag:"",astaRole:"",consRole:"",onlyTarget:false});
     save(); toast("Tutto azzerato: sei ripartito da una sola lega vuota"); render(); return;
   }
