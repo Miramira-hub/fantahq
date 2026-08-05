@@ -603,6 +603,39 @@ function importListone(text){
   return rows.length;
 }
 
+/* ================= allineamento al database aggiornato =================
+   Quando il database interno cambia (nuovo listone, mercato), sincronizza l'elenco
+   giocatori CONSERVANDO i dati personali: rosa, prezzi pagati, voti, obiettivi, note. */
+function syncWithKB(){
+  const before = state.players.length;
+  const byKey = new Map(state.players.map(p=>[norm(p.name)+"|"+p.role, p]));
+  const used = new Set();
+  let added = 0, updated = 0;
+  const players = KBI.map((k,ix)=>{
+    const key = norm(k.n)+"|"+k.r;
+    const old = byKey.get(key);
+    const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, 0, k.i);
+    p.extId = k.extId||"";
+    if(old){
+      used.add(key);
+      p.rating=old.rating; p.target=old.target; p.maxBid=old.maxBid;
+      p.status=old.status; p.paid=old.paid; p.owner=old.owner; p.note=old.note; p.seq=old.seq;
+      if(old.qta!==k.qta || norm(old.team)!==norm(k.t)) updated++;
+    } else added++;
+    return p;
+  });
+  /* i giocatori spariti dal listone ma che fanno parte di una rosa restano, per non
+     falsare crediti e conteggi: vanno svincolati a mano se sono usciti davvero */
+  const kept = state.players.filter(p=>!used.has(norm(p.name)+"|"+p.role) && p.status!=="free");
+  kept.forEach((p,i)=>{ p.id = players.length+i+1; players.push(p); });
+  const removed = before - (players.length - added - kept.length) - kept.length;
+  state.players = players;
+  state.nextId = players.length+1;
+  state.official = !!DATA.official;
+  save();
+  return { added, updated, kept:kept.length, removed: Math.max(0, before + added - players.length) };
+}
+
 /* ================= lettura file .xlsx (senza librerie esterne) ================= */
 const colOf = ref=>{ let s=0; for(const ch of ref){ const c=ch.charCodeAt(0); if(c>=65&&c<=90) s=s*26+(c-64); else break; } return s-1; };
 async function inflateRaw(u8){
@@ -984,9 +1017,11 @@ function vListone(){
     </div>
     <textarea class="paste" id="syncArea" style="margin-top:8px;min-height:70px" placeholder="Il codice generato appare qui — oppure incolla un codice ricevuto e premi 'Carica codice incollato'."></textarea>
     <h3 class="sec">Backup e dati</h3>
+    <p class="help" style="margin:0 0 8px"><b>Aggiorna al database</b> allinea l'elenco giocatori (nuovi arrivi, cessioni, quote) all'ultima versione del motore <b>conservando</b> rosa, prezzi pagati, voti e obiettivi. Usalo dopo ogni aggiornamento di mercato.</p>
     <div class="footactions">
       <button class="btn" id="expJson">Esporta backup (JSON)</button>
       <label class="btn" style="display:inline-block">Importa backup<input type="file" id="impJson" accept=".json" style="display:none"></label>
+      <button class="btn pri" id="syncKB">🔄 Aggiorna al database ${esc(DATA_DATE)}</button>
       <button class="btn" id="loadSample">Ripristina database interno</button>
       <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Azzera questa lega":`Azzera questa lega (${esc(currentLeague().name)})`}</button>
       <button class="btn warn" id="resetEverything">${ui.confirmWipe?"Confermi? CANCELLA TUTTO":`Azzera tutto — ${store.order.length} leghe`}</button>
@@ -1855,7 +1890,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat]");
+  const t = e.target.closest("[data-tab],[data-frole],[data-crole],[data-preset],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat]");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
   if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; render(); return; }
@@ -1980,6 +2015,16 @@ document.addEventListener("click", e=>{
     const blob = new Blob([JSON.stringify(store,null,1)],{type:"application/json"});
     const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="fantahq-backup.json"; a.click();
     URL.revokeObjectURL(a.href); toast("Backup scaricato (tutte le leghe)"); return;
+  }
+  if(t.id==="syncKB"){
+    const r = syncWithKB();
+    const parti = [];
+    if(r.added) parti.push(`${r.added} nuovi`);
+    if(r.updated) parti.push(`${r.updated} aggiornati`);
+    if(r.removed) parti.push(`${r.removed} rimossi`);
+    if(r.kept) parti.push(`${r.kept} tenuti perché in rosa`);
+    toast(parti.length ? `Allineato: ${parti.join(", ")}` : "Era già allineato all'ultimo database");
+    render(); return;
   }
   if(t.id==="loadSample"){ currentLeague().state=freshState(); state=currentLeague().state; undoStack=[]; save(); toast("Database interno ripristinato (questa lega)"); render(); return; }
   if(t.id==="resetAll"){

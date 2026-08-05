@@ -9,7 +9,7 @@
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
    regressione calibrata per ruolo sui giocatori con dati reali (est=1). */
 window.FANTAHQ_DATA = {
-  date: "4 agosto 2026 — listone ufficiale 2026/27",
+  date: "5 agosto 2026 — listone ufficiale + mercato",
   official: true,
   teams: {
     "Inter": {
@@ -230,7 +230,6 @@ window.FANTAHQ_DATA = {
 ["D","Norton-Cuffy","Genoa",8,6.49,1,27,2,1,0,65,1,0,26,0,1,"","6814"],
 ["D","Celik","Juventus",8,6.49,1,34,1,2,0,80,0,0,29,0,0,"Nuovo da svincolato: affidabile, pochi bonus.","4657"],
 ["D","Bartesaghi","Milan",8,6.49,1,31,2,0,0,76,1,0,26,0,1,"💎 0 assist ma 3.9 attesi: crea occasioni che i compagni sprecano, gli assist arriveranno.","6496"],
-["D","Gutierrez","Napoli",8,6.49,1,28,1,1,0,43,1,0,26,0,1,"","5427"],
 ["D","Spinazzola","Napoli",8,6.49,1,32,3,3,0,56,0,0,33,0,0,"","1852"],
 ["D","Delprato","Parma",8,6.49,1,0,0,0,0,88,1,0,26,0,1,"","6664"],
 ["D","Valeri","Parma",8,6.49,1,34,0,2,0,83,1,0,26,0,1,"","5862"],
