@@ -635,7 +635,7 @@ function vorpBase(){
   const s = state.settings, nT = Math.max(2, s.nTeams||8);
   const key = `${store.current}|${nT}|${ROLES.map(r=>s.slots[r]).join(",")}|${s.budget}|${ROLES.map(r=>s.split[r]).join(",")}|${state.players.length}|${ruleMod()}`;
   if(_vorpCache && _vorpCache.key===key) return _vorpCache;
-  const price = {};
+  const price = {}, rate = {};
   for(const r of ROLES){
     const N = s.slots[r]*nT;
     const pool = state.players.filter(p=>p.role===r).map(p=>({p, e:advice(kbFor(p)).exp||0})).sort((a,b)=>b.e-a.e).slice(0, N);
@@ -643,20 +643,59 @@ function vorpBase(){
     const tot = pool.reduce((t,x)=>t+Math.max(0, x.e-repl), 0);
     const B = Math.max(0, s.budget*nT*(s.split[r]||0)/100 - N);   // crediti oltre l'1 minimo a testa
     for(const x of pool) price[x.p.id] = 1 + (tot ? B*Math.max(0, x.e-repl)/tot : 0);
+    /* tasso di cambio del reparto: quanti CREDITI vale un punto di fantamedia qui.
+       Serve a convertire "quanto è più forte di X" in "quanto posso pagarlo più di X". */
+    rate[r] = tot > 0 ? B/tot : 0;
   }
-  _vorpCache = { key, price };
+  _vorpCache = { key, price, rate };
   return _vorpCache;
 }
 function vorpPrice(p){ const v = vorpBase().price[p.id]; return v==null ? 1 : Math.max(1, Math.round(v)); }
-/* TETTO MASSIMO D'ASTA = prezzo suggerito + margine per vincere l'ultimo rilancio.
-   NON si usa il VORP grezzo: il suo contributo è già dentro suggPrice (45%, limitato a
-   ±25% dal prezzo di mercato). Prenderne il massimo scavalcava quel limite e produceva
-   tetti assurdi — es. Ramon: mercato 12, suggerito 17, VORP 42 → tetto 45.
-   Margine 12% quando il giocatore vale più di quanto costerà (puoi permetterti di
-   insistere), 5% negli altri casi. */
+/* ================= TETTO MASSIMO D'ASTA =================
+   Non è il prezzo previsto (quello è una previsione, non un valore) né una percentuale
+   fissa sopra di esso. È il punto di INDIFFERENZA: fin dove conviene spingersi prima che
+   sia meglio mollare, prendere il piano B e tenersi la differenza per gli altri reparti.
+
+     tetto = prezzo del piano B + (quanto è più forte di lui) × (crediti per punto di FM)
+
+   Il tasso "crediti per punto di FM" esce dal budget del reparto (vorpBase.rate): nei
+   reparti dove tutti si equivalgono un punto vale poco e il tetto resta basso; dove il
+   salto di qualità è netto, vale molto e il tetto sale — con un motivo, non a caso.
+   Il tetto PUÒ risultare sotto il prezzo previsto: significa che al prezzo di mercato quel
+   giocatore, per la TUA ripartizione, non conviene — c'è un pari livello che costa meno.
+   Limiti di sicurezza (il piano B potrebbe sfumare anche lui): mai sotto l'80% né sopra
+   il 150% del prezzo previsto. */
+/* spiegazione in chiaro del tetto: da dove esce il numero */
+function tettoWhy(p){
+  const a = advice(kbFor(p)); if(a.exp==null) return "";
+  const alt = fallbackFor(p), tet = tettoMax(p), sugg = suggPrice(p);
+  if(!alt) return `<div class="help" style="margin-top:6px">Nessuna alternativa equivalente più economica in questo ruolo: <b>tetto ${tet}</b> crediti.</div>`;
+  const meglio = tet < sugg;
+  return `<div class="help" style="margin-top:6px">
+    <b>Perché ${tet} crediti:</b> se lo perdi il piano B è <b>${esc(alt.p.name)}</b> a ~${alt.c} crediti
+    (FM ${fmt1(alt.e)} contro ${fmt1(a.exp)}). Oltre il tetto conviene prendere lui e tenere la differenza.
+    ${meglio?` <b style="color:var(--danger)">Attenzione:</b> il prezzo atteso (${sugg}) è già sopra il tetto — a quella cifra non conviene.`:""}
+  </div>`;
+}
+function fallbackFor(p){
+  const cap = suggPrice(p);
+  let best = null;
+  for(const x of state.players){
+    if(x.id===p.id || x.role!==p.role || x.status!=="free") continue;
+    const a = advice(kbFor(x));
+    if(a.exp==null || a.aff<60) continue;                 // un piano B deve giocare
+    if(suggPrice(x) > cap) continue;                      // e costare meno di lui
+    if(!best || a.exp > best.e) best = { p:x, e:a.exp, c:suggPrice(x) };
+  }
+  return best;
+}
 function tettoMax(p){
-  const sugg = suggPrice(p);
-  return Math.max(1, Math.ceil(sugg * (vorpPrice(p) > sugg ? 1.12 : 1.05)));
+  const sugg = suggPrice(p), a = advice(kbFor(p));
+  const alt = a.exp==null ? null : fallbackFor(p);
+  if(!alt) return Math.max(1, Math.ceil(sugg*1.10));      // nessuna alternativa: è unico, margine pieno
+  const rate = vorpBase().rate[p.role] || 0;
+  const val = alt.c + Math.max(0, a.exp - alt.e) * rate;
+  return Math.max(1, Math.ceil(Math.min(sugg*1.5, Math.max(sugg*0.8, val))));
 }
 /* prezzo consigliato: prezzo d'asta atteso (FVM), tirato verso il valore VORP (entro ±25%),
    corretto per l'inflazione reale della tua asta e per il giudizio del motore.
@@ -1056,11 +1095,12 @@ function detailRow(p, colspan){
       ${stat("Affidabilità", a.aff+"/100")}
       ${stat("Squadra", `${esc(k.t)} · ${esc(t.coach||"")}`)}
       ${p.fvm?stat("FVM", p.fvm):""}
-      ${stat("Valore VORP", vorpPrice(p)+" cr")}
-      ${stat("Prezzo sugg.", suggPrice(p)+" cr")}
+      ${stat("Prezzo atteso", suggPrice(p)+" cr")}
+      ${stat("Tetto d'asta", `<span style="color:var(--gold)">${tettoMax(p)} cr</span>`)}
     </div>
     <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(chipHtml).join("")}</div>
     <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
+    ${tettoWhy(p)}
     ${noteBox(p)}
   </td></tr>`;
 }
