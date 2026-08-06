@@ -15,8 +15,8 @@ I tuoi dati (leghe, voti, obiettivi, rosa, acquisti) restano salvati solo nel tu
 | Tab | Funzione |
 |-----|----------|
 | **Consigli** | Il motore classifica ogni giocatore: *Da prendere / Obiettivo / Scommessa / Usato sicuro / Da monitorare / Da evitare* |
-| **Listone** | Tutti i giocatori con FM 2025-26, FM attesa, scheda dettaglio; import del listone ufficiale via copia-incolla |
-| **Strategia** | Budget, slot e ripartizione crediti con preset |
+| **Listone** | Tutti i giocatori con FM 2025-26, FM attesa, prezzo atteso e tetto d'asta; filtri per ruolo, squadra e **tag** (Rigorista, Titolare fisso, Attacco top…); import del listone ufficiale (.xlsx o copia-incolla) |
+| **Strategia** | Budget, slot e ripartizione crediti; **rosa ideale** (il piano che sta nel budget) e **obiettivi automatici** con tetti d'asta |
 | **Asta live** | Banco d'asta con verdetto del motore, max offerta, inflazione reale, undo |
 | **Rosa** | Spesa per reparto vs piano, qualità rosa |
 | **Formazione** | Titolari consigliati per modulo + difficoltà avversari |
@@ -25,24 +25,66 @@ I tuoi dati (leghe, voti, obiettivi, rosa, acquisti) restano salvati solo nel tu
 
 ## Il motore
 
-La **FM attesa 2026-27** parte dalla fantamedia reale 2025-26 e la corregge per: minuti giocati, forza squadra/allenatore 2026-27, status di rigorista, età, infortuni, titolarità e incertezze di mercato.
+**FM attesa 2026-27** — parte dalla fantamedia reale 2025-26 e la corregge per: minuti giocati,
+forza squadra/allenatore, rigoristi, età, infortuni, titolarità, incertezze di mercato e
+**regressione xG** (chi ha segnato sopra le proprie occasioni attese viene scontato, chi ha
+raccolto meno di quanto creato viene premiato). I pesi non sono a sensazione: sono calibrati
+con `tools/backtest.mjs`, che rigira il motore sul 2025-26 e confronta le previsioni con la
+produzione reale.
+
+**Titolarità** — dai minuti realmente giocati, corretti con le **probabili formazioni 2026-27**
+di tutte le 20 squadre e con gli **infortuni** in corso. Un titolare altrove che qui parte
+riserva viene declassato, e viceversa.
+
+**Prezzo atteso** — non la quota del listone, ma quanto andrà via davvero al tavolo: parte dal
+FVM ufficiale riproporzionato sui crediti in circolazione nella tua lega (budget × squadre),
+fuso con il **VORP** (quanto rende più dell'ultimo titolare disponibile) e corretto per
+l'inflazione reale misurata durante la tua asta.
+
+**Tetto d'asta** — il punto di indifferenza, non una percentuale fissa:
+
+> tetto = prezzo del piano B + (quanto è più forte di lui) × (crediti per punto di FM nel reparto)
+
+Oltre quella cifra conviene mollare, prendere l'alternativa e tenersi la differenza. Il tetto
+può risultare **sotto** il prezzo atteso: significa che a prezzo di mercato quel giocatore, per
+la tua ripartizione, non conviene. Si adatta ai crediti che ti restano: se hai risparmiato si
+alza, se hai speso troppo si abbassa, e non supera mai quello che puoi davvero offrire. In ogni
+scheda è spiegato in chiaro da dove esce il numero.
 
 ## Aggiornare il database
 
-Tutti i dati stanno in **`data/kb.js`** (il formato è documentato in testa al file). Per aggiornare il motore dopo una giornata o una sessione di mercato si modifica solo quel file — l'app non va toccata. I giocatori sono agganciati per *nome + ruolo*, quindi i dati personali dell'utente (voti, rosa, acquisti) sopravvivono a qualsiasi aggiornamento.
+Le fonti stanno in `data/`, il database usato dall'app è **`data/kb.js`** — **generato**, non si
+modifica a mano. Si rigenera con `node tools/build-kb.mjs`; le mappe da aggiornare a ogni giro
+(mercato, probabili formazioni, infortuni, rigoristi) sono in testa a quel file e il builder
+**valida i nomi** contro il listone, segnalando i refusi invece di perdere i dati in silenzio.
+
+Procedura completa (nuovo listone, ricerca, verifiche, pubblicazione): **[AGGIORNARE.md](AGGIORNARE.md)**.
+
+I giocatori sono agganciati per *nome + ruolo*, quindi rosa, voti e obiettivi sopravvivono a
+qualsiasi aggiornamento: basta premere **🔄 Aggiorna al database** dal tab Listone.
 
 Modi per aggiornarlo:
-1. **Chiedere a Claude** ("aggiorna il database FantaHQ"): ricerca web sulle ultime giornate/mercato e commit di `data/kb.js`.
-2. **Routine programmata Claude** (agente cloud schedulato, es. ogni lunedì in stagione) che fa la stessa cosa in automatico.
-3. **Manualmente**, seguendo il formato documentato nel file.
+1. **Chiedere a Claude** ("aggiorniamo FantaHQ"): ricerca web su mercato/formazioni/infortuni e commit.
+2. **Routine programmata Claude** (agente cloud schedulato, es. ogni lunedì in stagione).
+3. **Manualmente**, seguendo AGGIORNARE.md.
 
 ## Struttura
 
 ```
 fantahq/
-├── index.html      # l'app completa (HTML+CSS+JS, zero dipendenze)
+├── index.html                     # l'app (HTML+CSS+JS, zero dipendenze)
 ├── data/
-│   └── kb.js       # database giocatori/squadre — l'unico file da aggiornare
+│   ├── kb.js                      # database usato dall'app — GENERATO, non modificare
+│   ├── listone-2026-27.json       # listone ufficiale convertito (fonte)
+│   ├── understat-2025-26.json     # xG/xA/minuti reali 25-26 (fonte)
+│   └── kb-2025-26-snapshot.js     # KB stagione precedente (fonte, immutabile)
+├── tools/
+│   ├── build-kb.mjs               # rigenera data/kb.js dalle fonti
+│   ├── backtest.mjs               # calibra i pesi del motore sul 2025-26
+│   ├── xlsx-to-json.mjs           # converte l'xlsx delle quotazioni in JSON
+│   └── build-artifact.mjs         # genera la versione single-file per l'Artifact
+├── research/                      # metodologia e log delle statistiche
+├── AGGIORNARE.md                  # guida operativa per gli aggiornamenti
 └── README.md
 ```
 
