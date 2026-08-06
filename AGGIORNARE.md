@@ -10,6 +10,7 @@ fantahq/
 ├── data/
 │   ├── kb.js                      # DATABASE USATO DALL'APP — generato, non modificare a mano
 │   ├── listone-2026-27.json       # listone ufficiale convertito (fonte)
+│   ├── listone-2025-26.json       # listone stagione precedente: decide "nuovo acquisto"
 │   ├── understat-2025-26.json     # xG/xA/minuti reali 25-26 (fonte)
 │   └── kb-2025-26-snapshot.js     # KB stagione precedente (fonte, immutabile)
 ├── tools/
@@ -50,7 +51,7 @@ Tutto dentro `tools/build-kb.mjs`:
 | Probabili XI 2026-27 | `XI_STATUS` | T/B+/B-/R per giocatore; corregge la titolarità dai minuti vecchi |
 | Infortunati attuali | `INJURY` | [giornate saltate, nota]; 4+ → inj=3, 2-3 → inj=2 |
 | Minuti esteri nuovi | `EXTRA_US` | stesse colonne di understat; xG=gol dove non verificato (nessun segnale finto) |
-| Rigoristi | `RIG` | 2 = primo, 1 = alternativa |
+| Rigoristi | `RIG` | 2 = primo, 1 = alternativa. **Non c'è eredità dallo storico**: chi non è in mappa non tira rigori, quindi la mappa va tenuta completa per tutte e 20 le squadre |
 | Gerarchie portieri | `GK_RANK` | serve come spareggio: quota e FVM spesso non distinguono |
 | Cambi di ruolo | `ROLE_CHANGE` | senza questa mappa un giocatore che cambia ruolo perde lo storico |
 | Squadre e allenatori | `TEAMS` | rating attacco/difesa + profilo tecnico |
