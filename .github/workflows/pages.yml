@@ -1,0 +1,39 @@
+# Pubblica il sito su GitHub Pages.
+#
+# Sostituisce la pipeline "legacy" (deploy automatico dal branch), che su questo repo
+# si impantanava: i deploy restavano in coda finché l'azione non andava in timeout dopo
+# 10 minuti, e un processo bloccato ne intasava a catena tutti i successivi.
+# Qui il tempo di attesa è nostro (30 minuti) e ogni nuovo push annulla quello in sospeso,
+# così la coda non si accumula mai.
+name: Pubblica il sito
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # permette di rilanciare a mano dalla scheda Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true  # un push nuovo annulla il deploy ancora in sospeso
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .           # sito statico: si pubblica il repo così com'è
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 1800000  # 30 minuti invece dei 10 di default
