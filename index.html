@@ -591,7 +591,11 @@ function inflation(){
   const sold = state.players.filter(p=>p.status!=="free" && p.paid>0);
   const paid = sold.reduce((s,p)=>s+p.paid,0), base = sold.reduce((s,p)=>s+auctionPrice(p),0);
   const raw = base>0 ? paid/base : 1;
-  return 1 + (raw-1)*Math.min(1, sold.length/12);
+  const v = 1 + (raw-1)*Math.min(1, sold.length/12);
+  /* LIMITE: nelle prime battute due o tre acquisti fuori scala (i primi nomi vengono
+     sempre strapagati) facevano schizzare il moltiplicatore — con pochi dati il rapporto
+     è instabile. Un'asta reale non si scosta di più del ±40% dai prezzi attesi. */
+  return Math.max(0.7, Math.min(1.4, v));
 }
 
 /* ================= PREZZO D'ASTA ATTESO =================
@@ -670,11 +674,13 @@ function tettoWhy(p){
   const a = advice(kbFor(p)); if(a.exp==null) return "";
   const alt = fallbackFor(p), tet = tettoMax(p), sugg = suggPrice(p);
   if(!alt) return `<div class="help" style="margin-top:6px">Nessuna alternativa equivalente più economica in questo ruolo: <b>tetto ${tet}</b> crediti.</div>`;
-  const meglio = tet < sugg;
+  const meglio = tet < sugg, f = ricchezza();
   return `<div class="help" style="margin-top:6px">
     <b>Perché ${tet} crediti:</b> se lo perdi il piano B è <b>${esc(alt.p.name)}</b> a ~${alt.c} crediti
     (FM ${fmt1(alt.e)} contro ${fmt1(a.exp)}). Oltre il tetto conviene prendere lui e tenere la differenza.
     ${meglio?` <b style="color:var(--danger)">Attenzione:</b> il prezzo atteso (${sugg}) è già sopra il tetto — a quella cifra non conviene.`:""}
+    ${f>1.15?` <b style="color:var(--accent)">Hai crediti in abbondanza</b> per gli slot che ti restano: il tetto è già alzato del ${Math.round((f-1)*100)}%.`:""}
+    ${f<0.85?` <b style="color:var(--warn)">Sei corto di crediti</b> per gli slot che ti restano: il tetto è abbassato.`:""}
   </div>`;
 }
 function fallbackFor(p){
@@ -689,13 +695,30 @@ function fallbackFor(p){
   }
   return best;
 }
+/* Quanto sei RICCO rispetto agli slot che ti restano: 1 a inizio asta, >1 se hai
+   risparmiato (i crediti in mano valgono meno → puoi alzare i tetti), <1 se hai speso
+   troppo. È il correttivo che impedisce di scivolare di piano B in piano B tenendosi i
+   crediti inutilizzati: con pochi slot e molti crediti i tetti si alzano da soli. */
+function ricchezza(){
+  const s = state.settings;
+  const slotTot = ROLES.reduce((t,r)=>t+s.slots[r], 0) || 1;
+  const rif = s.budget / slotTot;                          // crediti per slot a inizio asta
+  const liberi = totSlotsLeft();
+  if(!liberi || !rif) return 1;
+  return Math.max(0.6, Math.min(2, (budgetLeft()/liberi) / rif));
+}
 function tettoMax(p){
   const sugg = suggPrice(p), a = advice(kbFor(p));
+  const f = ricchezza();
   const alt = a.exp==null ? null : fallbackFor(p);
-  if(!alt) return Math.max(1, Math.ceil(sugg*1.10));      // nessuna alternativa: è unico, margine pieno
-  const rate = vorpBase().rate[p.role] || 0;
+  if(!alt) return Math.max(1, Math.ceil(sugg*1.10*Math.min(1.5,Math.max(1,f))));   // è unico
+  const rate = (vorpBase().rate[p.role] || 0) * f;
   const val = alt.c + Math.max(0, a.exp - alt.e) * rate;
-  return Math.max(1, Math.ceil(Math.min(sugg*1.5, Math.max(sugg*0.8, val))));
+  const hi = sugg * 1.5 * Math.min(1.6, Math.max(1, f));
+  const t = Math.max(1, Math.ceil(Math.min(hi, Math.max(sugg*0.8, val))));
+  /* non ha senso un tetto oltre quello che puoi davvero offrire adesso */
+  const cap = maxBid();
+  return cap > 0 ? Math.min(t, cap) : t;
 }
 /* prezzo consigliato: prezzo d'asta atteso (FVM), tirato verso il valore VORP (entro ±25%),
    corretto per l'inflazione reale della tua asta e per il giudizio del motore.
