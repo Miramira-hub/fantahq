@@ -75,7 +75,7 @@ I segnali 💎 / 🔻 / ⚡ nelle note sono **generati automaticamente** dal con
 
 1. `git add -A && git commit && git push` → il sito https://miramira-hub.github.io/fantahq/ si aggiorna da solo
 2. Ripubblicare l'Artifact (stesso file, stesso URL)
-3. Dire all'utente: **Ctrl+F5** e poi **🔄 Aggiorna al database** dal tab Listone
+3. Dire all'utente: **Ctrl+F5** e poi **🔄 Aggiorna al database** dal tab Impostazioni
    (allinea l'elenco giocatori conservando rosa, prezzi pagati, voti e obiettivi)
 
 ## Verifiche da fare sempre

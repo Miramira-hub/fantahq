@@ -266,7 +266,7 @@ const PRESETS = {
   modificatore:{P:7,D:24,C:24,A:45,label:"Modificatore difesa"},
   attacco:{P:6,D:12,C:22,A:60,label:"Attacco pesante"}
 };
-const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["confronto","Confronto"],["scambi","Scambi"],["guida","Guida"]];
+const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["confronto","Confronto"],["scambi","Scambi"],["guida","Guida"],["impostazioni","Impostazioni"]];
 
 const TEAMS = DATA.teams;
 
@@ -464,6 +464,33 @@ function createLeague(name){
   return id;
 }
 function renameLeague(id, name){ if(store.leagues[id]){ store.leagues[id].name = name || store.leagues[id].name; save(); } }
+/* Copia ★ e voti da un'altra lega. I giocatori si agganciano per NOME+RUOLO (gli id sono
+   locali alla lega). I TETTI NON si copiano: dipendono dal budget, dagli slot e dai crediti
+   ancora liberi di questa lega, quindi vengono ricalcolati qui. Non sovrascrive mai:
+   aggiunge solo ciò che manca, e salta chi è già stato assegnato all'asta. */
+function copyTargetsFrom(srcId){
+  const src = store.leagues[srcId];
+  if(!src || !src.state || !Array.isArray(src.state.players)) return null;
+  const key = p => norm(p.name)+"|"+p.role;
+  const from = new Map();
+  for(const p of src.state.players) if(p.target || p.rating>0) from.set(key(p), p);
+  let stelle = 0, voti = 0, saltati = 0;
+  for(const p of state.players){
+    const o = from.get(key(p));
+    if(!o) continue;
+    /* il voto è un giudizio sul giocatore: vale anche se qui l'ha già preso qualcun altro
+       (serve nel Confronto e negli Scambi) */
+    if(o.rating>0 && !p.rating){ p.rating = o.rating; voti++; }
+    if(o.target && !p.target){
+      if(p.status !== "free"){ saltati++; continue; }   // già assegnato: inutile come obiettivo
+      p.target = true;
+      if(!p.maxBid) p.maxBid = tettoMax(p);
+      stelle++;
+    }
+  }
+  if(stelle || voti) save();
+  return { stelle, voti, saltati };
+}
 function deleteLeague(id){
   if(!store.leagues[id] || store.order.length<=1) return false;
   delete store.leagues[id];
@@ -1083,7 +1110,7 @@ function vConsigli(){
   }).join("");
 
   return `
-  ${state.official?"":`<div class="banner"><b>Quote stimate</b> — il listone ufficiale 2026-27 non è ancora uscito: le quote sono stime del motore. Importa quello vero dal tab Listone appena disponibile.</div>`}
+  ${state.official?"":`<div class="banner"><b>Quote stimate</b> — il listone ufficiale 2026-27 non è ancora uscito: le quote sono stime del motore. Importa quello vero dal tab Impostazioni appena disponibile.</div>`}
   ${ui.consRole==="P"?gkPairsHtml():""}
   <div class="card">
     <h2>Chi prendere all'asta — il verdetto del motore</h2>
@@ -1190,6 +1217,30 @@ function vListone(){
     </table></div>
     ${list.length>ui.limit?`<p style="text-align:center;margin:10px 0 0"><button class="btn" id="more">Mostra altri ${list.length-ui.limit}</button></p>`:""}
   </div>
+  <p class="help">Import del listone, backup, sincronizzazione e reset si trovano ora nel tab <b>Impostazioni</b>.</p>`;
+}
+
+/* ================= tab: IMPOSTAZIONI =================
+   Raccoglie tutto ciò che si fa UNA VOLTA (o di rado): import del listone, obiettivi
+   automatici, copia tra leghe, backup e reset. Toglie peso ai tab che si usano al tavolo. */
+function vImpostazioni(){
+  const altre = store.order.filter(id=>id!==store.current);
+  return `
+  <div class="card">
+    <h2>Obiettivi automatici</h2>
+    <p class="sub">Il motore segna ★ su tre livelli — la <b>rosa ideale</b> (il piano che sta nel budget), i <b>top per reparto</b> (il menu: di questi almeno uno lo porti a casa) e le <b>occasioni</b> (valgono più di quanto costeranno) — e compila il <b>tetto massimo</b> di ognuno. I tuoi ★ e i tetti che scrivi tu non vengono mai toccati.</p>
+    <div class="footactions">
+      <button class="btn pri" id="genTargets">★ Genera obiettivi dal motore</button>
+      <button class="btn" id="recalcCaps" title="Riscrive i tetti di tutti gli obiettivi con i prezzi di adesso (utile a metà asta, o dopo un aggiornamento del motore)">♻️ Ricalcola i tetti max</button>
+    </div>
+    <h3 class="sec">Copia obiettivi da un'altra lega</h3>
+    <p class="help" style="margin:0 0 8px">Fai più fantacalci? Porta qui ★ e voti già scelti altrove, senza rifare tutto. I <b>tetti vengono ricalcolati</b> sul budget di <b>questa</b> lega (in un'altra lega gli stessi crediti valgono diversamente). Non sovrascrive nulla: aggiunge solo ciò che qui manca, e salta i giocatori già assegnati.</p>
+    ${altre.length ? `<div class="footactions">
+      <label>Da <select id="copyFromSel">${altre.map(id=>`<option value="${id}">${esc(store.leagues[id].name)}</option>`).join("")}</select></label>
+      <button class="btn" id="copyTargets">⇄ Copia obiettivi e voti</button>
+    </div>` : `<div class="empty">Hai una sola lega: crea la seconda con ＋ in alto (o dal tab Strategia) per poter copiare.</div>`}
+  </div>
+
   <div class="card">
     <h2>Importa il listone ufficiale</h2>
     <p class="sub">Carica direttamente il file <b>.xlsx</b> delle quotazioni Fantacalcio.it (o incolla le righe qui sotto). Il motore aggancia storico, consigli e codici Id ai nomi.</p>
@@ -1202,24 +1253,33 @@ function vListone(){
       <button class="btn" id="doImport">Importa dal testo incollato</button>
       <span class="help">Colonne riconosciute: <code>Id · R · Nome · Squadra · Qt.A … FVM</code>. Voti e obiettivi vengono conservati.</span>
     </div>
-    <h3 class="sec">Sincronizza PC ↔ telefono</h3>
-    <p class="help" style="margin:0 0 8px">I tuoi dati (rosa, voti, obiettivi) vivono solo su questo dispositivo. Per portarli altrove: genera il codice, invialo all'altro dispositivo (es. messaggio a te stesso) e lì incollalo e premi Carica.</p>
+  </div>
+
+  <div class="card">
+    <h2>Sincronizza PC ↔ telefono</h2>
+    <p class="sub">I tuoi dati (rosa, voti, obiettivi) vivono solo su questo dispositivo. Per portarli altrove: genera il codice, invialo all'altro dispositivo (es. messaggio a te stesso) e lì incollalo e premi Carica.</p>
     <div class="footactions">
       <button class="btn pri" id="genSync">Genera e copia codice</button>
       <button class="btn" id="applySync">Carica codice incollato</button>
     </div>
     <textarea class="paste" id="syncArea" style="margin-top:8px;min-height:70px" placeholder="Il codice generato appare qui — oppure incolla un codice ricevuto e premi 'Carica codice incollato'."></textarea>
-    <h3 class="sec">Backup e dati</h3>
-    <p class="help" style="margin:0 0 8px"><b>Aggiorna al database</b> allinea l'elenco giocatori (nuovi arrivi, cessioni, quote) all'ultima versione del motore <b>conservando</b> rosa, prezzi pagati, voti e obiettivi. Usalo dopo ogni aggiornamento di mercato.</p>
+  </div>
+
+  <div class="card">
+    <h2>Backup e dati</h2>
+    <p class="sub"><b>Aggiorna al database</b> allinea l'elenco giocatori (nuovi arrivi, cessioni, quote) all'ultima versione del motore <b>conservando</b> rosa, prezzi pagati, voti e obiettivi. Usalo dopo ogni aggiornamento di mercato.</p>
     <div class="footactions">
       <button class="btn" id="expJson">Esporta backup (JSON)</button>
       <label class="btn" style="display:inline-block">Importa backup<input type="file" id="impJson" accept=".json" style="display:none"></label>
       <button class="btn pri" id="syncKB">🔄 Aggiorna al database ${esc(DATA_DATE)}</button>
+    </div>
+    <h3 class="sec">Zona rossa — cancellano dati</h3>
+    <div class="footactions">
       <button class="btn warn" id="loadSample">${ui.confirmSample?"Confermi? Ricarica e cancella":"Ricarica il listone da zero (cancella la lega)"}</button>
       <button class="btn warn" id="resetAll">${ui.confirmReset?"Confermi? Azzera questa lega":`Azzera questa lega (${esc(currentLeague().name)})`}</button>
       <button class="btn warn" id="resetEverything">${ui.confirmWipe?"Confermi? CANCELLA TUTTO":`Azzera tutto — ${store.order.length} leghe`}</button>
     </div>
-    <p class="help" style="margin-top:8px">I tre bottoni rossi <b>cancellano dati</b> e chiedono conferma. <b>Ricarica il listone da zero</b> rimette l'elenco giocatori originale <b>perdendo rosa, voti, obiettivi e impostazioni</b> di questa lega: serve solo se hai importato un listone sbagliato — per il normale aggiornamento usa <b>🔄 Aggiorna al database</b> qui sopra, che conserva tutto. <b>Azzera questa lega</b> svuota solo la lega selezionata. <b>Azzera tutto</b> cancella <b>tutte le ${store.order.length} leghe</b> e riparte da zero con una lega vuota.</p>
+    <p class="help" style="margin-top:8px">Tutti e tre chiedono conferma. <b>Ricarica il listone da zero</b> rimette l'elenco giocatori originale <b>perdendo rosa, voti, obiettivi e impostazioni</b> di questa lega: serve solo se hai importato un listone sbagliato — per il normale aggiornamento usa <b>🔄 Aggiorna al database</b> qui sopra, che conserva tutto. <b>Azzera questa lega</b> svuota solo la lega selezionata. <b>Azzera tutto</b> cancella <b>tutte le ${store.order.length} leghe</b> e riparte da zero con una lega vuota.</p>
   </div>`;
 }
 /* ================= tab: STRATEGIA ================= */
@@ -1294,14 +1354,6 @@ function vStrategia(){
       <thead><tr><th>R</th><th>Reparto</th><th class="r">Crediti</th><th>Suggerimento per slot</th></tr></thead>
       <tbody>${perSlot}</tbody>
     </table></div>
-  </div>
-  <div class="card">
-    <h2>Obiettivi automatici</h2>
-    <p class="sub">Il motore segna ★ su tre livelli — la <b>rosa ideale</b> (il piano che sta nel budget), i <b>top per reparto</b> (il menu: di questi almeno uno lo porti a casa) e le <b>occasioni</b> (valgono più di quanto costeranno) — e compila il <b>tetto massimo</b> di ognuno. I tuoi ★ e i tetti che scrivi tu non vengono mai toccati.</p>
-    <div class="footactions">
-      <button class="btn pri" id="genTargets">★ Genera obiettivi dal motore</button>
-      <button class="btn" id="recalcCaps" title="Riscrive i tetti di tutti gli obiettivi con i prezzi di adesso (utile a metà asta, o dopo un aggiornamento del motore)">♻️ Ricalcola i tetti max</button>
-    </div>
   </div>
   ${squadHtml()}`;
 }
@@ -1569,7 +1621,12 @@ function vAsta(){
     <div class="kpi ${infl>1.15?"danger":""}"><div class="l">Inflazione asta</div><div class="v">${infl.toFixed(2)}×</div><div class="s">pagato vs valore reale</div></div>
     <div class="kpi"><div class="l">Rosa</div><div class="v">${mine().length}/${ROLES.reduce((s,r)=>s+state.settings.slots[r],0)}</div><div class="s">${ROLES.map(r=>`${r}:${state.settings.slots[r]-slotsLeft(r)}/${state.settings.slots[r]}`).join(" ")}</div></div>
   </div>`;
-  const switchbar = `<div class="switchbar"><button class="btn ${ui.fast?"pri":""}" id="fastToggle">${ui.fast?"↩ Modalità completa":"📱 Modalità asta rapida"}</button></div>`;
+  /* il ricalcolo dei tetti serve soprattutto QUI, a metà asta: riallinea i tuoi tetti
+     all'inflazione reale del tavolo e ai crediti che ti restano davvero */
+  const switchbar = `<div class="switchbar" style="gap:8px">
+    ${state.players.some(p=>p.target&&p.status==="free") ? `<button class="btn" id="recalcCaps" title="Riallinea i tetti dei tuoi obiettivi ai prezzi e ai crediti di adesso">♻️ Ricalcola tetti</button>` : ""}
+    <button class="btn ${ui.fast?"pri":""}" id="fastToggle">${ui.fast?"↩ Modalità completa":"📱 Modalità asta rapida"}</button>
+  </div>`;
   const alerts = alertsHtml();
 
   /* ---- MODALITÀ RAPIDA (telefono) ---- */
@@ -1778,7 +1835,7 @@ function roseImportHtml(){
     <p class="help">Sposta i giocatori di quella squadra nella tua rosa; le altre restano come rivali (li vedi in Asta → Crediti dei rivali).</p>` : "";
   return `<div class="card">
     <h2>Importa le rose di tutti ${state.official?"":'<span class="badge" style="border-color:var(--danger);color:var(--danger)">manca il listone</span>'}</h2>
-    <p class="sub">Carica il file rose della lega (formato Leghe Fantacalcio: blocchi <code>$,$,$</code> con righe <code>Squadra,Id,Costo</code>). I giocatori vengono assegnati alle squadre tramite il codice Id — quindi <b>importa prima il listone ufficiale</b> nel tab Listone.</p>
+    <p class="sub">Carica il file rose della lega (formato Leghe Fantacalcio: blocchi <code>$,$,$</code> con righe <code>Squadra,Id,Costo</code>). I giocatori vengono assegnati alle squadre tramite il codice Id — quindi <b>importa prima il listone ufficiale</b> nel tab Impostazioni.</p>
     <div class="footactions">
       <label class="btn pri" style="display:inline-block">📄 Carica file rose (.csv/.txt)<input type="file" id="impRose" accept=".csv,.txt" style="display:none"></label>
     </div>
@@ -1835,7 +1892,7 @@ function vRosa(){
       <button class="btn pri" id="csvMine">Scarica CSV della mia rosa</button>
       <button class="btn" id="csvAll">Scarica CSV di tutte le rose</button>
     </div>
-    <p class="help" style="margin-top:10px"><b>Indispensabile il codice Id ufficiale:</b> questo formato usa solo l'Id del calciatore, quindi devi aver importato il <b>listone ufficiale</b> (tab Listone) — FantaHQ ne memorizza l'Id (prima colonna <code>#</code>) e lo scrive nel CSV. Senza listone importato i giocatori vengono saltati e l'app te lo segnala.</p>
+    <p class="help" style="margin-top:10px"><b>Indispensabile il codice Id ufficiale:</b> questo formato usa solo l'Id del calciatore, quindi devi aver importato il <b>listone ufficiale</b> (tab Impostazioni) — FantaHQ ne memorizza l'Id (prima colonna <code>#</code>) e lo scrive nel CSV. Senza listone importato i giocatori vengono saltati e l'app te lo segnala.</p>
   </div>
   ${roseImportHtml()}`;
 }
@@ -2035,17 +2092,32 @@ function vGuida(){
 <li><b>Fantamedia 2025-26 reale</b> (dove disponibile; ~ = stima), riproporzionata sui minuti giocati: 18 presenze valgono meno di 33.</li>
 <li><b>Squadra e allenatore 2026-27</b>: giocare nell'Inter di Chivu o nella Roma offensiva di Gasperini vale bonus; una neopromossa toglie.</li>
 <li><b>Rigori</b>: il rigorista designato vale +, il secondo tiratore un po' meno.</li>
-<li><b>Età, infortuni, titolarità</b> e <b>situazioni di mercato</b> (es. Leao in uscita, Vlahovic svincolato) che congelano il giudizio.</li>
+<li><b>Regressione xG</b>: chi ha segnato molto sopra le occasioni che si è creato viene scontato (difficile ripetersi), chi ha raccolto meno di quanto ha creato viene premiato. È il segnale statistico più affidabile per distinguere il rendimento vero dalla stagione fortunata.</li>
+<li><b>Titolarità dalle probabili formazioni 2026-27</b> di tutte le 20 squadre, non solo dai minuti dell'anno scorso: un titolare altrove che qui parte in panchina viene declassato, e viceversa.</li>
+<li><b>Età, infortuni in corso</b> (⚕️ nelle note) e <b>situazioni di mercato</b> (es. Leao in uscita) che congelano il giudizio.</li>
 <li><b>Regolamento della tua lega</b> (impostalo in Strategia): col <b>modificatore difesa</b> il motore alza il valore di difensori regolari e — se conta il portiere — dei buoni portieri; senza modificatore li abbassa e spinge su centrocampo e attacco. Ogni lega ha il suo regolamento, quindi gli stessi giocatori possono avere consigli diversi nelle tue due leghe.</li>
 </ul>
 <p>Le categorie: <b>Da prendere</b> (top affidabili), <b>Obiettivo</b> (ottimo rapporto resa/prezzo), <b>Scommessa</b> (upside alto, rischio alto), <b>Usato sicuro</b> (rendimento noto, niente sorprese), <b>Da monitorare</b> (talento vero ma situazione aperta: ricontrolla le notizie prima dell'asta), <b>Da evitare</b> (costa più di quel che rende).</p>
 <p>Il tuo <b>voto personale</b> nel Listone sovrascrive il motore nella formazione: tu conosci la tua lega meglio di qualsiasi algoritmo.</p>`],
+["Prezzo atteso e tetto d'asta: i due numeri che contano", `
+<p>Sono cose diverse e vanno lette insieme. Li trovi nella scheda di ogni giocatore.</p>
+<ul>
+<li><b>Prezzo atteso</b> = quanto andrà via <i>davvero</i> al tavolo. Non è la quota del listone: parte dal FVM ufficiale riproporzionato sui crediti che girano nella tua lega (crediti × squadre) e si corregge con l'<b>inflazione reale</b> misurata durante la tua asta.</li>
+<li><b>Tetto d'asta</b> = fin dove ti conviene spingerti. Non è una percentuale sopra il prezzo: è il punto di indifferenza calcolato sul tuo <b>piano B</b> —<br>
+<i>tetto = prezzo del piano B + quanto è più forte di lui, convertito in crediti</i>.<br>
+Oltre quella cifra conviene mollare, prendere l'alternativa e tenersi la differenza per gli altri reparti.</li>
+</ul>
+<p><b>Se il tetto è più basso del prezzo atteso</b>, il motore ti sta dicendo che a prezzo di mercato quel giocatore non conviene: c'è un pari livello che costa meno. Su quei nomi non partire nemmeno col rilancio — sono i giocatori su cui gli altri si svenano.</p>
+<p>Il tetto <b>si adatta ai tuoi crediti</b>: se hai risparmiato si alza (con pochi slot e molti crediti, tenerli in mano non serve a niente), se hai speso troppo si abbassa, e non supera mai quello che puoi davvero offrire. Premi <b>♻️ Ricalcola tetti</b> ogni tanto durante l'asta.</p>
+<p>Resta il tuo strumento, non un padrone: il tetto lo puoi sovrascrivere a mano quando conosci il tuo tavolo meglio dei numeri.</p>`],
 ["Prima dell'asta: la preparazione vince", `
 <ul>
-<li>Parti dal tab <b>Consigli</b>: segna ★ 2-3 obiettivi per fascia, non uno solo: se te lo soffiano hai il piano B.</li>
-<li>Per ogni obiettivo fissa il <b>tetto massimo</b> e rispettalo: il 90% delle aste si perde per un rilancio di pancia.</li>
-<li>I giocatori <b>"da monitorare"</b> (Leao, Vlahovic, Lookman…) vanno ricontrollati la sera prima dell'asta: se la situazione si è chiarita possono diventare affari o trappole.</li>
-<li>Prepara 2 piani di budget alternativi e decidi nei primi 20 minuti quale seguire.</li>
+<li>In <b>Impostazioni</b> premi <b>★ Genera obiettivi</b>: il motore segna la <b>rosa ideale</b> (il piano che sta nel budget), i <b>top per reparto</b> (il menu: di questi almeno uno lo porti a casa) e le <b>occasioni</b> (valgono più di quanto costeranno), compilando ogni tetto.</li>
+<li>Poi rifinisci a mano nel <b>Listone</b>: le tue ★ valgono quanto quelle del motore, e il tetto si compila da solo anche quando la metti tu.</li>
+<li>2-3 obiettivi per fascia, mai uno solo: se te lo soffiano hai il piano B (lo trovi scritto in ogni scheda, con nome e prezzo).</li>
+<li>I giocatori <b>"da monitorare"</b> vanno ricontrollati la sera prima: se la situazione si chiarisce diventano affari o trappole.</li>
+<li>Usa i <b>filtri per tag</b> nel Listone (Rigorista, Titolare fisso, Attacco top…) per passare in rassegna una categoria alla volta.</li>
+<li>Fai più fantacalci? In <b>Impostazioni</b> → <b>Copia obiettivi e voti</b> porti tutto da un'altra lega: i tetti vengono ricalcolati sul budget di quella nuova.</li>
 </ul>`],
 ["Come si distribuisce il budget", `
 <p>Su 500 crediti (lega classica 8-10 squadre):</p>
@@ -2060,6 +2132,7 @@ function vGuida(){
 <li><b>Non aprire tu i big che vuoi</b>: chi chiama spesso paga di più. Chiama presto i big che NON vuoi: bruciano il budget dei rivali.</li>
 <li>Occhio all'effetto <b>"ultimo della fascia"</b>: meglio il penultimo top a prezzo giusto che l'ultimo a prezzo folle.</li>
 <li>Se l'<b>inflazione</b> (tab Asta) supera 1.15×, i prezzi caleranno a metà asta: tieni crediti per quella finestra.</li>
+<li>Ogni tanto premi <b>♻️ Ricalcola tetti</b> in cima al tab Asta: riallinea i tetti dei tuoi obiettivi all'inflazione reale del tavolo e ai crediti che ti restano. Se hai risparmiato, ti autorizza a spingere di più.</li>
 <li>Gli slot da 1 credito sceglili dal gruppo <b>Scommesse</b>: giovani con spazio e rigoristi di provinciali.</li>
 <li><b>Registra chi prende chi</b>: quando un rivale vince un giocatore, assegnaglielo con <b>Preso</b>. La tabella "Crediti dei rivali" ti dice quanti crediti restano a ciascuno: quando sono corti, i tuoi obiettivi arrivano a sconto.</li>
 <li>Tieni d'occhio le <b>allerte reparti</b> in cima al tab Asta: se la difesa (o un altro reparto) si sta svuotando di giocatori di valore mentre hai ancora slot da riempire, il motore te lo dice e ti propone il miglior colpo ancora libero — un errore da correggere subito.</li>
@@ -2098,13 +2171,13 @@ function vGuida(){
 function render(){
   renderHeader();
   $("#tabs").innerHTML = TABS.map(([id,l])=>`<button data-tab="${id}" class="${ui.tab===id?"on":""}">${l}</button>`).join("");
-  const views = {consigli:vConsigli, listone:vListone, strategia:vStrategia, asta:vAsta, rosa:vRosa, formazione:vFormazione, confronto:vConfronto, scambi:vScambi, guida:vGuida};
+  const views = {consigli:vConsigli, listone:vListone, strategia:vStrategia, asta:vAsta, rosa:vRosa, formazione:vFormazione, confronto:vConfronto, scambi:vScambi, guida:vGuida, impostazioni:vImpostazioni};
   $("#view").innerHTML = views[ui.tab]();
   if(ui.tab==="asta" && ui.astaSel){ const el=$("#buyPrice"); if(el) el.focus(); }
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat],#recalcCaps");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat],#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
   if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; render(); return; }
@@ -2164,6 +2237,17 @@ document.addEventListener("click", e=>{
   if(t.id==="applySync"){
     const err = loadSyncCode($("#syncArea").value);
     if(err) toast(err); else { undoStack=[]; toast("Dati sincronizzati su questo dispositivo"); render(); }
+    return;
+  }
+  if(t.id==="copyTargets"){
+    const sel = $("#copyFromSel"); if(!sel) return;
+    const nome = (store.leagues[sel.value]||{}).name || "";
+    const r = copyTargetsFrom(sel.value);
+    if(!r) { toast("Lega di origine non leggibile"); return; }
+    render();
+    toast(r.stelle||r.voti
+      ? `Da "${nome}": ${r.stelle} obiettivi e ${r.voti} voti copiati${r.saltati?` · ${r.saltati} già assegnati, saltati`:""}`
+      : `Niente da copiare da "${nome}": qui c'è già tutto`);
     return;
   }
   if(t.id==="recalcCaps"){
