@@ -1153,7 +1153,6 @@ function detailRow(p, colspan){
   return `<tr class="detail"><td colspan="${colspan}">
     <div class="dgrid">
       ${stat("FM 2025-26", fmt1(k.fm)+(k.est?" ~":""))}
-      ${k.fm2>0?stat("FM 2024-25", fmt1(k.fm2)+(k.fm-k.fm2>=0.3?" ↗":k.fm-k.fm2<=-0.3?" ↘":"")):""}
       ${stat("FM attesa 26-27", `<span style="color:var(--accent)">${fmt1(a.exp)}</span>`)}
       ${stat("Presenze", k.pres||"—")}
       ${k.r!=="P"?stat("Gol + assist", `${k.gol}+${k.ass}`):""}

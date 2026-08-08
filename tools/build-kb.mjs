@@ -81,6 +81,13 @@ const mkStat = y => new Map(statRows(y).map(r => [r[0], {
 const ST26 = mkStat("2025-26");   // stagione appena conclusa: la fonte primaria
 const ST25 = mkStat("2024-25");   // serve solo per la traiettoria (stava crescendo?)
 
+/* ---- ETÀ VERIFICATE (ricognizione agosto 2026, fonte transfermarkt) ----
+   Prima dell'audit quasi tutti avevano l'età di default (26): i correttivi del motore
+   per gli over 35 e i giovani non scattavano mai. nome listone → età al 1/9/2026. */
+let ETA = {};
+try { ETA = JSON.parse(fs.readFileSync(`${REPO}/data/eta-2026-27.json`, "utf8")); }
+catch (e) { console.warn("⚠️ data/eta-2026-27.json assente: età di ripiego dal vecchio KB"); }
+
 /* ---- regressione FM ~ log(quota) per ruolo ----
    Serve solo a stimare la Fm di chi NON ha statistiche ufficiali 25-26 (nuovi arrivi
    dall'estero o dalla B). Calibrata sui giocatori con dato ufficiale VERO e almeno 10
@@ -335,7 +342,37 @@ const MERCATO_NOTE = {
   "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas: titolare e doppietta col Famalicao. Quota 20 giustificata.",
   "Motta":"Titolare nell'amichevole con l'Ostiamare (5 ago) con Mandas in panchina: il ballottaggio in porta alla Lazio è vero e ancora aperto.",
   "Mandas":"⚠️ Ballottaggio aperto: nell'ultima amichevole è partito dalla panchina con Motta titolare. Gattuso non ha ancora dichiarato la gerarchia.",
-  "Bowie":"Arrivato dal Verona per ~10M: se il Sassuolo cede Pinamonti diventa il titolare, altrimenti resta alternativa."
+  "Bowie":"Arrivato dal Verona per ~10M: se il Sassuolo cede Pinamonti diventa il titolare, altrimenti resta alternativa.",
+  /* --- audit giocatore per giocatore, 7 agosto --- */
+  "Djimsiti":"❌ Ha chiesto la cessione: Al-Diriyah (Arabia) in chiusura, non convocato per l'amichevole del 7 agosto. Non prenderlo.",
+  "Vigorito":"❌ Svincolato: ha lasciato il Como. Non è più in Serie A.",
+  "Maldini":"❌ Passato al Cagliari (prestito 1M + riscatto 8M): non convocato dall'Atalanta il 7 agosto. Lì sarebbe titolare, ma nel listone risulta ancora all'Atalanta.",
+  "De Roon":"⚠️ 35 anni e scavalcato da Gaetano in regia nelle probabili di Sarri: non è più il titolare inamovibile di un tempo.",
+  "Gaetano":"Regista titolare nelle probabili di Sarri (in adattamento nel ruolo), davanti a De Roon: a quota 7 vale la scommessa.",
+  "Samardzic":"💎 Ha superato Pasalic come mezzala titolare nelle probabili, ed è il terzo rigorista con le punizioni: quota 12 per un titolare dell'Atalanta.",
+  "Bernasconi":"20 anni, terzino sinistro titolare nelle probabili davanti ad Ahanor: quota 6 per un posto da titolare.",
+  "Lucumì":"⚠️ Titolare del Bologna ma la Juventus insiste (offerti Miretti e Cabal per abbassare i 25M): se parte, sale Vitik.",
+  "Obert":"Titolare a sinistra nel nuovo 4-4-2 di Pisacane: promosso rispetto ai ballottaggi di luglio.",
+  "Fazzini":"💎 Titolare nel 4-4-2 del Cagliari ed è il secondo rigorista con le punizioni: a quota 7 è tra le occasioni migliori.",
+  "Winks":"Nuovo regista titolare del Cagliari e incaricato dei calci da fermo: 30 anni, affidabile.",
+  "Ramon":"Centrale titolare fisso del Como a 21 anni: l'arrivo di Chalobah non lo ha scalzato, gli è costato il posto Smolcic.",
+  "Baturina":"💎 Promosso titolare sulla trequarti del Como e secondo rigorista: quota 19 ma con un ruolo da protagonista.",
+  "Perrone":"Titolare in mediana nel Como di Fabregas, insidiato da Caqueret e Milla ma davanti a entrambi.",
+  "Paz N.":"✅ RESTA al Como: accordo col Real Madrid del 29 giugno, la recompra slitta al 2027-28. Batte le punizioni.",
+  "Morata":"Riscattato dal Milan: resta al Como come alternativa a Douvikas, non come titolare.",
+  "Bartesaghi":"Promosso titolare come quinto di sinistra nel 3-4-2-1 di Amorim: 20 anni, quota 8 per un posto da titolare del Milan.",
+  "Gabbia":"Titolare nel terzetto Gila-Gabbia-Pavlovic secondo le probabili di agosto.",
+  "Modric":"40 anni: ancora in ballottaggio con Jashari per la mediana, il minutaggio andrà gestito.",
+  "Gimenez":"⚠️ In uscita dal Milan (Porto in pressing, il club chiede 25-30M): al 7 agosto è ancora rossonero ma il rischio è alto.",
+  "Provstgaard":"💎 Promosso titolare accanto a Doekhi in tutte le formazioni tipo estive, scavalcando Romagnoli: quota 3 per un titolare della Lazio.",
+  "Dele-Bashiru":"💎 Titolare da mezzala/trequartista in tutte le formazioni tipo di Gattuso: quota 5 sottovalutata.",
+  "Romagnoli":"⚠️ Scavalcato da Provstgaard nelle formazioni tipo e con la trattativa Al-Sadd solo congelata: doppio rischio.",
+  "Pellegrini Lu.":"Chiuso da Tavares e Pedraza a sinistra: fuori dalle rotazioni.",
+  "Celik":"Arrivato a zero dalla Roma ed è nell'XI probabile di Spalletti: a quota 8 un titolare della Juve.",
+  "Kelly L.":"⚠️ Non più intoccabile: con Celik nell'XI il ballottaggio è aperto (se gioca Celik, Kalulu si allarga).",
+  "Alajbegovic":"💎 Nell'XI probabile di Spalletti sulla trequarti a 19 anni, dopo 9 gol in prestito a Salisburgo: ballottaggio serrato con Conceicao.",
+  "Koopmeiners":"⚠️ Fuori dall'XI e dichiarato cedibile dalla Juventus: da evitare.",
+  "Kolo Muani":"⚠️ UFFICIALE alla Juventus dal PSG il 2 agosto (38M+12 bonus), prima punta di Spalletti e candidato n.1 per i rigori — ma la gerarchia dal dischetto non è ancora decisa. Stagione 25-26 pessima: 1 gol in 30 presenze al Tottenham."
 };
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
@@ -352,7 +389,18 @@ const MERCATO_UNC = {
   "Milinkovic-Savic V.":2, // in uscita dal Napoli (accostato all'Hull City)
   "Pinamonti":2,     // cedibile dopo l'arrivo di Bowie
   "Lukaku":2,        // rapporto col Napoli in deterioramento
-  "Maldini":2        // accordo totale col Cagliari: cambia squadra
+  "Maldini":3,       // al Cagliari: non gioca più nell'Atalanta
+  "Djimsiti":3,      // ha chiesto la cessione, Al-Diriyah in chiusura
+  "Vigorito":3,      // svincolato dal Como
+  "Lucumì":2,        // la Juventus insiste (offerti Miretti e Cabal)
+  "Romagnoli":2,     // trattativa Al-Sadd congelata ma non chiusa
+  "Cancellieri":2,   // sul mercato (Torino, Parma, Fiorentina)
+  "Gimenez":2,       // il Milan chiede 25-30M, Porto in pressing
+  "Zalewski":2,      // fuori dalle probabili, possibile prestito
+  "Koopmeiners":2,   // dichiarato cedibile dalla Juventus
+  "David":2,         // dichiarato cedibile dalla Juventus
+  "Zhegrova":2,      // dichiarato cedibile dalla Juventus
+  "Douglas Luiz":2   // rientrato dal prestito, in uscita
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -374,31 +422,44 @@ const XI_STATUS = {
   "Cristante":"T","Konè M.":"T","Wesley":"B+","Rensch":"B+","Soulè":"B+","Dybala":"B+","Malen":"T",
   "Castro S.":"B+","Pisilli":"B-",
   /* Milan (3-4-2-1 Amorim) */
-  "Maignan":"T","Gila":"T","Gabbia":"B+","Tomori":"B-","Pavlovic":"T","Saelemaekers":"T",
-  "Modric":"B+","Rabiot":"T","Bartesaghi":"B+","Estupinan":"B-","Pulisic":"T","Nkunku":"B+",
-  /* derby amichevole di Perth (5 ago): Camarda titolare, Ramos-Leao-Modric in panchina */
-  "Leao":"B+","Ramos G.":"B-","Camarda":"T","Gimenez":"R","Chukwueze":"R","Loftus-Cheek":"R",
+  "Maignan":"T","Terracciano":"R","Gila":"T","Gabbia":"T","Tomori":"B-","Pavlovic":"T",
+  "Saelemaekers":"T","Modric":"B+","Jashari":"B-","Rabiot":"T","Bartesaghi":"T","Estupinan":"B-",
+  "Pulisic":"T","Nkunku":"B+",
+  /* FONTI DISCORDI sulla punta: nel derby di Perth (5 ago) è partito Camarda con Ramos in
+     panchina, ma Ramos è l'acquisto da 70M e altre fonti lo danno titolare. Ballottaggio vero. */
+  "Leao":"B+","Ramos G.":"B+","Camarda":"B+","Gimenez":"R","Chukwueze":"R","Loftus-Cheek":"R",
   /* Juventus (4-2-3-1 Spalletti) */
-  "Di Gregorio":"B+","Perin":"R","Kalulu":"T","Bremer":"T","Kelly L.":"T","Cambiaso":"T",
-  "Locatelli":"T","Thuram K.":"B+","Conceicao":"B+","Alajbegovic":"B-","McKennie":"B+",
+  /* audit 7 agosto: Kolo Muani UFFICIALE (38M+12); Celik nell'XI, Kelly non più intoccabile;
+     Koopmeiners, Zhegrova, David e Douglas Luiz dichiarati cedibili e fuori dalle gerarchie */
+  "Di Gregorio":"B+","Perin":"R","Kalulu":"T","Bremer":"T","Celik":"B+","Kelly L.":"B+",
+  "Cambiaso":"T","Gatti":"B-","Locatelli":"T","Thuram K.":"B+","Conceicao":"B+",
+  "Alajbegovic":"B+","McKennie":"B+","Koopmeiners":"R","Zhegrova":"R","Douglas Luiz":"R",
   "Yildiz":"T","Kolo Muani":"T","Boga":"R","David":"R",
   /* Como (4-2-3-1 Fabregas) */
-  "Butez":"T","Smolcic I.":"B+","Van Der Brempt":"B-","Ramon":"B+","Kempf":"B+","Cuenca A.":"B-",
-  "Kaiki":"B+","Valle":"B-","Da Cunha":"T","Perrone":"B+","Diao":"B+","Paz N.":"T","Baturina":"B+",
-  "Douvikas":"T","Rodriguez Je.":"R",
+  /* audit 7 agosto: Ramon centrale fisso, Valle ha superato Kaiki, Baturina e Perrone titolari,
+     Jesus Rodriguez in netta risalita, Smolcic scivolato dietro dopo Chalobah e Couto */
+  "Butez":"T","Smolcic I.":"R","Van Der Brempt":"B-","Ramon":"T","Kempf":"B+","Cuenca A.":"R",
+  "Kaiki":"B-","Valle":"B+","Da Cunha":"T","Perrone":"T","Caqueret":"B-","Milla":"B-",
+  "Diao":"B+","Paz N.":"T","Baturina":"T","Douvikas":"T","Rodriguez Je.":"B+","Morata":"B-",
   /* Atalanta (4-3-3 Sarri) */
   "Carnesecchi":"T","Zappacosta":"T","Bellanova":"R","Scalvini":"T","Hien":"T","Djimsiti":"B+",
-  "Ahanor":"B+","Bernasconi":"B-","Kolasinac":"B-","Ederson D.S.":"T","Pasalic":"B+","Samardzic":"B-",
-  "De Ketelaere":"T","Scamacca":"B+","Krstovic":"B-","Raspadori":"T",   // Raspadori davanti a Zalewski/Sulemana
+  /* audit 7 agosto: Bernasconi ha superato Ahanor a sinistra, Samardzic ha superato
+     Pasalic, Gaetano gioca regista davanti a De Roon (35 anni), Zalewski fuori dalle probabili */
+  "Ahanor":"B-","Bernasconi":"B+","Bellanova":"B-","Kolasinac":"B-","Kossounou":"B-",
+  "Ederson D.S.":"T","Pasalic":"B-","Samardzic":"B+","Gaetano":"B+","De Roon":"B-",
+  "Zalewski":"R","Sulemana I.":"R","Sulemana K.":"R",
+  "De Ketelaere":"T","Scamacca":"B+","Krstovic":"B-","Raspadori":"T",
   /* Bologna (4-3-3 Tedesco) */
-  "Skorupski":"T","Zortea":"B+","Holm":"B-","Heggem":"T","Lucumì":"B+","Vitik":"B-","Casale":"R",
-  "Miranda J.":"T","Ferguson":"T","Pobega":"B+","Odgaard":"B+","Bernardeschi":"B-","Orsolini":"T",
-  "Dovbyk":"T","Dallinga":"R","Rowe":"T","Cambiaghi":"R","Helland":"B-",
+  "Skorupski":"T","Zortea":"B+","Holm":"B-","Heggem":"T","Lucumì":"T","Vitik":"B-","Casale":"R",
+  "Miranda J.":"T","Ferguson":"T","Pobega":"B+","Odgaard":"B+","Moro N.":"B+","Bernardeschi":"B-",
+  "Orsolini":"T","Dovbyk":"T","Dallinga":"R","Rowe":"T","Cambiaghi":"R","Helland":"R",
   /* Lazio (4-3-3 Gattuso) */
-  /* Motta titolare vs Ostiamare (5 ago) con Mandas in panchina: gerarchia NON dichiarata */
-  "Mandas":"B+","Motta":"B+","Marusic":"B+","Lazzari":"B-","Doekhi":"T","Provstgaard":"B+",
-  "Tavares N.":"B+","Pedraza":"B-","Rovella":"T","Cataldi":"B-","Taylor K.":"T","Isaksen":"B+",
-  "Cancellieri":"B-","Zaccagni":"T","Ratkov":"T","Dia":"B-",   // Ratkov miglior marcatore delle amichevoli
+  /* audit 7 agosto: Mandas favorito, Provstgaard e Dele-Bashiru promossi titolari,
+     Romagnoli scalzato (e con l'Al-Sadd ancora alla finestra), Pellegrini chiuso a sinistra */
+  "Mandas":"B+","Motta":"B-","Marusic":"B+","Lazzari":"B-","Doekhi":"T","Romagnoli":"B-",
+  "Provstgaard":"T","Tavares N.":"B+","Pedraza":"B-","Pellegrini Lu.":"R","Patric":"B-",
+  "Rovella":"T","Cataldi":"B-","Taylor K.":"T","Dele-Bashiru":"T","Isaksen":"B+",
+  "Cancellieri":"B-","Zaccagni":"T","Ratkov":"T","Dia":"B-","Noslin":"B-",
   /* Fiorentina (4-3-2-1 Grosso) */
   "De Gea":"T","Dodò":"B+","Joao Mario":"B-","Dragusin":"T","Viery":"B+","Pongracic":"B-",
   "Ranieri L.":"B-","Jimenez A.":"B+","Oulai":"B+","Fagioli":"B+","Mandragora":"B-","Ndour":"B+",
@@ -410,8 +471,10 @@ const XI_STATUS = {
   "Paleari":"R","Mascardi":"R","Comuzzo":"B+","Ismajli":"B+","Comert":"B-","Coco":"T","Pedersen":"T",   // arriva Perri dal Leeds
   "Casadei":"T","Vlasic":"T","Biraghi":"B-","Simeone":"T","Zapata D.":"B+","Adams C.":"B-","Oristanio":"B+",
   /* Cagliari (3-5-2 Pisacane) */
-  "Caprile":"T","Zè Pedro":"B+","Mina":"T","Rodriguez Ju.":"B+","Zappa":"B+","Obert":"B+",
-  "Fazzini":"B+","Deiola":"B-","Borrelli":"B+","Mendy P.":"B+","Felici":"B-",
+  /* audit 7 agosto: Pisacane passa al 4-4-2 — Obert e Fazzini titolari, Mendy in attacco */
+  "Caprile":"T","Zè Pedro":"B+","Mina":"T","Rodriguez Ju.":"B+","Zappa":"B-","Obert":"T",
+  "Kofler":"B-","Fazzini":"T","Adopo":"T","Winks":"T","Romano":"B+","Deiola":"B-",
+  "Borrelli":"B-","Mendy P.":"T","Mutandwa":"B+","Felici":"B-","Prati":"B-",
   /* Genoa (3-4-2-1 De Rossi) */
   "Bijlow":"B+","Marcandalli":"T","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T","Frendrup":"T",
   "Ellertsson":"B+","Masini":"B-","Mitaj":"B+","Martin":"B-","Baldanzi":"B+","Vitinha O.":"B+",
@@ -584,7 +647,7 @@ for (const role of ["P","D","C","A"]) {
       if (gior >= 4) inj = 3; else if (gior >= 2) inj = Math.max(inj, 2);
       injNote = `⚕️ ${txt}`;
     }
-    const age  = o && o.age ? o.age : 26;
+    const age  = ETA[p.n] ?? (o && o.age ? o.age : 26);
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     /* "nuovo acquisto" = non era in Serie A l'anno scorso, oppure c'era ma in un'altra
        squadra. Fonte: listone 2025-26 completo (non lo snapshot parziale del KB). */
@@ -637,8 +700,8 @@ for (const role of ["P","D","C","A"]) {
 
 /* verifica: ogni nome nelle mappe deve esistere nel listone (un typo = dato perso in silenzio) */
 const LNAMES = new Set(L.map(p => p.n));
-for (const [label, map] of [["XI_STATUS", XI_STATUS], ["INJURY", INJURY], ["MERCATO_NOTE", MERCATO_NOTE], ["MERCATO_UNC", MERCATO_UNC], ["RIG", RIG], ["NOTE", NOTE]]) {
-  const missing = Object.keys(map).filter(n => !LNAMES.has(n));
+for (const [label, map] of [["XI_STATUS", XI_STATUS], ["INJURY", INJURY], ["MERCATO_NOTE", MERCATO_NOTE], ["MERCATO_UNC", MERCATO_UNC], ["RIG", RIG], ["NOTE", NOTE], ["ETA", ETA]]) {
+  const missing = Object.keys(map).filter(n => !n.startsWith("_") && !LNAMES.has(n));
   if (missing.length) console.warn(`⚠️ ${label}: nomi non nel listone → ${missing.join(", ")}`);
 }
 
