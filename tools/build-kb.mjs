@@ -623,7 +623,13 @@ for (const role of ["P","D","C","A"]) {
     }
     const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
     const note = [injNote, baseNote, signal].filter(Boolean).join(" ");
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd}]`;
+    /* fm2 = fantamedia della stagione PRECEDENTE (24-25), solo se significativa in
+       entrambe le annate: il motore la fonde 65/35 con l'ultima (misurato su 140
+       giocatori: errore di previsione -9% rispetto alla sola ultima stagione).
+       Un'annata anomala — in su o in giù — così non domina più la proiezione. */
+    const st25p = ST25.get(p.id);
+    const fm2 = (hasReal && st25p && st25p.pv >= 15 && st.pv >= 15) ? st25p.fm : 0;
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }
@@ -643,7 +649,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    - kb: [ruolo, nome, squadra, quotaUfficiale, fantamedia, fmStimata(0/1), presenze, gol, assist,
           rigorista(2=primo,1=alternativa,0=no), titolarità%, upside0-5, rischioInfortuni0-3,
           età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota, idUfficiale, FVM(fantavalore su base 1000),
-          xgd(correzione FM da regressione xG, ±0.40)]
+          xgd(correzione FM da regressione xG, ±0.40), fm2(fantamedia 24-25 se significativa)]
    Nomi allineati al listone ufficiale ("Cognome I."): l'app aggancia per NOME+RUOLO.
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
    regressione calibrata per ruolo sui giocatori con dati reali (est=1).

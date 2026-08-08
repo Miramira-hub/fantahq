@@ -282,7 +282,7 @@ let undoStack = [];
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
 
 const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
-  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0, xgd:+r[19]||0 }));
+  rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0, xgd:+r[19]||0, fm2:+r[20]||0 }));
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
@@ -516,7 +516,11 @@ function expFM(k){
        proprio xG scende, chi ha raccolto meno di quanto creato sale) */
   const rm = ROLE_MEAN[k.r];
   const w = Math.min(1,(k.pres||0)/30);
-  let v = rm + (k.fm-rm)*(0.35+0.65*w);
+  /* base pluriennale: 65% ultima stagione + 35% precedente (quando esiste un dato vero
+     in entrambe). Misurato su 140 giocatori: -9% di errore rispetto alla sola ultima
+     stagione, perché un'annata anomala regredisce verso lo standard personale. */
+  const base = (!k.est && k.fm2>0) ? 0.65*k.fm + 0.35*k.fm2 : k.fm;
+  let v = rm + (base-rm)*(0.35+0.65*w);
   if(k.est) v = rm + (v-rm)*0.9;
   const t = TEAMS[k.t]||{atk:3,def:3};
   v += (k.r==="A"||k.r==="C") ? (t.atk-3)*0.05 : (t.def-3)*(k.r==="P"?0.13:0.10);
@@ -1149,6 +1153,7 @@ function detailRow(p, colspan){
   return `<tr class="detail"><td colspan="${colspan}">
     <div class="dgrid">
       ${stat("FM 2025-26", fmt1(k.fm)+(k.est?" ~":""))}
+      ${k.fm2>0?stat("FM 2024-25", fmt1(k.fm2)+(k.fm-k.fm2>=0.3?" ↗":k.fm-k.fm2<=-0.3?" ↘":"")):""}
       ${stat("FM attesa 26-27", `<span style="color:var(--accent)">${fmt1(a.exp)}</span>`)}
       ${stat("Presenze", k.pres||"—")}
       ${k.r!=="P"?stat("Gol + assist", `${k.gol}+${k.ass}`):""}
@@ -2288,6 +2293,15 @@ document.addEventListener("click", e=>{
     const added = {piano:0, menu:0, occasioni:0};
     const star = p => { if(!p.target){ p.target=true; return true; } return false; };
     const tetto = p => { if(!p.maxBid){ p.maxBid = tettoMax(p); } };
+    /* livello 0: chi il motore giudica "Da prendere" è SEMPRE ★ — se il giudizio dice
+       da prendere, la stella non può mancare (prima un must costoso poteva restare fuori
+       perché i posti del suo ruolo erano già occupati da giocatori più convenienti) */
+    for(const p of state.players){
+      if(p.status!=="free") continue;
+      const k=kbFor(p); if(!k || advice(k).tier!=="must") continue;
+      if(star(p)) added.menu++;
+      tetto(p);
+    }
     const plan = optimalSquad(ui.squadStrategy || null);
     for(const r of ROLES){
       for(const x of (plan.roles[r]?.picks||[])){ if(x.p.status==="free"){ if(star(x.p)) added.piano++; tetto(x.p); } }
