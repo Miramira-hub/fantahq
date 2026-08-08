@@ -549,6 +549,9 @@ function advice(k){
   const exp = expFM(k), aff = affOf(k), [hi,mid] = TH[k.r];
   let tier;
   if(k.unc>=2) tier = "watch";
+  /* un infortunio lungo viene prima di ogni altra valutazione: senza questo controllo un
+     titolare operato finiva classificato "Scommessa" grazie alle presenze dell'anno scorso */
+  else if(k.inj>=3) tier = "watch";
   else if(exp>=hi && aff>=78) tier = "must";
   else if(exp>=mid && aff>=68) tier = "target";
   else if(k.up>=3 && (k.age<=23 || aff<70)) tier = "bet";
