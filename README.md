@@ -25,12 +25,19 @@ I tuoi dati (leghe, voti, obiettivi, rosa, acquisti) restano salvati solo nel tu
 
 ## Il motore
 
-**FM attesa 2026-27** — parte dalla fantamedia reale 2025-26 e la corregge per: minuti giocati,
-forza squadra/allenatore, rigoristi, età, infortuni, titolarità, incertezze di mercato e
-**regressione xG** (chi ha segnato sopra le proprie occasioni attese viene scontato, chi ha
-raccolto meno di quanto creato viene premiato). I pesi non sono a sensazione: sono calibrati
-con `tools/backtest.mjs`, che rigira il motore sul 2025-26 e confronta le previsioni con la
-produzione reale.
+**FM attesa 2026-27** — parte dalla **fantamedia ufficiale** 2025-26 (statistiche
+Fantacalcio.it, agganciate per Id: 330 giocatori su 493 hanno il dato vero, per gli altri
+una stima da regressione) e la corregge per: minuti giocati, forza squadra/allenatore,
+rigoristi, età, infortuni, titolarità, incertezze di mercato e **regressione xG** (chi ha
+segnato sopra le proprie occasioni attese viene scontato, chi ha raccolto meno di quanto
+creato viene premiato). Le soglie e i pesi non sono a sensazione: sono calibrati sui
+percentili reali con `tools/backtest.mjs`.
+
+**Occasioni da pochi crediti** — `tools/scovatore.mjs` misura su tre stagioni cosa predice
+davvero le esplosioni sotto i 10 crediti. Risultato: conta quasi solo **quanto giocava già**
+(era titolare → 53% di riuscita contro il 19% medio; mai visto in Serie A → 8%), mentre il
+mito "media voto alta e poco spazio" non regge. Da qui i tag **Occasione affidabile** e
+**Mai in campo in A** nel Listone.
 
 **Titolarità** — dai minuti realmente giocati, corretti con le **probabili formazioni 2026-27**
 di tutte le 20 squadre e con gli **infortuni** in corso. Un titolare altrove che qui parte

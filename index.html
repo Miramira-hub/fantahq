@@ -500,8 +500,13 @@ function deleteLeague(id){
 }
 
 /* ================= motore consigli ================= */
-const ROLE_MEAN = {P:5.5, D:6.3, C:6.45, A:6.7};
-const TH = {P:[5.85,5.60], D:[6.85,6.50], C:[7.00,6.60], A:[7.30,6.85]};
+/* Scala tarata sulle FANTAMEDIE UFFICIALI 2025-26 (regolamento standard).
+   ROLE_MEAN = mediana reale di chi ha giocato; TH = soglie "da prendere"/"obiettivo",
+   fissate sui percentili alti della distribuzione di FM attesa (vedi tools/scovatore.mjs).
+   NB: la Fm ufficiale dei portieri è strutturalmente bassa (-1 per gol subito): 5.2 per un
+   portiere vale quanto 6.6 per un attaccante, per questo ogni ruolo ha soglie proprie. */
+const ROLE_MEAN = {P:5.17, D:5.94, C:6.23, A:6.60};
+const TH = {P:[5.40,5.26], D:[6.48,6.16], C:[6.88,6.50], A:[7.50,6.94]};
 
 function expFM(k){
   /* Pesi ricalibrati col backtest 25-26 (tools/backtest.mjs):
@@ -564,6 +569,12 @@ function chipsOf(k){
   else if(k.tit<60) c.push(["Rischio panchina","bad"]);
   else if(k.tit<70) c.push(["Ballottaggio",""]);
   if(k.pres>0 && k.pres<12) c.push([`Solo ${k.pres} presenze`,"bad"]);   // campione ridotto: giudizio meno affidabile
+  /* Segnale empirico (tools/scovatore.mjs, 2 stagioni): tra i giocatori da pochi crediti,
+     chi era già titolare l'anno scorso diventa titolare nel 53% dei casi contro un 19% medio;
+     chi non ha mai messo piede in Serie A si ferma all'8%. È il filtro più affidabile per
+     distinguere le occasioni vere dalle scommesse a vuoto. */
+  if(k.qta<=10 && k.pres>=28) c.push(["Occasione affidabile","good"]);
+  else if(k.qta<=10 && !k.newT && k.pres<=2) c.push(["Mai in campo in A","bad"]);
   if(k.up>=4) c.push(["Upside alto","good"]);
   if((k.r==="A"||k.r==="C") && t.atk>=5) c.push(["Attacco top","good"]);
   if((k.r==="P"||k.r==="D") && t.def>=5) c.push(["Difesa top","good"]);
@@ -571,8 +582,8 @@ function chipsOf(k){
 }
 /* tag filtrabili: i 4 più usati come chip fissi, gli altri nella tendina "+ altri".
    Le etichette dinamiche ("36 anni", "Solo N presenze") restano solo informative. */
-const TAGS_MAIN = ["Rigorista","Titolare fisso","Attacco top","Difesa top"];
-const TAGS_MORE = ["Rigore n.2","Ballottaggio","Rischio panchina","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
+const TAGS_MAIN = ["Rigorista","Titolare fisso","Occasione affidabile","Attacco top"];
+const TAGS_MORE = ["Difesa top","Rigore n.2","Ballottaggio","Rischio panchina","Mai in campo in A","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
 const TAG_SET = new Set([...TAGS_MAIN, ...TAGS_MORE]);
 function hasTag(p, tag){ const k=kbFor(p); return !!k && chipsOf(k).some(c=>c[0]===tag); }
 const chipHtml = ([t,c]) => TAG_SET.has(t)
@@ -2110,6 +2121,18 @@ Oltre quella cifra conviene mollare, prendere l'alternativa e tenersi la differe
 <p><b>Se il tetto è più basso del prezzo atteso</b>, il motore ti sta dicendo che a prezzo di mercato quel giocatore non conviene: c'è un pari livello che costa meno. Su quei nomi non partire nemmeno col rilancio — sono i giocatori su cui gli altri si svenano.</p>
 <p>Il tetto <b>si adatta ai tuoi crediti</b>: se hai risparmiato si alza (con pochi slot e molti crediti, tenerli in mano non serve a niente), se hai speso troppo si abbassa, e non supera mai quello che puoi davvero offrire. Premi <b>♻️ Ricalcola tetti</b> ogni tanto durante l'asta.</p>
 <p>Resta il tuo strumento, non un padrone: il tetto lo puoi sovrascrivere a mano quando conosci il tuo tavolo meglio dei numeri.</p>`],
+["Gli slot da pochi crediti: cosa dicono i numeri", `
+<p>Misurato sulle statistiche ufficiali di tre stagioni (<code>tools/scovatore.mjs</code>), su 378 giocatori da <b>quota ≤ 10</b>:</p>
+<ul>
+<li>Solo il <b>19%</b> arriva a 28+ presenze. Comprare a caso in fondo al listone è, in media, una <b>perdita</b>: il valore medio di un economico è negativo.</li>
+<li>Il predittore più forte, di gran lunga, è <b>quanto giocava già l'anno prima</b>:<br>
+era titolare (28+ presenze) → <b>53%</b> di probabilità di esserlo ancora · aveva 8-17 presenze → 18% · <b>mai visto in Serie A → 8%</b>.<br>
+Verificato su due stagioni indipendenti, con lo stesso risultato.</li>
+<li><b>Il mito da sfatare:</b> "media voto alta ma poco spazio" non funziona. Quel gruppo ha reso <b>peggio</b> della media degli economici. La media voto, da sola, non predice chi conquisterà il posto.</li>
+<li>Segnale negativo affidabile: <b>minuti in calo</b> rispetto a due anni fa (14% contro 32%).</li>
+<li>I <b>secondi portieri</b> sono l'investimento peggiore in assoluto: nella lista di chi non ha mai giocato sono la categoria più numerosa.</li>
+</ul>
+<p><b>Come usarlo all'asta:</b> filtra il Listone col tag <b>Occasione affidabile</b> — sono i giocatori sotto i 10 crediti che erano già titolari. Ed evita quelli con <b>Mai in campo in A</b>, a meno che non sia un arrivo dall'estero con credenziali vere (quelli sono un caso a parte: tra i colpi migliori della scorsa stagione c'erano diversi esordienti in Serie A provenienti da altri campionati).</p>`],
 ["Prima dell'asta: la preparazione vince", `
 <ul>
 <li>In <b>Impostazioni</b> premi <b>★ Genera obiettivi</b>: il motore segna la <b>rosa ideale</b> (il piano che sta nel budget), i <b>top per reparto</b> (il menu: di questi almeno uno lo porti a casa) e le <b>occasioni</b> (valgono più di quanto costeranno), compilando ogni tetto.</li>

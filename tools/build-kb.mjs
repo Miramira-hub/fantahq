@@ -65,13 +65,35 @@ function findOld(p){
   return c.length === 1 ? c[0] : null;
 }
 
+/* ================= STATISTICHE UFFICIALI (Fantacalcio.it) =================
+   Id,R,Rm,Nome,Squadra,Pv,Mv,Fm,Gf,Gs,Rp,Rc,R+,R-,Ass,Amm,Esp,Au
+   Fonte autorevole e, soprattutto, agganciabile per ID ufficiale: niente match sui nomi.
+   Copre 385 dei 493 giocatori del listone (prima le fantamedie verificate erano 19).
+   ATTENZIONE alla scala: questa Fm segue il regolamento standard (gol +3, assist +1,
+   ammonizione -0.5, espulsione -1, gol subito -1 per i portieri, rigore parato +3), quindi
+   è più bassa di quella usata prima — mediane reali con 20+ presenze: P 5.02, D 5.95,
+   C 6.21, A 6.60. Le soglie del motore sono state ricalibrate di conseguenza. */
+const statRows = y => JSON.parse(fs.readFileSync(`${REPO}/data/statistiche-${y}.json`, "utf8")).slice(2);
+const mkStat = y => new Map(statRows(y).map(r => [r[0], {
+  pv:+r[5]||0, mv:+r[6]||0, fm:+r[7]||0, gf:+r[8]||0, gs:+r[9]||0,
+  rp:+r[10]||0, ass:+r[14]||0, amm:+r[15]||0, esp:+r[16]||0
+}]));
+const ST26 = mkStat("2025-26");   // stagione appena conclusa: la fonte primaria
+const ST25 = mkStat("2024-25");   // serve solo per la traiettoria (stava crescendo?)
+
 /* ---- regressione FM ~ log(quota) per ruolo ----
-   Calibrata su TUTTI i giocatori riconosciuti dal vecchio KB (~170: FM reali + stime già ragionate),
-   non solo sui pochi con FM verificata, altrimenti il campione è troppo piccolo e la retta impazzisce.
-   Il risultato viene poi limitato a un intervallo realistico per ruolo. */
+   Serve solo a stimare la Fm di chi NON ha statistiche ufficiali 25-26 (nuovi arrivi
+   dall'estero o dalla B). Calibrata sui giocatori con dato ufficiale VERO e almeno 10
+   presenze: prima si usava il vecchio KB (poche decine di righe, in parte già stimate),
+   ora la retta poggia su ~280 osservazioni reali.
+   Limiti per ruolo: presi dai percentili osservati, così una stima non può uscire dal
+   campo di valori che quel ruolo produce davvero. */
 const known = [];
-for (const p of L) { const o = findOld(p); if (o) known.push({ r:p.r, x:Math.log(p.q||1), y:o.fm }); }
-const CLAMP = { P:[4.9,6.15], D:[5.7,7.6], C:[5.7,7.8], A:[5.7,8.6] };
+for (const p of L) {
+  const s = ST26.get(p.id);
+  if (s && s.pv >= 10) known.push({ r:p.r, x:Math.log(p.q||1), y:s.fm });
+}
+const CLAMP = { P:[4.3,5.7], D:[5.4,7.7], C:[5.4,7.7], A:[5.5,8.3] };
 const REG = {};
 for (const role of ["P","D","C","A"]) {
   const s = known.filter(k => k.r === role);
@@ -504,15 +526,18 @@ for (const role of ["P","D","C","A"]) {
   let first = true;
   for (const p of L.filter(x => x.r === role).sort((a,b) => b.q - a.q)) {
     const o = findOld(p);
-    const u = findUS(p);                       // dati reali 25-26
+    const u = findUS(p);                       // Understat: minuti e xG (per titolarità e xgd)
     if (u) withUS++;
-    const hasReal = o && !o.est;
+    /* FONTE PRIMARIA: statistiche ufficiali 25-26, agganciate per ID (nessun rischio di
+       omonimia). Understat resta per i minuti e i segnali xG, che le statistiche non hanno. */
+    const st = ST26.get(p.id);
+    const hasReal = !!st && st.pv >= 5;        // sotto 5 presenze il dato non è significativo
     if (hasReal) matched++; else estimated++;
-    const fm  = hasReal ? o.fm : estFM(p.r, p.q);
+    const fm  = hasReal ? st.fm : estFM(p.r, p.q);
     const est = hasReal ? 0 : 1;
-    const pres = u ? u.gp  : (o ? o.pres : 0);
-    const gol  = u ? u.gol : (o ? o.gol : 0);
-    const ass  = u ? u.ass : (o ? o.ass : 0);
+    const pres = st ? st.pv  : (u ? u.gp  : (o ? o.pres : 0));
+    const gol  = st ? st.gf  : (u ? u.gol : (o ? o.gol : 0));
+    const ass  = st ? st.ass : (u ? u.ass : (o ? o.ass : 0));
     /* NIENTE eredità dallo storico: la mappa RIG copre ora tutte e 20 le squadre con le
        gerarchie 2026-27, quindi chi non c'è semplicemente non tira i rigori quest'anno.
        Ereditare il dato vecchio resuscitava designazioni superate (Lukaku, Gimenez). */
@@ -533,7 +558,25 @@ for (const role of ["P","D","C","A"]) {
                        : titFromMinutes(u);
     /* le probabili formazioni 2026-27 correggono la storia: gerarchie nuove > minuti vecchi */
     if (XI_STATUS[p.n]) tit = XI_ADJ[XI_STATUS[p.n]](tit);
-    const up   = o ? o.up : (p.q <= 6 ? 2 : 1);
+    /* ---- UPSIDE data-driven (tools/scovatore.mjs, 2 stagioni di verifica) ----
+       Misurato su 378 giocatori economici: la probabilità di diventare titolare (28+
+       presenze) dipende quasi solo da QUANTO GIOCAVA GIÀ, non dalla media voto.
+         28+ presenze l'anno prima → 53% ce la fa   (base di tutti gli economici: 19%)
+         18-27 →14%   8-17 →18%   1-7 →25%   mai visto in A →8%
+       Il mito "media voto alta e poco spazio" NON regge: quel gruppo ha fatto peggio
+       della media. Chi arriva dall'estero è un caso a parte (nessuno storico in A):
+       resta neutro, perché tra i migliori colpi del 25-26 ce n'erano parecchi. */
+    const prev = findPrev(p);                           // c'era nel listone dell'anno scorso?
+    const pv25 = st ? st.pv : 0;
+    const pv24 = ST25.get(p.id) ? ST25.get(p.id).pv : 0;
+    const inCalo = pv24 >= 8 && pv25 <= pv24 - 8;       // spazio in contrazione: 14% contro 32%
+    let up;
+    if (!prev) up = 2;                                  // mai in Serie A: neutro, non penalizzato
+    else if (pv25 >= 28) up = 4;
+    else if (pv25 >= 18) up = 3;
+    else if (pv25 >= 8)  up = 2;
+    else                 up = 1;
+    if (inCalo) up = Math.max(1, up - 1);
     let inj  = o ? o.inj : 0;
     let injNote = "";
     if (INJURY[p.n]) {
@@ -545,7 +588,6 @@ for (const role of ["P","D","C","A"]) {
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     /* "nuovo acquisto" = non era in Serie A l'anno scorso, oppure c'era ma in un'altra
        squadra. Fonte: listone 2025-26 completo (non lo snapshot parziale del KB). */
-    const prev = findPrev(p);
     const newT = prev ? (norm(prev.t) !== norm(p.t) ? 1 : 0) : 1;
 
     /* ---- xgd: correzione numerica di regressione verso la media (in punti FM) ----

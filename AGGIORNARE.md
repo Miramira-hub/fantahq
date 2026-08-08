@@ -11,10 +11,15 @@ fantahq/
 │   ├── kb.js                      # DATABASE USATO DALL'APP — generato, non modificare a mano
 │   ├── listone-2026-27.json       # listone ufficiale convertito (fonte)
 │   ├── listone-2025-26.json       # listone stagione precedente: decide "nuovo acquisto"
+│   ├── statistiche-2025-26.json   # FONTE PRIMARIA: fantamedie ufficiali (aggancio per Id)
+│   ├── statistiche-2024-25.json   # storico: traiettoria dei minuti
+│   ├── statistiche-2023-24.json   # storico: controprova dell'analisi
 │   ├── understat-2025-26.json     # xG/xA/minuti reali 25-26 (fonte)
 │   └── kb-2025-26-snapshot.js     # KB stagione precedente (fonte, immutabile)
 ├── tools/
 │   ├── build-kb.mjs               # rigenera data/kb.js dalle fonti
+│   ├── backtest.mjs               # calibra i pesi del motore sui dati reali
+│   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
 │   ├── xlsx-to-json.mjs           # converte un .xlsx estratto in JSON
 │   └── build-artifact.mjs         # genera la versione single-file per l'Artifact
 └── research/pre-listone-2026-27.md  # metodologia, profili allenatore, log statistiche
@@ -23,6 +28,9 @@ fantahq/
 ## Aggiornare il listone (nuovo file da Fantacalcio.it)
 
 L'utente scarica il file da **fantacalcio.it → Quotazioni → Scarica** (serve login).
+Allo stesso modo si scaricano le **Statistiche** di fine stagione: stesso convertitore,
+destinazione `data/statistiche-<anno>.json`. Sono la fonte primaria delle fantamedie —
+si agganciano per **Id ufficiale**, quindi senza alcun rischio di omonimia.
 
 ```bash
 # 1) estrarre l'xlsx (è uno zip) e convertirlo
