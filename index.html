@@ -85,7 +85,6 @@
   .badge.gone{background:var(--surface2);color:var(--muted);text-decoration:line-through}
   .star{background:none;border:none;font-size:17px;color:var(--border);padding:2px 4px}
   .star.on{color:var(--gold)}
-  .tgtwhy{font-size:10px;color:var(--gold);white-space:nowrap;margin-top:1px;cursor:help}
 
   /* badge consiglio */
   .adv{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
@@ -1216,8 +1215,7 @@ function vListone(){
     <td>${advBadge(a)}</td>
     <td><input type="number" min="0" max="10" step="0.5" value="${p.rating||""}" placeholder="–" data-rate="${p.id}" title="Il tuo voto (sovrascrive il motore in formazione)"></td>
     <td><button class="star ${p.target?"on":""}" data-target="${p.id}" title="Obiettivo d'asta">★</button>
-        <input type="number" min="0" value="${p.maxBid||""}" placeholder="max" data-maxbid="${p.id}" title="Tetto massimo d'asta — si compila da solo quando metti ★ (prezzo suggerito + margine per l'ultimo rilancio); scrivilo tu per sovrascriverlo">
-        ${p.target&&TGT_WHY[p.tgtWhy]?`<div class="tgtwhy" title="${esc(TGT_WHY[p.tgtWhy].d)}">${TGT_WHY[p.tgtWhy].l}</div>`:""}</td>
+        <input type="number" min="0" value="${p.maxBid||""}" placeholder="max" data-maxbid="${p.id}" title="Tetto massimo d'asta — si compila da solo quando metti ★ (prezzo suggerito + margine per l'ultimo rilancio); scrivilo tu per sovrascriverlo"></td>
     <td>${p.status==="mine"?'<span class="badge mine">MIO</span>':p.status==="gone"?'<span class="badge gone">preso</span>':""}</td>
   </tr>${ui.openId===p.id?detailRow(p,NCOL):""}`;
   }).join("");
