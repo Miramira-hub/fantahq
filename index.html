@@ -85,6 +85,7 @@
   .badge.gone{background:var(--surface2);color:var(--muted);text-decoration:line-through}
   .star{background:none;border:none;font-size:17px;color:var(--border);padding:2px 4px}
   .star.on{color:var(--gold)}
+  .tgtwhy{font-size:10px;color:var(--gold);white-space:nowrap;margin-top:1px;cursor:help}
 
   /* badge consiglio */
   .adv{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
@@ -483,7 +484,7 @@ function copyTargetsFrom(srcId){
     if(o.rating>0 && !p.rating){ p.rating = o.rating; voti++; }
     if(o.target && !p.target){
       if(p.status !== "free"){ saltati++; continue; }   // già assegnato: inutile come obiettivo
-      p.target = true;
+      p.target = true; p.tgtWhy = o.tgtWhy || "mia";    // porta con sé il motivo dell'altra lega
       if(!p.maxBid) p.maxBid = tettoMax(p);
       stelle++;
     }
@@ -580,8 +581,13 @@ function chipsOf(k){
      chi era già titolare l'anno scorso diventa titolare nel 53% dei casi contro un 19% medio;
      chi non ha mai messo piede in Serie A si ferma all'8%. È il filtro più affidabile per
      distinguere le occasioni vere dalle scommesse a vuoto. */
-  if(k.qta<=10 && k.pres>=28) c.push(["Occasione affidabile","good"]);
+  /* Vale anche per chi arriva da fuori: se le probabili formazioni lo danno titolare,
+     quell'informazione è più forte dello storico in Serie A (che lui non può avere).
+     Senza questa seconda condizione il tag perdeva proprio i colpi migliori del mercato. */
+  if(k.qta<=10 && (k.pres>=28 || k.tit>=88)) c.push(["Occasione affidabile","good"]);
   else if(k.qta<=10 && !k.newT && k.pres<=2) c.push(["Mai in campo in A","bad"]);
+  /* un rigorista designato che costa poco è il singolo profilo più sottovalutato all'asta */
+  if(k.rig===2 && k.qta<=13) c.push(["Rigorista a poco prezzo","hot"]);
   if(k.up>=4) c.push(["Upside alto","good"]);
   if((k.r==="A"||k.r==="C") && t.atk>=5) c.push(["Attacco top","good"]);
   if((k.r==="P"||k.r==="D") && t.def>=5) c.push(["Difesa top","good"]);
@@ -589,13 +595,23 @@ function chipsOf(k){
 }
 /* tag filtrabili: i 4 più usati come chip fissi, gli altri nella tendina "+ altri".
    Le etichette dinamiche ("36 anni", "Solo N presenze") restano solo informative. */
-const TAGS_MAIN = ["Rigorista","Titolare fisso","Occasione affidabile","Attacco top"];
-const TAGS_MORE = ["Difesa top","Rigore n.2","Ballottaggio","Rischio panchina","Mai in campo in A","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
+const TAGS_MAIN = ["Rigorista a poco prezzo","Occasione affidabile","Rigorista","Titolare fisso"];
+const TAGS_MORE = ["Attacco top","Difesa top","Rigore n.2","Ballottaggio","Rischio panchina","Mai in campo in A","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
 const TAG_SET = new Set([...TAGS_MAIN, ...TAGS_MORE]);
 function hasTag(p, tag){ const k=kbFor(p); return !!k && chipsOf(k).some(c=>c[0]===tag); }
 const chipHtml = ([t,c]) => TAG_SET.has(t)
   ? `<span class="kchip ${c}" data-tagf="${t}" style="cursor:pointer" title="Filtra il listone: ${t}">${t}</span>`
   : `<span class="kchip ${c}">${t}</span>`;
+/* perché un giocatore è diventato un obiettivo: ogni ★ porta con sé il suo motivo,
+   così si può accettare o scartare un obiettivo alla volta invece che la lista intera */
+const TGT_WHY = {
+  must:      {l:"da prendere", d:"Il motore lo giudica «Da prendere»: rendimento atteso nella fascia alta del suo ruolo, con il posto da titolare."},
+  piano:     {l:"dal piano",   d:"Fa parte della Rosa ideale: la combinazione di giocatori che, insieme, rende di più stando nel tuo budget."},
+  top:       {l:"top del ruolo", d:"È tra i migliori del suo reparto per fantamedia attesa: il «menu» da cui pescare almeno un nome."},
+  occasione: {l:"occasione",   d:"Vale più di quanto costerà: il suo valore per la tua rosa supera il prezzo atteso al tavolo."},
+  rigorista: {l:"rigorista",   d:"È il rigorista designato della sua squadra e costa poco: i rigori valgono 1-2 fasce e il mercato quasi mai li prezza."},
+  mia:       {l:"tua scelta",  d:"L'hai segnato tu: il motore non lo tocca e non lo rimuove."}
+};
 const advBadge = a=>`<span class="adv ${a.tier}">${ADV_META[a.tier].label}</span>`;
 const fmt1 = v=>v==null?"—":v.toFixed(2);
 
@@ -1169,6 +1185,7 @@ function detailRow(p, colspan){
     <div class="chipset" style="margin-bottom:8px">${advBadge(a)} ${chipsOf(k).map(chipHtml).join("")}</div>
     <div class="why">${k.note?`<b>Il punto:</b> ${esc(k.note)} `:""}${t.cn?`<b>Squadra:</b> ${esc(t.cn)}.`:""}${k.est?` <span class="help">(FM contrassegnata ~ = stima, non dato ufficiale)</span>`:""}</div>
     ${tettoWhy(p)}
+    ${p.target&&TGT_WHY[p.tgtWhy]?`<div class="help" style="margin-top:6px"><b style="color:var(--gold)">★ Perché è un obiettivo (${TGT_WHY[p.tgtWhy].l}):</b> ${TGT_WHY[p.tgtWhy].d}</div>`:""}
     ${noteBox(p)}
   </td></tr>`;
 }
@@ -1198,7 +1215,8 @@ function vListone(){
     <td>${advBadge(a)}</td>
     <td><input type="number" min="0" max="10" step="0.5" value="${p.rating||""}" placeholder="–" data-rate="${p.id}" title="Il tuo voto (sovrascrive il motore in formazione)"></td>
     <td><button class="star ${p.target?"on":""}" data-target="${p.id}" title="Obiettivo d'asta">★</button>
-        <input type="number" min="0" value="${p.maxBid||""}" placeholder="max" data-maxbid="${p.id}" title="Tetto massimo d'asta — si compila da solo quando metti ★ (prezzo suggerito + margine per l'ultimo rilancio); scrivilo tu per sovrascriverlo"></td>
+        <input type="number" min="0" value="${p.maxBid||""}" placeholder="max" data-maxbid="${p.id}" title="Tetto massimo d'asta — si compila da solo quando metti ★ (prezzo suggerito + margine per l'ultimo rilancio); scrivilo tu per sovrascriverlo">
+        ${p.target&&TGT_WHY[p.tgtWhy]?`<div class="tgtwhy" title="${esc(TGT_WHY[p.tgtWhy].d)}">${TGT_WHY[p.tgtWhy].l}</div>`:""}</td>
     <td>${p.status==="mine"?'<span class="badge mine">MIO</span>':p.status==="gone"?'<span class="badge gone">preso</span>':""}</td>
   </tr>${ui.openId===p.id?detailRow(p,NCOL):""}`;
   }).join("");
@@ -1247,6 +1265,7 @@ function vImpostazioni(){
   <div class="card">
     <h2>Obiettivi automatici</h2>
     <p class="sub">Il motore segna ★ su tre livelli — la <b>rosa ideale</b> (il piano che sta nel budget), i <b>top per reparto</b> (il menu: di questi almeno uno lo porti a casa) e le <b>occasioni</b> (valgono più di quanto costeranno) — e compila il <b>tetto massimo</b> di ognuno. I tuoi ★ e i tetti che scrivi tu non vengono mai toccati.</p>
+    <p class="help" style="margin:-6px 0 10px">Nel Listone, sotto ogni ★, trovi <b>il motivo</b> per cui è stata messa (<span style="color:var(--gold)">da prendere · dal piano · top del ruolo · occasione · tua scelta</span>): così valuti un obiettivo alla volta invece di accettare o rifiutare tutta la lista. La spiegazione estesa è nella scheda del giocatore.</p>
     <div class="footactions">
       <button class="btn pri" id="genTargets">★ Genera obiettivi dal motore</button>
       <button class="btn" id="recalcCaps" title="Riscrive i tetti di tutti gli obiettivi con i prezzi di adesso (utile a metà asta, o dopo un aggiornamento del motore)">♻️ Ricalcola i tetti max</button>
@@ -1389,7 +1408,9 @@ function solveRole(r, n, B, need){
      (metà asta) i soli top non permettono di riempire gli slot e il piano resterebbe vuoto. */
   const pool = state.players.filter(p=>p.role===r && p.status==="free")
     .map(p=>({ p, e:advice(kbFor(p)).exp||0, c:Math.max(1, suggPrice(p)) }))
-    .filter(x=>x.e>0);
+    /* fuori chi non puoi davvero comprare: in uscita dal club o fermo a lungo per infortunio.
+       Senza questo filtro il piano proponeva un vice in partenza o un lungodegente. */
+    .filter(x=>{ const k=kbFor(x.p); return x.e>0 && k && k.unc<2 && k.inj<3; });
   const byVal = pool.slice().sort((a,b)=>b.e-a.e).slice(0, 45);
   const byPrice = pool.slice().sort((a,b)=>a.c-b.c || b.e-a.e).slice(0, 25);
   const cands = [...new Set([...byVal, ...byPrice])].sort((a,b)=>b.e-a.e);
@@ -2146,7 +2167,7 @@ Verificato su due stagioni indipendenti, con lo stesso risultato.</li>
 <li>Poi rifinisci a mano nel <b>Listone</b>: le tue ★ valgono quanto quelle del motore, e il tetto si compila da solo anche quando la metti tu.</li>
 <li>2-3 obiettivi per fascia, mai uno solo: se te lo soffiano hai il piano B (lo trovi scritto in ogni scheda, con nome e prezzo).</li>
 <li>I giocatori <b>"da monitorare"</b> vanno ricontrollati la sera prima: se la situazione si chiarisce diventano affari o trappole.</li>
-<li>Usa i <b>filtri per tag</b> nel Listone (Rigorista, Titolare fisso, Attacco top…) per passare in rassegna una categoria alla volta.</li>
+<li>Usa i <b>filtri per tag</b> nel Listone. I due che valgono più di tutti: <b>Rigorista a poco prezzo</b> (il profilo più sottovalutato in assoluto — i rigori valgono 1-2 fasce e il mercato non li prezza) e <b>Occasione affidabile</b> (costa poco ed è titolare, per storico o per probabile formazione).</li>
 <li>Fai più fantacalci? In <b>Impostazioni</b> → <b>Copia obiettivi e voti</b> porti tutto da un'altra lega: i tetti vengono ricalcolati sul budget di quella nuova.</li>
 </ul>`],
 ["Come si distribuisce il budget", `
@@ -2293,7 +2314,9 @@ document.addEventListener("click", e=>{
        2) il menu dei top: i migliori per FM attesa — "di questi almeno uno lo porto a casa"
        3) le occasioni: chi vale (VORP) ben più del prezzo a cui andrà via */
     const added = {piano:0, menu:0, occasioni:0};
-    const star = p => { if(!p.target){ p.target=true; return true; } return false; };
+    /* ogni ★ si porta dietro il MOTIVO per cui è stata messa (p.tgtWhy): serve a giudicare
+       un obiettivo alla volta invece di prendere o lasciare la lista intera */
+    const star = (p, why) => { if(!p.target){ p.target=true; p.tgtWhy=why; return true; } return false; };
     const tetto = p => { if(!p.maxBid){ p.maxBid = tettoMax(p); } };
     /* livello 0: chi il motore giudica "Da prendere" è SEMPRE ★ — se il giudizio dice
        da prendere, la stella non può mancare (prima un must costoso poteva restare fuori
@@ -2301,26 +2324,35 @@ document.addEventListener("click", e=>{
     for(const p of state.players){
       if(p.status!=="free") continue;
       const k=kbFor(p); if(!k || advice(k).tier!=="must") continue;
-      if(star(p)) added.menu++;
+      if(star(p,"must")) added.menu++;
       tetto(p);
     }
     const plan = optimalSquad(ui.squadStrategy || null);
     for(const r of ROLES){
-      for(const x of (plan.roles[r]?.picks||[])){ if(x.p.status==="free"){ if(star(x.p)) added.piano++; tetto(x.p); } }
+      for(const x of (plan.roles[r]?.picks||[])){ if(x.p.status==="free"){ if(star(x.p,"piano")) added.piano++; tetto(x.p); } }
       const already = state.players.filter(p=>p.role===r&&p.target).length;
       const room = Math.max(0, state.settings.slots[r]+3-already);
       const cands = state.players.filter(p=>p.role===r&&p.status==="free"&&!p.target)
         .map(p=>({p,a:advice(kbFor(p))}))
         .filter(x=>["must","target","safe","bet"].includes(x.a.tier))
         .sort((x,y)=>(y.a.exp||0)-(x.a.exp||0));
-      for(const x of cands.slice(0,room)){ if(star(x.p)) added.menu++; tetto(x.p); }
+      for(const x of cands.slice(0,room)){ if(star(x.p,"top")) added.menu++; tetto(x.p); }
       /* occasioni: valore reale ≥ 15% sopra il prezzo atteso (e non spiccioli).
          Tetto per ruolo (slots+5 obiettivi totali): senza, ogni click ne aggiungeva altri. */
       const totNow = state.players.filter(p=>p.role===r&&p.target).length;
       const occRoom = Math.max(0, state.settings.slots[r]+5-totNow);
       const occ = cands.slice(room).filter(x=>{ const v=vorpPrice(x.p), c=suggPrice(x.p); return v>=c*1.15 && v>=5; })
         .sort((x,y)=>(vorpPrice(y.p)-suggPrice(y.p))-(vorpPrice(x.p)-suggPrice(x.p)));
-      for(const x of occ.slice(0,occRoom)){ if(star(x.p)) added.occasioni++; tetto(x.p); }
+      for(const x of occ.slice(0,occRoom)){ if(star(x.p,"occasione")) added.occasioni++; tetto(x.p); }
+      /* livello 4: RIGORISTI DESIGNATI A PREZZO BASSO. I rigori valgono 1-2 fasce e il
+         mercato non li prezza: un rigorista sotto i 20 crediti va segnalato sempre, anche
+         se il piano d'acquisto non lo aveva scelto. */
+      for(const p of state.players){
+        if(p.role!==r || p.status!=="free" || p.target) continue;
+        const k=kbFor(p); if(!k || k.rig!==2 || k.qta>13 || k.unc>=2 || k.inj>=3 || k.tit<74) continue;
+        if(star(p,"rigorista")) added.occasioni++;
+        tetto(p);
+      }
     }
     save(); render();
     const tot = added.piano+added.menu+added.occasioni;
@@ -2349,6 +2381,7 @@ document.addEventListener("click", e=>{
   if(t.dataset.setmod){ state.lineup.module=t.dataset.setmod; save(); toast(`Modulo ${t.dataset.setmod}: il modificatore ora conta`); render(); return; }
   if(t.dataset.target){
     const p=byId(+t.dataset.target); p.target=!p.target;
+    p.tgtWhy = p.target ? "mia" : "";           // una ★ tua resta riconoscibile come tua
     /* stella messa a mano: compila il tetto max con la formula del motore (resta modificabile) */
     if(p.target && !p.maxBid){
       p.maxBid = tettoMax(p);
