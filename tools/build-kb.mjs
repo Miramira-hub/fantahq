@@ -323,8 +323,9 @@ const MERCATO_NOTE = {
   "Camarda":"💎 TITOLARE nel derby amichevole di Perth con Ramos in panchina, dopo la doppietta in 7' col Celtic: Amorim gli dà fiducia per l'avvio. A quota bassa è la scommessa migliore del Milan.",
   "Krstovic":"⚠️ Sarri punta su Scamacca: nelle probabili parte dietro. A quota 18 il rischio panchina è concreto.",
   "Bijlow":"Titolare designato del Genoa ma stagione 25-26 rovinata dagli infortuni al Feyenoord (4 presenze): affidabilità fisica da verificare.",
-  "Wesley":"⚠️ Molina UFFICIALE alla Roma (13M+4): concorrenza diretta sulla fascia destra. FVM altissimo (90) ma la titolarità non è più scontata: non strapagarlo.",
-  "Rensch":"Con Molina ufficiale alla Roma scivola a terza scelta sulla destra: solo da ultimo slot.",
+  /* Molina NON è un problema per Wesley: nel 3-4-2-1 di Gasperini gli esterni sono due,
+     Molina occupa la destra e Wesley resta a sinistra. A perderci è Rensch. */
+  "Rensch":"Con Molina alla Roma scivola dietro sulla fascia destra: solo da ultimo slot.",
   "Spinazzola":"Gutierrez ceduto al Leverkusen per 30M: la fascia sinistra del Napoli si libera, minuti in più in vista.",
   "Olivera":"Gutierrez ceduto al Leverkusen: torna in corsa per la maglia da titolare a sinistra, occhio però al Napoli su Badiashile.",
   "Beukema":"Napoli vicino a Badiashile dal Chelsea: un centrale in più significa meno spazio per lui.",

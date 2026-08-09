@@ -288,7 +288,7 @@ window.FANTAHQ_DATA = {
 ["D","Gaspar K.","Lecce",5,5.64,0,21,0,0,0,84,3,0,29,0,0,"","6632",12,0.07,6.15],
 ["D","Veiga D.","Lecce",5,5.69,0,36,0,0,0,97,4,0,24,0,0,"","6990",11,0.02,0],
 ["D","Olivera","Napoli",5,5.68,0,22,0,0,0,60,2,0,28,0,0,"Gutierrez ceduto al Leverkusen: torna in corsa per la maglia da titolare a sinistra, occhio però al Napoli su Badiashile.","5840",13,0.15,6.05],
-["D","Rensch","Roma",5,6.50,0,19,1,4,0,60,3,0,23,0,0,"Con Molina ufficiale alla Roma scivola a terza scelta sulla destra: solo da ultimo slot.","6986",16,-0.07,0],
+["D","Rensch","Roma",5,6.50,0,19,1,4,0,60,3,0,23,0,0,"Con Molina alla Roma scivola dietro sulla fascia destra: solo da ultimo slot.","6986",16,-0.07,0],
 ["D","Pedersen","Torino",5,5.96,0,28,1,2,0,91,4,0,26,0,0,"","6426",13,0.06,5.54],
 ["D","Moreno M.","Venezia",5,5.99,1,19,2,1,0,88,2,0,23,0,1,"","6890",11,-0.01,0],
 ["D","Haps","Venezia",5,5.99,1,0,0,0,0,88,1,0,33,0,1,"","5695",11,0,0],
