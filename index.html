@@ -277,7 +277,7 @@ let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
-           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false };
+           cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false, deepBench:false };
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -1401,7 +1401,11 @@ function vStrategia(){
    entro il budget del reparto massimizzando il valore. I giocatori sono ordinati per FM
    attesa, così il j-esimo scelto è il j-esimo migliore: i titolari (secondo il modulo)
    contano pieno, le riserve pesano molto meno — perché in campo ne vanno 11, non 25. */
-const BENCH_W = 0.35;
+/* Quanto pesano le riserve nel piano. Di default poco (0.35): in campo ne vanno 11 e gli
+   ultimi slot si chiudono con 1 credito. Con "panchina profonda" salgono a 0.75: il piano
+   spende meno sui titolari e compra riserve vere — costa qualcosa in resa dell'undici, ma
+   copre infortuni, turnover e squalifiche. */
+const benchW = () => ui.deepBench ? 0.75 : 0.35;
 /* Zaino 0/1 per un singolo reparto: esattamente n giocatori entro il budget B. */
 function solveRole(r, n, B, need){
   const NEG = -1e9;
@@ -1434,7 +1438,7 @@ function solveRole(r, n, B, need){
     const { e, c } = cands[i];
     const mark = new Uint8Array((n+1)*W);
     for(let j=n-1;j>=0;j--){
-      const w = j < need ? 1 : BENCH_W;          // j = quanti già presi = rango del nuovo
+      const w = j < need ? 1 : benchW();          // j = quanti già presi = rango del nuovo
       const row = dp[j], next = dp[j+1];
       for(let b=0;b+c<W;b++){
         const cur = row[b];
@@ -1525,7 +1529,7 @@ function optimalSquad(strategy){
 let _moduliCache = null;
 function confrontoModuli(){
   const s = state.settings;
-  const key = `${store.current}|${s.budget}|${ROLES.map(r=>s.slots[r]).join(",")}|${ROLES.map(r=>s.split[r]).join(",")}|${ruleMod()}|${ui.squadStrategy||""}|${budgetLeft()}|${state.players.filter(p=>p.status!=="free").length}`;
+  const key = `${store.current}|${s.budget}|${ROLES.map(r=>s.slots[r]).join(",")}|${ROLES.map(r=>s.split[r]).join(",")}|${ruleMod()}|${ui.squadStrategy||""}|${ui.deepBench?1:0}|${budgetLeft()}|${state.players.filter(p=>p.status!=="free").length}`;
   if(_moduliCache && _moduliCache.key===key) return _moduliCache.righe;
   const orig = state.lineup.module, origMod = ruleMod();
   const righe = [];
@@ -1604,6 +1608,7 @@ function squadHtml(){
     <div class="toolbar">
       ${Object.entries(PRESETS).map(([k,p])=>`<button class="fchip ${ui.squadStrategy===k?"on":""}" data-sqstrat="${k}">${p.label}</button>`).join("")}
       <button class="fchip ${!ui.squadStrategy?"on":""}" data-sqstrat="">La mia ripartizione</button>
+      <button class="fchip ${ui.deepBench?"on":""}" id="deepBench" style="margin-left:auto" title="Compra riserve vere invece di riempitivi da 1 credito: l'undici perde qualcosa, la rosa regge infortuni e turnover">🪑 Panchina profonda</button>
     </div>
     <div class="kpis">
       <div class="kpi gold"><div class="l">Costo totale</div><div class="v">${plan.total}</div><div class="s">su ${budgetNow} · residuo ${residuo}</div></div>
@@ -2323,10 +2328,11 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat],#recalcCaps,#copyTargets");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; render(); return; }
-  if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; render(); return; }
+  if(t.dataset.sqstrat!==undefined){ ui.squadStrategy = t.dataset.sqstrat || null; _moduliCache=null; render(); return; }
+  if(t.id==="deepBench"){ ui.deepBench = !ui.deepBench; _moduliCache=null; render(); return; }
   if(t.id==="claimBtn"){
     const sel=$("#claimSel"); if(!sel) return;
     const nm=(state.managers.find(m=>m.id===sel.value)||{}).name||"";
