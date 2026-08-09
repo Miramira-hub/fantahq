@@ -1392,6 +1392,7 @@ function vStrategia(){
       <tbody>${perSlot}</tbody>
     </table></div>
   </div>
+  ${moduliHtml()}
   ${squadHtml()}`;
 }
 
@@ -1503,6 +1504,67 @@ function optimalSquad(strategy){
   const total = ROLES.reduce((t,r)=>t+roles[r].cost, 0);
   const value = ROLES.reduce((t,r)=>t+roles[r].value, 0);
   return { roles, total, value, ok };
+}
+/* ================= QUALE MODULO CONVIENE =================
+   All'asta non si compra un modulo: si comprano 25 giocatori, e la formazione si cambia ogni
+   settimana. Quello che il modulo decide davvero è COME RIPARTIRE I SOLDI — quanti titolari
+   di qualità servono per reparto. Qui si risponde con i numeri: per ogni modulo si risolve la
+   rosa ottimale col budget disponibile e si confronta la qualità dell'undici che ne esce.
+   Col modificatore difesa attivo i moduli sotto i 4 difensori non lo fanno scattare: il
+   confronto lo tiene già in conto, perché le FM attese sono corrette dal regolamento. */
+let _moduliCache = null;
+function confrontoModuli(){
+  const s = state.settings;
+  const key = `${store.current}|${s.budget}|${ROLES.map(r=>s.slots[r]).join(",")}|${ROLES.map(r=>s.split[r]).join(",")}|${ruleMod()}|${ui.squadStrategy||""}|${budgetLeft()}|${state.players.filter(p=>p.status!=="free").length}`;
+  if(_moduliCache && _moduliCache.key===key) return _moduliCache.righe;
+  const orig = state.lineup.module, origMod = ruleMod();
+  const righe = [];
+  for(const m of Object.keys(MODULES)){
+    state.lineup.module = m;
+    /* confronto onesto: un modulo con meno di 4 difensori NON incassa il modificatore,
+       quindi per quel modulo le FM vanno calcolate senza il bonus. Senza questo accorgimento
+       una difesa a 3 risultava in testa godendo di un bonus che non prenderebbe mai. */
+    state.settings.rules.modDef = MODULES[m].D >= MOD_MIN_DIF ? origMod : "no";
+    const plan = optimalSquad(ui.squadStrategy || null);
+    const need = {P:1, ...MODULES[m]};
+    let somma = 0, n = 0;
+    for(const r of ROLES){
+      for(const x of (plan.roles[r]?.picks||[]).slice(0, need[r])){ somma += x.e; n++; }
+    }
+    righe.push({ m, fm: n ? somma/n : 0, costo: plan.total, ok: plan.ok,
+                 mod: MODULES[m].D >= MOD_MIN_DIF });
+  }
+  state.lineup.module = orig;
+  state.settings.rules.modDef = origMod;
+  _moduliCache = { key, righe };
+  return righe;
+}
+function moduliHtml(){
+  const righe = confrontoModuli().slice().sort((a,b)=>b.fm-a.fm);
+  if(!righe.length || !righe[0].fm) return "";
+  const best = righe[0], cur = righe.find(x=>x.m===state.lineup.module);
+  const max = best.fm, min = Math.min(...righe.map(x=>x.fm));
+  const rows = righe.map(x=>{
+    const w = max>min ? 8 + 92*(x.fm-min)/(max-min) : 100;
+    return `<div class="bar">
+      <div class="lab">${x.m===state.lineup.module?"▶ ":""}${x.m}${ruleMod()!=="no"&&!x.mod?' <span class="kchip bad">no mod.</span>':""}</div>
+      <div class="track"><div class="fill" style="width:${w}%;background:${x.m===best.m?"var(--accent)":"var(--border)"}"></div></div>
+      <div class="val">${fmt1(x.fm)} · ${x.costo} cr</div>
+    </div>`;
+  }).join("");
+  const diff = cur ? best.fm - cur.fm : 0;
+  return `<div class="card">
+    <h2>Quale modulo conviene costruire</h2>
+    <p class="sub">All'asta non compri un modulo: compri 25 giocatori e la formazione la cambi ogni settimana. Il modulo però decide <b>come ripartire i crediti</b>. Per ognuno il motore risolve la rosa migliore possibile col tuo budget e confronta la <b>fantamedia dei titolari</b> che ne esce${ruleMod()!=="no"?", tenendo già conto del tuo modificatore difesa":""}.</p>
+    ${rows}
+    <p class="help" style="margin-top:10px">${
+      cur && best.m===cur.m
+        ? `Stai già sul modulo migliore (<b>${best.m}</b>): con questa rosa disponibile è la ripartizione che rende di più.`
+        : diff < 0.06
+          ? `<b>${best.m}</b> è in testa ma il vantaggio su <b>${state.lineup.module}</b> è minimo (${diff.toFixed(2)} di fantamedia): scegli in base ai giocatori che riesci davvero a prendere, non al modulo.`
+          : `Conviene puntare sul <b>${best.m}</b>: rende <b>${diff.toFixed(2)}</b> di fantamedia in più a undici rispetto al tuo attuale ${state.lineup.module}. ${MODULES[best.m].D>=MOD_MIN_DIF&&ruleMod()!=="no"?"Fa anche scattare il modificatore difesa. ":""}Cambialo dal tab Formazione.`
+    } Ricorda che in stagione puoi cambiare modulo ogni giornata: questo dice su cosa <b>investire</b>, non come schierarti per forza.</p>
+  </div>`;
 }
 function squadHtml(){
   const plan = optimalSquad(ui.squadStrategy || null);
