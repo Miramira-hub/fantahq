@@ -1408,7 +1408,17 @@ function solveRole(r, n, B, need){
   /* Candidati = i migliori per rendimento PIÙ i più economici: con un budget ridotto
      (metà asta) i soli top non permettono di riempire gli slot e il piano resterebbe vuoto. */
   const pool = state.players.filter(p=>p.role===r && p.status==="free")
-    .map(p=>({ p, e:advice(kbFor(p)).exp||0, c:Math.max(1, suggPrice(p)) }))
+    /* Il valore su cui si ottimizza NON è la fantamedia pura, ma la RESA ATTESA: un giocatore
+       con affidabilità 60 scende in campo in circa 6 partite su 10, nelle altre schieri un
+       sostituto. Quindi resa = aff × fantamedia + (1-aff) × media del ruolo.
+       Senza questa correzione il piano metteva tra i titolari gente da 42-60 di titolarità
+       solo perché ha una bella fantamedia — un undici che sulla carta non esiste. */
+    .map(p=>{
+      const a = advice(kbFor(p)), raw = a.exp||0;
+      const q = Math.max(0, Math.min(1, (a.aff||0)/100));
+      return { p, e: raw>0 ? q*raw + (1-q)*ROLE_MEAN[p.role] : 0, e0: raw, aff: a.aff||0,
+               c: Math.max(1, suggPrice(p)) };
+    })
     /* fuori chi non puoi davvero comprare: in uscita dal club o fermo a lungo per infortunio.
        Senza questo filtro il piano proponeva un vice in partenza o un lungodegente. */
     .filter(x=>{ const k=kbFor(x.p); return x.e>0 && k && k.unc<2 && k.inj<3; });
@@ -1555,7 +1565,7 @@ function moduliHtml(){
   const diff = cur ? best.fm - cur.fm : 0;
   return `<div class="card">
     <h2>Quale modulo conviene costruire</h2>
-    <p class="sub">All'asta non compri un modulo: compri 25 giocatori e la formazione la cambi ogni settimana. Il modulo però decide <b>come ripartire i crediti</b>. Per ognuno il motore risolve la rosa migliore possibile col tuo budget e confronta la <b>fantamedia dei titolari</b> che ne esce${ruleMod()!=="no"?", tenendo già conto del tuo modificatore difesa":""}.</p>
+    <p class="sub">All'asta non compri un modulo: compri 25 giocatori e la formazione la cambi ogni settimana. Il modulo però decide <b>come ripartire i crediti</b>. Per ognuno il motore risolve la rosa migliore possibile col tuo budget e confronta la <b>resa attesa dell'undici</b> che ne esce — fantamedia già scontata per l'affidabilità di ciascuno${ruleMod()!=="no"?", e col tuo modificatore difesa applicato solo ai moduli che lo fanno scattare":""}.</p>
     ${rows}
     <p class="help" style="margin-top:10px">${
       cur && best.m===cur.m
@@ -1578,18 +1588,19 @@ function squadHtml(){
       <td>${roleChip(r)}</td>
       <td class="pname" data-open2="${x.p.id}"><b>${esc(x.p.name)}</b> <span class="team">${esc(x.p.team)}</span></td>
       <td>${i<need[r]?'<span class="badge mine">titolare</span>':'<span class="badge">panchina</span>'}</td>
-      <td class="r num">${fmt1(x.e)}</td>
+      <td class="r num">${fmt1(x.e0!=null?x.e0:x.e)}</td>
+      <td class="r num" style="color:${x.aff>=85?"var(--ok)":x.aff>=70?"var(--muted)":"var(--warn)"}">${x.aff!=null?x.aff:"—"}</td>
       <td class="r num" style="color:var(--gold);font-weight:700">${x.c}</td>
     </tr>`).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} — ${g.cost} di ${g.budget} crediti</h3>
       <div class="twrap"><table>
-        <thead><tr><th>R</th><th>Giocatore</th><th></th><th class="r">FM att.</th><th class="r">Prezzo atteso</th></tr></thead>
+        <thead><tr><th>R</th><th>Giocatore</th><th></th><th class="r">FM att.</th><th class="r" title="Quanto spesso scende davvero in campo: entra nella scelta dei titolari">Affid.</th><th class="r">Prezzo atteso</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
   }).join("");
   const residuo = budgetNow - plan.total;
   return `<div class="card">
     <h2>Rosa ideale — il piano d'acquisto del motore</h2>
-    <p class="sub">Con i tuoi <b>${state.settings.budget} crediti</b> e i tuoi slot, il motore calcola la <b>combinazione migliore</b> di giocatori ancora liberi: non i più forti in assoluto, ma quelli che insieme rendono di più stando nel budget. I titolari (modulo ${state.lineup.module}) pesano pieno, le riserve molto meno. I prezzi sono quelli <b>attesi davvero al tavolo</b>: calcolati sui crediti in circolazione nella tua lega (${state.settings.budget}×${state.settings.nTeams||8} squadre), non sulla quota del listone — e si adattano all'inflazione reale della tua asta.</p>
+    <p class="sub">Con i tuoi <b>${state.settings.budget} crediti</b> e i tuoi slot, il motore calcola la <b>combinazione migliore</b> di giocatori ancora liberi: non i più forti in assoluto, ma quelli che insieme rendono di più stando nel budget. I titolari (modulo ${state.lineup.module}) pesano pieno, le riserve molto meno, e la fantamedia di ognuno è <b>scontata per l'affidabilità</b>: chi gioca 6 partite su 10 vale meno di chi le gioca tutte, perché nelle altre schieri un sostituto. I prezzi sono quelli <b>attesi davvero al tavolo</b>: calcolati sui crediti in circolazione nella tua lega (${state.settings.budget}×${state.settings.nTeams||8} squadre), non sulla quota del listone — e si adattano all'inflazione reale della tua asta.</p>
     <div class="toolbar">
       ${Object.entries(PRESETS).map(([k,p])=>`<button class="fchip ${ui.squadStrategy===k?"on":""}" data-sqstrat="${k}">${p.label}</button>`).join("")}
       <button class="fchip ${!ui.squadStrategy?"on":""}" data-sqstrat="">La mia ripartizione</button>
@@ -1597,7 +1608,7 @@ function squadHtml(){
     <div class="kpis">
       <div class="kpi gold"><div class="l">Costo totale</div><div class="v">${plan.total}</div><div class="s">su ${budgetNow} · residuo ${residuo}</div></div>
       <div class="kpi"><div class="l">Giocatori</div><div class="v">${ROLES.reduce((t,r)=>t+(plan.roles[r]?.picks.length||0),0)}</div><div class="s">su ${ROLES.reduce((t,r)=>t+state.settings.slots[r],0)}</div></div>
-      <div class="kpi"><div class="l">FM media titolari</div><div class="v">${(ROLES.reduce((t,r)=>t+(plan.roles[r]?.picks.slice(0,need[r]).reduce((a,x)=>a+x.e,0)||0),0)/11).toFixed(2)}</div><div class="s">gli 11 che scendono in campo</div></div>
+      <div class="kpi"><div class="l">Resa attesa XI</div><div class="v">${(ROLES.reduce((t,r)=>t+(plan.roles[r]?.picks.slice(0,need[r]).reduce((a,x)=>a+x.e,0)||0),0)/11).toFixed(2)}</div><div class="s">fantamedia già scontata per l'affidabilità</div></div>
       <div class="kpi"><div class="l">Modulo</div><div class="v" style="font-size:17px">${state.lineup.module}</div><div class="s">cambialo in Formazione</div></div>
     </div>
     ${sections || '<div class="empty">Nessun piano possibile con i crediti rimasti.</div>'}
