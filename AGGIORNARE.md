@@ -80,10 +80,28 @@ proporzione al rendimento sopra l'ultimo titolare disponibile.
 I segnali 💎 / 🔻 / ⚡ nelle note sono **generati automaticamente** dal confronto tra gol e xG
 (totale, non npxG: escluderebbe i rigori e falserebbe i rigoristi).
 
+## Giro pre-asta (checklist)
+
+Da fare la mattina dell'asta, nell'ordine:
+
+1. **Situazioni di mercato aperte** — sono quelle con `MERCATO_UNC >= 2`: chi si è chiarito
+   va tolto dall'incertezza o segnato come uscito.
+2. **Infortuni** — aggiornare `INJURY` con i bollettini del giorno (fantacalcio.it/infortunati,
+   sosfanta, tuttofantacalcio): contano soprattutto i dubbi per la 1ª giornata.
+3. **Ultime amichevoli** — le formazioni del fine settimana sciolgono i ballottaggi `B+`/`B-`
+   ancora aperti in `XI_STATUS`.
+4. **Ufficialità dell'ultima ora** — i nuovi arrivi non presenti nel listone cambiano comunque
+   le gerarchie di chi c'è: annotarlo in `MERCATO_NOTE`.
+5. Rigenerare, verificare, pubblicare (sotto).
+
 ## Dopo ogni aggiornamento
 
 1. `git add -A && git commit && git push` → il sito https://miramira-hub.github.io/fantahq/ si aggiorna da solo
-2. Ripubblicare l'Artifact (stesso file, stesso URL)
+2. Ripubblicare l'Artifact **allo stesso indirizzo**, altrimenti se ne crea uno nuovo e
+   l'utente perde il link che ha salvato:
+   `https://claude.ai/code/artifact/2a71bd11-d815-46e2-b44f-3ebf9cff9c2c`
+   (generare il file con `node tools/build-artifact.mjs <out.html>` e pubblicarlo passando
+   quell'URL come parametro `url`)
 3. Dire all'utente: **Ctrl+F5** e poi **🔄 Aggiorna al database** dal tab Impostazioni
    (allinea l'elenco giocatori conservando rosa, prezzi pagati, voti e obiettivi)
 
