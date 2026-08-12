@@ -428,8 +428,8 @@ const MERCATO_NOTE = {
   "Lucca":"⚠️ Sulla lista delle uscite del Napoli insieme a Lang: se partono entrambi arriva un attaccante (si parla di Gabriel Jesus). Terza punta a rischio partenza.",
   "Lang":"⚠️ Esubero dichiarato del Napoli: il club aspetta di cederlo per chiudere il colpo in attacco.",
   "Frattesi":"⚠️ CAMBIA TUTTO rispetto a ieri: non è più lo scambio con Nico Gonzalez, ma un PRESTITO ALLA LAZIO — contatti avanzati tra i club, l'Inter aspetta Curtis Jones se parte. Alla Lazio giocherebbe titolare, all'Inter no: finché non è deciso è una scommessa sulla squadra, non sul giocatore.",
-  "Luis Henrique":"⚠️ Accordo Inter-Roma sui 30M (fisso + bonus), manca il sì del giocatore che ha anche due club di Premier. In pre-campionato Chivu lo usava a SINISTRA. Quota 4: se va a Roma trova Gasperini e più spazio.",
-  "Diouf":"Con Dumfries ceduto al Real Madrid si gioca la fascia destra, ed è stato il miglior pre-campionato dell'Inter (titolare designato col Monza). MA ⚠️ l'Inter tratta SPENCE col Tottenham (35-40M) ed è lui il favorito naturale per quel posto. A quota 8 resta interessante, ma non è più il titolare annunciato di ieri.",
+  "Luis Henrique":"⚠️ Con Spence arrivato è diventato anche lui un'alternativa all'Inter, e questo spinge la cessione: c'è l'accordo con la ROMA (indicato sui 27M), manca il sì del giocatore che ha anche due club di Premier. In pre-campionato Chivu lo usava a SINISTRA. A quota 4 la scommessa è tutta sul trasferimento: a Roma troverebbe spazio, all'Inter ormai no.",
+  "Diouf":"❌ CHIUSO DA SPENCE. Con Dumfries al Real Madrid la fascia destra era sua, ed era stato il miglior pre-campionato dell'Inter — ma l'arrivo dell'inglese dal Tottenham (oltre 30M) lo retrocede ad alternativa insieme a Luis Henrique. A quota 8 era il colpo che segnalavo stamattina: non lo è più.",
   "Lucumì":"⚠️ ACCORDO TOTALE col giocatore trovato dalla JUVENTUS: ora si tratta col Bologna. Al 12 agosto la cessione è la cosa più probabile: nel listone è ancora al Bologna, quindi rischi di pagarlo per una squadra che lascia.",
   "Vitik":"💎 Se Lucumì va alla Juve (accordo col giocatore già fatto) diventa il centrale titolare del Bologna: a quota 5 è la scommessa da fare in coda al reparto difensivo.",
   "Kristensen T.":"⚠️ IN CHIUSURA ALL'ATALANTA (22M+3 di bonus e 10% sulla rivendita) come erede di Djimsiti: nel listone è ancora all'UDINESE. Con Hien operato e fuori fino a ottobre a Bergamo giocherebbe subito. Quota 7 per un titolare, ma la squadra sul cartellino è sbagliata.",
@@ -617,8 +617,8 @@ const XI_STATUS = {
   /* Inter (3-5-2 Chivu) */
   "Martinez Jo.":"T","Provedel":"R","Di Gennaro":"R","Dimarco":"T","Akanji":"T","Bastoni":"T",
   "Stones":"B+","Bisseck":"B-","Carlos Augusto":"B-","Pavard":"R","Calhanoglu":"T","Barella":"T",
-  "Zielinski":"B+","Diouf":"B+","Sucic P.":"B-","Frattesi":"R","Mkhitaryan":"B-",
-  "Luis Henrique":"B+","Stankovic A.":"R","Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",
+  "Zielinski":"B+","Diouf":"B-","Sucic P.":"B-","Frattesi":"R","Mkhitaryan":"B-",
+  "Luis Henrique":"B-","Stankovic A.":"R",   // Spence titolare a destra: Diouf e Luis Henrique alternative"Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",
   "Bonny":"B-",
   /* Juventus (4-2-3-1 Spalletti) */
   "Di Gregorio":"B-","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"T",   // Spalletti lo ha scaricato: aspetta Suzuki
