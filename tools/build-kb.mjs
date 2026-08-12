@@ -505,6 +505,8 @@ const MERCATO_NOTE = {
      pubblicati: le liste aggregate mettevano Comert al suo posto, le fonti dedicate no. */
   "Coco":"Titolare nella difesa a 3 di Abate secondo le fonti dedicate al Torino, che lo danno con Ismajli e Comuzzo. ⚠️ Due punti di attenzione: la concorrenza è a quattro per tre maglie (c'è anche Comert) e soprattutto la sua media voto è 5.84 — col modificatore difesa attivo un difensore che vota così basso ti abbassa la media del reparto anche quando la fantamedia sembra decente. A quota 7 prendilo solo se ti serve il quantitativo, non per il modificatore.",
   "Ismajli":"Titolare della difesa a 3 del Torino in tutte le formazioni tipo. ⚠️ Media voto 5.92: come tutto il reparto granata, col modificatore difesa rende meno di quanto suggerisca la quota."
+};
+
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
 const MERCATO_UNC = {
