@@ -416,7 +416,47 @@ const MERCATO_NOTE = {
   "Akpoguma":"Svincolato con esperienza in Bundesliga, inserito tra i titolari nelle formazioni tipo del Frosinone.",
   "Ghedjemis":"⚠️ Titolare del Frosinone ma il Monaco ha già offerto 7M+2 (rifiutati) e prepara il rilancio: rischio concreto di cessione.",
   "Valdepenas":"Con Parisi fuori per il crociato è il terzino sinistro favorito della Fiorentina: quota 6 per un titolare.",
-  "Fagioli":"Regista favorito della Fiorentina su Oulai e Mandragora, ed è il battitore d'angoli."
+  "Fagioli":"Regista favorito della Fiorentina su Oulai e Mandragora, ed è il battitore d'angoli.",
+  /* --- GIRO PRE-ASTA, 12 agosto (queste voci hanno la precedenza: sono le ultime) --- */
+  "Lukaku":"❌ FATTA col Fenerbahce (7-8M al Napoli, 10M a stagione al giocatore): parte per Istanbul. NON prenderlo, non sarà in Serie A.",
+  "Marianucci":"❌ INFORTUNIO GRAVE: lesione di ALTO GRADO del collaterale mediale del ginocchio sinistro. Salta l'avvio di campionato — cancella il consiglio di ieri, non è più il titolare d'emergenza.",
+  "Beukema":"⚠️ Riacutizzazione della tendinopatia achillea E il Napoli, con Buongiorno operato e Marianucci ko, ha accelerato per BADIASHILE dal Chelsea (prestito con diritto): il francese si prende il posto accanto a Rrahmani e Di Lorenzo. Lui è in dubbio per la 1ª e ora ha anche concorrenza.",
+  "Rrahmani":"Con Buongiorno, Beukema e Marianucci fuori è l'unico centrale sano del Napoli: titolare inamovibile nelle prime giornate.",
+  "Di Lorenzo":"Rinnovo fino al 2030 concordato e, nell'emergenza difensiva del Napoli, assolutamente intoccabile.",
+  "Lucca":"⚠️ Sulla lista delle uscite del Napoli insieme a Lang: se partono entrambi arriva un attaccante (si parla di Gabriel Jesus). Terza punta a rischio partenza.",
+  "Lang":"⚠️ Esubero dichiarato del Napoli: il club aspetta di cederlo per chiudere il colpo in attacco.",
+  "Frattesi":"⚠️ CAMBIA TUTTO rispetto a ieri: non è più lo scambio con Nico Gonzalez, ma un PRESTITO ALLA LAZIO — contatti avanzati tra i club, l'Inter aspetta Curtis Jones se parte. Alla Lazio giocherebbe titolare, all'Inter no: finché non è deciso è una scommessa sulla squadra, non sul giocatore.",
+  "Luis Henrique":"⚠️ Accordo Inter-Roma sui 30M (fisso + bonus), manca il sì del giocatore che ha anche due club di Premier. In pre-campionato Chivu lo usava a SINISTRA. Quota 4: se va a Roma trova Gasperini e più spazio.",
+  "Diouf":"Miglior pre-campionato dell'Inter e titolare designato nell'amichevole col Monza, MA ⚠️ l'Inter tratta SPENCE col Tottenham (35-40M) ed è lui il favorito naturale per la fascia destra. A quota 8 resta interessante, ma non è più il titolare annunciato di ieri.",
+  "Lucumì":"⚠️ ACCORDO TOTALE col giocatore trovato dalla JUVENTUS: ora si tratta col Bologna. Al 12 agosto la cessione è la cosa più probabile: nel listone è ancora al Bologna, quindi rischi di pagarlo per una squadra che lascia.",
+  "Vitik":"💎 Se Lucumì va alla Juve (accordo col giocatore già fatto) diventa il centrale titolare del Bologna: a quota 5 è la scommessa da fare in coda al reparto difensivo.",
+  "Kristensen T.":"⚠️ IN CHIUSURA ALL'ATALANTA (22M+3 di bonus e 10% sulla rivendita) come erede di Djimsiti: nel listone è ancora all'UDINESE. Con Hien operato e fuori fino a ottobre a Bergamo giocherebbe subito. Quota 7 per un titolare, ma la squadra sul cartellino è sbagliata.",
+  "Kabasele":"⚠️ SQUALIFICATO per 2 giornate: salta l'avvio. In più l'Udinese sta cedendo Kristensen all'Atalanta, quindi al rientro lo spazio non manca — ma 35 anni e due turni di stop rendono la quota 4 poco appetibile in partenza.",
+  "Mkhitaryan":"❌ Squalificato per la 1ª giornata, 37 anni e fuori dagli undici tipo dell'Inter: nessun motivo per prenderlo.",
+  "Britschgi":"⚠️ Squalificato per la 1ª giornata del Parma.",
+  "Douglas Luiz":"✅ Spalletti: resterà 'molto probabilmente'. L'incertezza si è chiusa, ma nell'XI titolare della Juve continua a non esserci.",
+  "Orsolini":"Rinnovo col Bologna in dirittura d'arrivo (firma attesa dopo il 15 agosto): resta, ed è la certezza del reparto. ⚠️ Sui rigori però Dovbyk insidia davvero.",
+  "Ghedjemis":"✅ Il rischio si è molto ridotto: il Frosinone ha ALZATO la richiesta a 20M e ha rifiutato il Monaco (7+2, poi 9M) e Celtic e Rangers (10M). Al 12 agosto resta un titolare del Frosinone e la distanza tra domanda e offerta è grande.",
+  "Cancellieri":"✅ Nessuna offerta concreta e, con Isaksen fermo dalla pubalgia, la Lazio ha congelato la cessione: resta, e con Isaksen out ha spazio nelle prime giornate.",
+  "Pinamonti":"⚠️ C'è il SÌ DEL GIOCATORE alla Lazio: il Sassuolo chiede ~15M, manca l'intesa tra i club e la Lazio deve prima cedere (mercato bloccato dalle uscite). Se si sblocca parte e a Sassuolo tocca a Bowie; se resta è il titolare. Al 12 agosto è la situazione più incerta del listone.",
+  "Laurientè":"⚠️ Il Sassuolo chiede sempre 25M e NON è arrivata nessuna offerta convincente (Fenerbahce, Besiktas, ora anche l'Ipswich): al 12 agosto è più probabile che resti, ma il club lo ha messo in vetrina. Titolare e sui piazzati da sinistra se rimane.",
+  "Leao":"✅ La permanenza è ormai lo scenario più probabile: Galatasaray e Fenerbahce non sono arrivati ai 50-60M chiesti dal Milan, il portoghese non ha mai aperto alla Turchia e oggi ha parlato pubblicamente di concentrazione sul campo. A quota 18 resta il miglior rapporto qualità/prezzo del listone — ricorda però che nel derby è partito dalla panchina.",
+  "Nkunku":"⚠️ Zahavi cerca offerte da almeno 40M ma nessuna trattativa è concreta: al 12 agosto è ancora al Milan e nelle probabili è titolare sulla trequarti. Rischio reale ma non imminente.",
+  "Tomori":"⚠️ In uscita: Coventry, Newcastle e Liverpool su di lui, il Milan si siede davanti a 15-20M. Giovedì 13 c'è il summit Cardinale-Amorim che decide le cessioni. A quota 7 il rischio è concreto.",
+  "Fofana Y.":"⚠️ Fuori dal progetto e cercato da Crystal Palace, Marsiglia e Besiktas (valutazione 20-25M): da evitare.",
+  "Loftus-Cheek":"⚠️ Contratto in scadenza 2027 e tentato dal ritorno in Premier: sulla lista dei cedibili del Milan.",
+  "Ricci S.":"⚠️ Il Milan cede uno tra lui e Musah: situazione da chiarire al summit del 13 agosto.",
+  "Musah":"⚠️ Il Milan cede uno tra lui e Ricci: situazione da chiarire al summit del 13 agosto.",
+  "Estupinan":"⚠️ Il Milan gli sta cercando una sistemazione: fuori dai piani di Amorim.",
+  "Di Gregorio":"❌ Spalletti lo ha scaricato pubblicamente ('continuiamo ad avere la stessa idea') dopo le papere delle amichevoli, e la Juve aspetta solo il via libera del PSG per il prestito di Suzuki. A quota 9 è il portiere da NON prendere.",
+  "Suzuki":"⚠️ Il PSG ha CHIUSO col Parma (~35M): ora serve il sì parigino al prestito immediato alla Juventus, che è la squadra più avanti e ha bisogno urgente dopo aver bocciato Di Gregorio. A quota 7 è la scommessa più remunerativa tra i portieri, ma finché non è ufficiale è ancora del Parma.",
+  "Corvi":"Con Suzuki ceduto al PSG (operazione chiusa) è il portiere titolare del Parma: a quota 1 è il tipo di scommessa che costa nulla.",
+  "Dybala":"⚠️ Doppia insidia: la contusione al ginocchio col Newport (non grave, nessun esame allarmante) e soprattutto RODRIGO MORA in arrivo dal Porto, un trequartista con le sue stesse caratteristiche preso proprio per quel ruolo. A 32 anni e con quel passato di infortuni, la gestione del minutaggio è certa.",
+  "Pellegrini Lo.":"⚠️ Capitano ma già dietro nelle formazioni tipo di Gasperini, e con l'arrivo di Rodrigo Mora sulla trequarti il suo spazio si riduce ancora: a quota 10 non conviene.",
+  "Isaksen":"⚠️ Operato di pubalgia: rientro in gruppo dal 10 agosto ma in campo tra fine agosto e settembre. La sua assenza è il motivo per cui la Lazio ha congelato la cessione di Cancellieri.",
+  "Sulemana I.":"❌ Lesione del legamento collaterale mediale: rientro atteso a ottobre. Non prenderlo.",
+  "Konè I.":"❌ Frattura di tibia e perone: il rientro è ora indicato a GENNAIO, peggio delle stime di una settimana fa. Non prenderlo.",
+  "Hien":"❌ Operato al tendine della coscia, rientro a ottobre — e l'Atalanta sta chiudendo per Kristensen proprio per coprire il buco. Non prenderlo come titolare."
 };
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
@@ -462,7 +502,25 @@ const MERCATO_UNC = {
   "Pavard":2,        // fuori dal progetto Inter
   "Gollini":2,       // trattativa con la Cremonese
   "Pongracic":2,     // cedibile davanti a offerte importanti
-  "Thorstvedt":2     // possibile partenza, nessuna trattativa avanzata
+  "Thorstvedt":2,    // possibile partenza, nessuna trattativa avanzata
+  /* --- giro pre-asta 12 agosto: queste righe SOVRASCRIVONO quelle sopra --- */
+  "Lukaku":3,        // fatta col Fenerbahce: fuori dalla Serie A
+  "Lucumì":3,        // accordo totale col giocatore-Juventus, si tratta col Bologna
+  "Kristensen T.":3, // in chiusura all'Atalanta: nel listone è ancora all'Udinese
+  "Luis Henrique":2, // accordo Inter-Roma sui 30M, manca il sì del giocatore
+  "Frattesi":2,      // prestito alla Lazio: contatti avanzati tra i club
+  "Pinamonti":2,     // c'è il sì del giocatore alla Lazio, manca l'intesa tra i club
+  "Tomori":2,        // Coventry, Newcastle e Liverpool: il Milan apre a 15-20M
+  "Fofana Y.":2,     // Crystal Palace, Marsiglia, Besiktas: valutazione 20-25M
+  "Loftus-Cheek":2,  // sulla lista dei cedibili del Milan
+  "Ricci S.":2,      // il Milan cede uno tra lui e Musah
+  "Musah":2,         // il Milan cede uno tra lui e Ricci
+  "Estupinan":2,     // il Milan gli cerca una sistemazione
+  "Leao":1,          // nessuno arriva ai 50-60M chiesti dal Milan: la permanenza è lo scenario probabile
+  "Ghedjemis":0,     // richiesta salita a 20M, rifiutati Monaco/Celtic/Rangers: resta
+  "Cancellieri":0,   // congelata: con Isaksen infortunato la Lazio non lo cede
+  "Douglas Luiz":0,  // Spalletti: "molto probabilmente resta"
+  "Laurientè":1      // nessuna offerta convincente, ma resta in vetrina
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -478,7 +536,7 @@ const XI_STATUS = {
   "Sulemana K.":"R","Vismara":"R",
   /* Bologna (4-3-3 Tedesco) */
   "Skorupski":"T","Happonen":"R","Pessina Mas.":"R","Lucumì":"T","Miranda J.":"T","Heggem":"T",
-  "Zortea":"B+","Vitik":"B-","Holm":"B-","Casale":"R","Helland":"R","Alhassane":"R",
+  "Zortea":"B+","Vitik":"B+","Holm":"B-","Casale":"R","Helland":"R","Alhassane":"R",   // Vitik promosso: Lucumì ha l'accordo con la Juve
   "De Silvestri":"R","Orsolini":"T","Rowe":"T","Bernardeschi":"B-","Odgaard":"B+","Cambiaghi":"R",
   "Ferguson":"T","Pobega":"B+","Amondarain":"R","Moro N.":"B+","Dominguez B.":"R",
   "El Azzouzi O.":"R","Dovbyk":"T","Dallinga":"R",
@@ -517,7 +575,7 @@ const XI_STATUS = {
   "Luis Henrique":"B+","Stankovic A.":"R","Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",
   "Bonny":"B-",
   /* Juventus (4-2-3-1 Spalletti) */
-  "Di Gregorio":"B+","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"T",
+  "Di Gregorio":"B-","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"T",   // Spalletti lo ha scaricato: aspetta Suzuki
   "Celik":"B+","Kelly L.":"B+","Gatti":"B-","Rugani":"R","Cabal":"R","McKennie":"B+",
   "Alajbegovic":"B+","Conceicao":"B+","Thuram K.":"B+","Locatelli":"T","Zhegrova":"R",
   "Koopmeiners":"R","Douglas Luiz":"R","Miretti":"R","Kolo Muani":"T","Yildiz":"T","David":"R",
@@ -525,7 +583,7 @@ const XI_STATUS = {
   /* Lazio (4-3-3 Gattuso) */
   "Mandas":"B+","Motta":"B-","Renzetti":"R","Doekhi":"T","Romagnoli":"B-","Tavares N.":"B+",
   "Marusic":"B+","Pedraza":"B-","Provstgaard":"T","Floriani Mussolini":"R","Lazzari":"B-",
-  "Pellegrini Lu.":"R","Patric":"B-","Zaccagni":"T","Taylor K.":"T","Cancellieri":"B-",
+  "Pellegrini Lu.":"R","Patric":"B-","Zaccagni":"T","Taylor K.":"T","Cancellieri":"B+",   // con Isaksen out ha spazio
   "Isaksen":"B+","Rovella":"T","Dele-Bashiru":"T","Cataldi":"B-","Belahyane":"B-",
   "Przyborek":"R","Dia":"B-","Ratkov":"T","Noslin":"B-",
   /* Lecce (4-3-3 Di Francesco) */
@@ -547,12 +605,12 @@ const XI_STATUS = {
   "Varela G.":"B-","Petagna":"B-","Robinson J.":"R",
   /* Napoli (4-3-3 Allegri) */
   "Meret":"T","Milinkovic-Savic V.":"B-","Contini":"R","Rrahmani":"T","Di Lorenzo":"T",
-  "Spinazzola":"T","Buongiorno":"R","Beukema":"T","Olivera":"B-","Marin R.":"B-",
-  "Marianucci":"B-","Mazzocchi":"R","McTominay":"T","De Bruyne":"T","Zambo Anguissa":"B-",
+  "Spinazzola":"T","Buongiorno":"R","Beukema":"B+","Olivera":"B-","Marin R.":"B-",   // Beukema: arriva Badiashile
+  "Marianucci":"R","Mazzocchi":"R",   // Marianucci: collaterale, stop lungo"McTominay":"T","De Bruyne":"T","Zambo Anguissa":"B-",
   "Politano":"T","Vergara":"B-","Lobotka":"T","Folorunsho":"R","Gilmour":"B-","Hojlund":"T",
   "Santos A.":"T","Lukaku":"R","Neres":"R","Giovane":"B-","Lang":"R","Lucca":"R",
   /* Parma (3-5-2 Cuesta) */
-  "Daffara":"B-","Suzuki":"R","Corvi":"B+","Delprato":"T","Valeri":"T","Circati":"T",
+  "Daffara":"B-","Suzuki":"R","Corvi":"T","Delprato":"T",   // Suzuki chiuso al PSG: Corvi è il titolare"Valeri":"T","Circati":"T",
   "Valenti":"B-","Troilo":"T","Britschgi":"B-","Ndiaye":"B-","Carboni F.":"R","Bernabè":"T",
   "Nicolussi Caviglia":"B+","Keita M.":"T","Ondrejka":"B+","Almqvist":"B-","Sorensen O.":"B-",
   "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"T","Frigan":"B-",
@@ -624,7 +682,17 @@ const INJURY = {
   "Bisseck":[0,"Forte contusione alla testa nel derby amichevole: escluso il peggio, nessuno stop previsto."],
   "Gila":[0,"Risentimento al retto femorale senza lesioni: rientrato in anticipo dall'Australia, in gruppo dalla prossima settimana e disponibile per la 1ª."],
   "Messias":[0,"Recuperato dal problema all'adduttore: a disposizione di De Rossi."],
-  "Malen":[0,"L'assenza era per un attacco influenzale: tornato in gruppo, nessun allarme per la 1ª."]
+  "Malen":[0,"L'assenza era per un attacco influenzale: tornato in gruppo, nessun allarme per la 1ª."],
+  /* --- giro pre-asta 12 agosto: queste righe SOVRASCRIVONO quelle sopra --- */
+  "Marianucci":[6,"❌ Lesione di ALTO GRADO del collaterale mediale del ginocchio sinistro: stop lungo, salta tutto l'avvio. È il motivo per cui il Napoli ha accelerato per Badiashile."],
+  "Sulemana I.":[5,"❌ Lesione del legamento collaterale mediale: rientro atteso a ottobre."],
+  "Konè I.":[18,"❌ Frattura di tibia e perone: rientro indicato a gennaio. Fuori tutto il girone d'andata."],
+  "Kabasele":[2,"⚠️ SQUALIFICATO per 2 giornate: salta l'avvio del campionato."],
+  "Mkhitaryan":[1,"⚠️ Squalificato per la 1ª giornata."],
+  "Britschgi":[1,"⚠️ Squalificato per la 1ª giornata."],
+  "Patric":[1,"Infiammazione: in dubbio per la 1ª giornata."],
+  "Dybala":[1,"La contusione al ginocchio col Newport non è grave e si allena regolarmente: c'è per la 1ª. Resta però il giocatore operato al menisco a marzo 2026 — minutaggio da gestire tutto l'anno."],
+  "Beukema":[2,"⚠️ Riacutizzazione della tendinopatia achillea: punta alla 2ª, la 1ª è a forte rischio. E intanto il Napoli chiude per Badiashile."]
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
@@ -732,11 +800,15 @@ for (const role of ["P","D","C","A"]) {
     /* l'upside è potenziale di crescita: a 33 anni suonati non esiste più, per quanto
        il giocatore sia stato titolare (altrimenti Mkhitaryan a 37 anni risultava "Scommessa") */
     if (age >= 33) up = Math.min(up, 2);
+    /* Senza bollettino di oggi si eredita il dato della stagione scorsa: è la "fragilità"
+       storica del giocatore, ed è giusto che pesi. Ma se il giocatore È nel bollettino di
+       oggi, oggi ha ragione: altrimenti un infortunio del 2025-26 già guarito continuerebbe
+       a escluderlo dai consigliati (stesso motivo per cui i rigoristi non si ereditano). */
     let inj  = o ? o.inj : 0;
     let injNote = "";
     if (INJURY[p.n]) {
       const [gior, txt] = INJURY[p.n];
-      if (gior >= 4) inj = 3; else if (gior >= 2) inj = Math.max(inj, 2);
+      inj = gior >= 4 ? 3 : gior >= 2 ? 2 : Math.min(inj, 1);
       injNote = `⚕️ ${txt}`;
     }
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
@@ -810,7 +882,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("12 agosto 2026 — listone del giorno d'asta")},
+  date: ${JSON.stringify("12 agosto 2026 — giro pre-asta: mercato, infortuni e squalifiche aggiornati")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
