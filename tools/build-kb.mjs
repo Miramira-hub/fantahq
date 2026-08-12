@@ -455,7 +455,39 @@ const MERCATO_NOTE = {
   "Isaksen":"⚠️ Operato di pubalgia: rientro in gruppo dal 10 agosto ma in campo tra fine agosto e settembre. La sua assenza è il motivo per cui la Lazio ha congelato la cessione di Cancellieri.",
   "Sulemana I.":"❌ Lesione del legamento collaterale mediale: rientro atteso a ottobre. Non prenderlo.",
   "Konè I.":"❌ Frattura di tibia e perone: il rientro è ora indicato a GENNAIO, peggio delle stime di una settimana fa. Non prenderlo.",
-  "Hien":"❌ Operato al tendine della coscia, rientro a ottobre — e l'Atalanta sta chiudendo per Kristensen proprio per coprire il buco. Non prenderlo come titolare."
+  "Hien":"❌ Operato al tendine della coscia, rientro a ottobre — e l'Atalanta sta chiudendo per Kristensen proprio per coprire il buco. Non prenderlo come titolare.",
+  /* ===== AUDIT DELLE GERARCHIE, 12 agosto pomeriggio =====
+     Incrociate DUE liste indipendenti degli XI di tutte e 20 le squadre (ToroNews e
+     PazziDiFanta) con le fonti dedicate per squadra. Dove le due liste contraddicevano il
+     database ho verificato con una terza fonte: in 6 casi aveva ragione la fonte, in 2
+     (Samardzic, Masini/Akpoguma) aveva ragione il database e le liste erano vecchie. */
+  "Camarda":"⚠️ CORREZIONE: NON è il titolare. La doppietta al Celtic e la maglia nel derby di Perth restano, e Amorim ha detto che resta tutta la stagione ('credo molto in lui') — ma il centravanti è Goncalo Ramos, pagato 74M, e Camarda è il PRIMO CAMBIO. Con Gimenez in uscita il minutaggio ci sarà, ma è un vice, non un titolare: vale come ultimo slot, non come scommessa da fascia media.",
+  "Ramos G.":"Acquisto record del Milan (74M dal PSG) e TITOLARE indiscusso del 3-4-2-1 di Amorim in tutte le formazioni tipo. Al PSG 6 gol con xG 8.22 in soli 1300': sfortunato, non incapace. ⚠️ Sui rigori la gerarchia è aperta a tre — lui 11/13 in carriera, Nkunku 17/20, Pulisic 13/15 — e Amorim non ha ancora deciso: a quota 27 stai pagando il posto da titolare, non i rigori.",
+  "Koulierakis":"⚠️ CORREZIONE: parte dalla PANCHINA. Il trio titolare di Gasperini è Mancini-N'Dicka-Hermoso; lui, Ghilardi e Ziolkowski sono le riserve. Ha qualità, età e aggressività per prendersi il posto di Hermoso (che dà meno garanzie fisiche) ed è andato in gol all'esordio col Newport, ma oggi il posto non ce l'ha. A quota 8 è una scommessa sul sorpasso, non un titolare.",
+  "Hermoso":"Confermato nel trio titolare della Roma insieme a Mancini e N'Dicka. ⚠️ Due nei: è quello che dà meno garanzie fisiche del reparto e Koulierakis è arrivato per insidiarlo, e prende molti cartellini.",
+  "Lipani":"⚠️ CORREZIONE: non è il titolare designato. In mediana Aquilani ha Matic come regista e Thorstvedt/Adzic per l'altra maglia; lui si gioca il posto con Bakola. Konè fuori fino a gennaio gli lascia spazio, ma a oggi parte dietro.",
+  "Lucchesi":"⚠️ CORREZIONE: non è promosso titolare. Si gioca il posto centrale della difesa a 3 di Juric con Delli Carri e Kouadio: ballottaggio a tre, non una maglia sicura.",
+  "Celik":"⚠️ CORREZIONE: non è nell'XI titolare. Ha giocato terzino destro nell'amichevole col Palermo, ma solo perché Kalulu era fermo per precauzione: il padrone della fascia destra resta Kalulu. Buon dodicesimo, non un titolare da quota 8.",
+  "Kelly L.":"✅ Titolare in TUTTE le formazioni tipo di Spalletti (Kalulu-Bremer-Kelly-Cambiaso) e nell'ultima amichevole: il dubbio di una settimana fa è rientrato.",
+  "Mandas":"✅ GERARCHIA SCIOLTA: Gattuso lo ha confermato titolare (dato per favorito 70-30 su Motta) e Provedel è stato ceduto all'Inter. Il ballottaggio dell'amichevole non ha cambiato nulla.",
+  "Motta":"Secondo portiere della Lazio dietro Mandas, che Gattuso ha confermato titolare. A quota 1 solo come terzo slot.",
+  "Thorstvedt":"Titolare sulla trequarti del 4-2-3-1 di Aquilani in entrambe le formazioni tipo. La partenza resta un'ipotesi senza nessuna trattativa avanzata.",
+  /* --- giocatori di quota alta che erano rimasti senza spiegazione --- */
+  "Rabiot":"Titolare fisso in mediana nel 3-4-2-1 di Amorim in tutte le formazioni tipo, accanto a Modric/Jashari. FM 6.98 con 91% di titolarità: paghi i voti e la presenza costante, non i bonus — non tira rigori né punizioni.",
+  "Barella":"Titolare inamovibile del 3-5-2 di Chivu, presente in ogni formazione tipo. ⚠️ Ma i piazzati sono tutti di Calhanoglu e Dimarco: a quota 17 compri regolarità e voti alti, non bonus.",
+  "Mancini":"Titolare inamovibile del trio difensivo di Gasperini da due stagioni: 4 gol e 2 assist nel 25-26 con 97% di titolarità. ⚠️ Tanti cartellini: è il difensore che più spesso ti toglie mezzo punto.",
+  "Pavlovic":"Titolare nel terzetto Gila-Gabbia-Pavlovic in tutte le formazioni tipo di Amorim: 5 gol da difensore nel 25-26, il dato che giustifica la quota 14.",
+  "N'Dicka":"Titolare inamovibile della difesa di Gasperini (97% di titolarità, 3 gol): la certezza silenziosa del reparto, senza i cartellini di Mancini.",
+  "Kalulu":"Titolare a destra nella difesa di Spalletti in tutte le formazioni tipo, 37 presenze e 4 assist nel 25-26. Celik è arrivato a zero ma è il dodicesimo, non un'insidia vera.",
+  "De Gea":"Titolare indiscusso della Fiorentina (37 presenze, 93% di titolarità). ⚠️ Ma FM 5.00 tonda e una difesa da rating 3: a quota 13 stai pagando il nome più della resa.",
+  "Taylor K.":"Titolare in mediana nel 4-3-3 di Gattuso in entrambe le formazioni tipo, ed è la seconda scelta sui rigori dietro Zaccagni: il pacchetto piazzati gli dà un margine che la FM da sola non mostra.",
+  "Rodriguez Je.":"Sceso a CENTROCAMPISTA col nuovo listone (era attaccante): stesso rendimento, ruolo più conveniente. ⚠️ Ma nel Como di Fabregas si gioca la fascia con Diao, che nelle formazioni tipo parte davanti: 76% di titolarità è il numero onesto.",
+  "Kaiki":"✅ CORREZIONE: è il terzino SINISTRO titolare del Como, dato favorito su Valle. Yan Couto occupa la fascia destra, non la sua: non erano in concorrenza diretta.",
+  "Valle":"⚠️ CORREZIONE: parte dietro a Kaiki sulla fascia sinistra secondo le fonti. Non è il titolare che il database indicava fino a stamattina.",
+  "Kempf":"⚠️ Alle spalle di Chalobah al centro della difesa: nelle formazioni tipo il titolare accanto a Ramon è il nuovo acquisto dal Chelsea.",
+  /* Il Como gioca la Champions: Fabregas ha annunciato turnover costante, quindi anche i
+     titolari lariani vanno pesati con un minutaggio meno pieno delle altre big. */
+  "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas in tutte le formazioni tipo: titolare e doppietta col Famalicao. ⚠️ Ma col Como in Champions Fabregas ha annunciato turnover costante: la quota 20 è giusta, non scontata."
 };
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
@@ -546,7 +578,7 @@ const XI_STATUS = {
   "Esposito Se.":"R","Mutandwa":"B+","Borrelli":"B-","Mendy P.":"T","Albarracin":"R","Trepy":"R",
   "Maldini":"B+","Kevin Carlos":"B+","Aurelio":"B-",   // Cagliari: attacco rifatto dopo l'addio di Esposito
   /* Como (4-2-3-1 Fabregas) */
-  "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"B-","Valle":"B+","Kempf":"B+",
+  "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"B+","Valle":"B-","Kempf":"B-",   // Kaiki favorito su Valle a sinistra; Chalobah davanti a Kempf
   "Smolcic I.":"R","Van Der Brempt":"B-","Goldaniga":"R","Cuenca A.":"R","Paz N.":"T",
   "Baturina":"T","Da Cunha":"T","Rodriguez Je.":"B+","Perrone":"T","Caqueret":"B-","Liberali":"R",
   "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+","Morata":"B-",
@@ -575,12 +607,12 @@ const XI_STATUS = {
   "Bonny":"B-",
   /* Juventus (4-2-3-1 Spalletti) */
   "Di Gregorio":"B-","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"T",   // Spalletti lo ha scaricato: aspetta Suzuki
-  "Celik":"B+","Kelly L.":"B+","Gatti":"B-","Rugani":"R","Cabal":"R","McKennie":"B+",
+  "Celik":"B-","Kelly L.":"T","Gatti":"B-","Rugani":"R","Cabal":"R","McKennie":"B+",   // Kelly titolare in tutte le fonti; Celik insidia Kalulu a destra
   "Alajbegovic":"B+","Conceicao":"B+","Thuram K.":"B+","Locatelli":"T","Zhegrova":"R",
   "Koopmeiners":"R","Douglas Luiz":"R","Miretti":"R","Kolo Muani":"T","Yildiz":"T","David":"R",
   "Boga":"R","Ekhator":"R",
   /* Lazio (4-3-3 Gattuso) */
-  "Mandas":"B+","Motta":"B-","Renzetti":"R","Doekhi":"T","Romagnoli":"B-","Tavares N.":"B+",
+  "Mandas":"T","Motta":"R","Renzetti":"R","Doekhi":"T","Romagnoli":"B-","Tavares N.":"B+",   // Gattuso ha confermato Mandas titolare, Motta vice
   "Marusic":"B+","Pedraza":"B-","Provstgaard":"T","Floriani Mussolini":"R","Lazzari":"B-",
   "Pellegrini Lu.":"R","Patric":"B-","Zaccagni":"T","Taylor K.":"T","Cancellieri":"B+",   // con Isaksen out ha spazio
   "Isaksen":"B+","Rovella":"T","Dele-Bashiru":"T","Cataldi":"B-","Belahyane":"B-",
@@ -596,9 +628,9 @@ const XI_STATUS = {
   "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
-  "Ramos G.":"B+","Leao":"B+","Nkunku":"B+","Gimenez":"R","Camarda":"B+",
+  "Ramos G.":"T","Leao":"B+","Nkunku":"B+","Gimenez":"R","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
   /* Monza (3-4-2-1 Juric) */
-  "Thiam":"T","Pizzignacco":"R","Strajnar":"R","Mangas":"T","Delli Carri":"B+","Lucchesi":"B+",
+  "Thiam":"T","Pizzignacco":"R","Strajnar":"R","Mangas":"T","Delli Carri":"B+","Lucchesi":"B-",   // ballottaggio con Delli Carri, non promosso
   "Birindelli":"T","Kouadio":"B+","Carboni A.":"B+","Antov":"R","Bakoune":"R","Colpani":"T",
   "Pessina":"T","Akinsanmiro":"B+","Colombo L.":"B-","Ciurria":"B-","Cutrone":"T","Mota":"B+",
   "Varela G.":"B-","Petagna":"B-","Robinson J.":"R",
@@ -616,13 +648,13 @@ const XI_STATUS = {
   "Elphege":"B-","Tourè E.":"B+",
   /* Roma (3-4-2-1 Gasperini) */
   "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","N'Dicka":"T",
-  "Hermoso":"B-","Koulierakis":"T","Rensch":"B-","Ghilardi":"B-",
+  "Hermoso":"T","Koulierakis":"B+","Rensch":"B-","Ghilardi":"B-",   // trio titolare Mancini-N'Dicka-Hermoso, Koulierakis insidia
   "Ziolkowski":"R","Konè M.":"T","Cristante":"T","Pisilli":"B-","El Aynaoui":"B-","Malen":"T",
   "Dybala":"T","Castro S.":"B-","Soulè":"T","Vaz":"R","Pellegrini Lo.":"B-",
   /* Sassuolo (4-3-3 Aquilani) */
   "Muric":"T","Russo A.":"R","Turati":"B-","Idzes":"T","Walukiewicz":"T","Doig":"T",
   "Candè":"B-","Missori":"B+","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
-  "Matic":"T","Adzic":"B-","Bakola":"R","Boloca":"B-","Lipani":"T","Iannoni":"R","Berardi":"T",
+  "Matic":"T","Adzic":"B-","Bakola":"B-","Boloca":"B-","Lipani":"B-","Iannoni":"R","Berardi":"T",   // Lipani in ballottaggio, non titolare
   "Laurientè":"T","Pinamonti":"B+","Bowie":"B-","Moro L.":"R","Satalino":"R","Dominguez B.":"R",
   /* Torino (3-4-2-1 Abate) — il titolare in porta sarà Perri, non presente nel listone */
   "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T",
@@ -881,7 +913,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("12 agosto 2026 — giro pre-asta: mercato, infortuni e squalifiche aggiornati")},
+  date: ${JSON.stringify("12 agosto 2026 — giro pre-asta + audit gerarchie di tutte e 20 le squadre")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
