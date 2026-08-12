@@ -226,7 +226,7 @@ const RIG = {
   "Gudmundsson A.":2, "Kean":1, "Mandragora":1,                         // Fiorentina: ballottaggio col Kean
   "Zaccagni":2, "Cataldi":1, "Taylor K.":1,                             // Lazio: unanime
   "De Bruyne":2, "Hojlund":1,                                           // Napoli: designato dopo l'addio di Lukaku
-  "Bernabè":2, "Pellegrino M.":1, "Valeri":1,                           // Parma: Bernabè designato + punizioni e corner
+  "Bernabè":2, "Valeri":1,                                              // Parma: Bernabè designato + punizioni e corner (Pellegrino ceduto alla Fiorentina, dove dal dischetto va Gudmundsson)
   "Berardi":2, "Pinamonti":1, "Laurientè":1,                            // Sassuolo: unanime
   "Vlasic":2, "Kulenovic":1, "Zapata D.":1, "Simeone":1,                // Torino: unanime
   "Davis K.":2, "Solet":1, "Zaniolo":1, "Ekkelenkamp":1,                // Udinese: unanime
@@ -491,7 +491,16 @@ const MERCATO_NOTE = {
   "Kempf":"⚠️ Alle spalle di Chalobah al centro della difesa: nelle formazioni tipo il titolare accanto a Ramon è il nuovo acquisto dal Chelsea.",
   /* Il Como gioca la Champions: Fabregas ha annunciato turnover costante, quindi anche i
      titolari lariani vanno pesati con un minutaggio meno pieno delle altre big. */
-  "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas in tutte le formazioni tipo: titolare e doppietta col Famalicao. ⚠️ Ma col Como in Champions Fabregas ha annunciato turnover costante: la quota 20 è giusta, non scontata."
+  "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas in tutte le formazioni tipo: titolare e doppietta col Famalicao. ⚠️ Ma col Como in Champions Fabregas ha annunciato turnover costante: la quota 20 è giusta, non scontata.",
+  /* ===== SCAMBIO INCROCIATO PELLEGRINO / PICCOLI (11-12 agosto) =====
+     Le due operazioni sono legate: la cessione di Piccoli al Bologna libera il posto per
+     Pellegrino alla Fiorentina. Nel listone entrambi risultano ancora nella squadra vecchia. */
+  "Pellegrino M.":"⚠️ ATTENZIONE, CAMBIA SQUADRA: alla FIORENTINA dal Parma (prestito con obbligo, oltre 20M) — nel listone risulta ancora al Parma. È un DECLASSAMENTO per il fantacalcio: al Parma era la punta titolare, a Firenze è in ballottaggio quasi pari con Kean (le fonti danno 51-49 per Kean). Perde anche i rigori, che a Firenze sono di Gudmundsson. I viola hanno investito e i problemi fisici di Kean gli daranno spazio, ma a quota 15 stai pagando un titolare che è diventato mezzo titolare: vale come quarto slot da schierare nelle giornate favorevoli, non come punta su cui costruire.",
+  "Kean":"Bomber da doppia cifra e rigorista alternativo dietro Gudmundsson. ⚠️ Ma con Pellegrino arrivato dal Parma per oltre 20M il posto non è più suo da solo: le fonti danno un ballottaggio 51-49. Aggiungi i suoi precedenti problemi fisici e la quota 25 diventa cara: resta forte, non è più una certezza da schierare a occhi chiusi.",
+  "Tourè E.":"💎 PROMOSSO: con Pellegrino ceduto alla Fiorentina è rimasto lui la punta titolare del Parma, senza più ballottaggio. El Bilal Touré arriva dall'Atalanta in prestito con obbligo/diritto a 11M. A quota 11 compri il centravanti di una squadra intera al prezzo di una riserva — è l'occasione che apre questo scambio di mercato.",
+  "Piccoli":"⚠️ CAMBIA SQUADRA: dalla Fiorentina al BOLOGNA (prestito con obbligo, 16-20M, quinquennale) — nel listone risulta ancora alla Fiorentina. Ma non è una promozione: a Bologna trova DOVBYK titolare nel 4-3-3 di Tedesco e parte dietro. Il suo picco resta la doppia cifra a Cagliari; a Lecce e Firenze ha faticato. A quota 8 è una scommessa sul sorpasso, non un titolare.",
+  "Dovbyk":"Al Bologna da titolare dopo il ruolo perso alla Roma: xG/tiro 0.31 (7° in Serie A), il contesto ora lo favorisce, e insidia Orsolini sui rigori (27/32 in carriera dal dischetto). ⚠️ Il Bologna ha però preso Piccoli dalla Fiorentina per ~18M: non lo scalza subito, ma il turnover ora esiste.",
+  "Dallinga":"⚠️ Con Piccoli arrivato dalla Fiorentina scivola al terzo posto nelle gerarchie del Bologna: da evitare."
 };
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
@@ -551,6 +560,8 @@ const MERCATO_UNC = {
   "Ricci S.":2,      // il Milan cede uno tra lui e Musah
   "Musah":2,         // il Milan cede uno tra lui e Ricci
   "Estupinan":2,     // il Milan gli cerca una sistemazione
+  "Pellegrino M.":3, // alla Fiorentina: nel listone risulta ancora al Parma
+  "Piccoli":3,       // al Bologna: nel listone risulta ancora alla Fiorentina
   "Leao":1,          // nessuno arriva ai 50-60M chiesti dal Milan: la permanenza è lo scenario probabile
   "Ghedjemis":0,     // richiesta salita a 20M, rifiutati Monaco/Celtic/Rangers: resta
   "Cancellieri":0,   // congelata: con Isaksen infortunato la Lazio non lo cede
@@ -591,7 +602,7 @@ const XI_STATUS = {
   "De Gea":"T","Christensen O.":"R","Lezzerini":"R","Dodò":"B+","Dragusin":"T","Jimenez A.":"B+",
   "Valdepenas":"B+","Viery":"B+","Parisi":"R","Pongracic":"B-","Ranieri L.":"B-","Joao Mario":"B-",
   "Atta":"T","Gudmundsson A.":"T","Mandragora":"B-","Fagioli":"B+","Ndour":"B+","Oulai":"B+",
-  "Fabbian":"R","Brescianini":"R","Kean":"T","Piccoli":"B-","Mastantuono":"T",
+  "Fabbian":"R","Brescianini":"R","Kean":"B+","Piccoli":"R","Mastantuono":"T",   // Kean 51-49 su Pellegrino; Piccoli venduto al Bologna
   /* Frosinone (4-2-3-1 Alvini) */
   "Palmisani":"B+","Desplanches":"B-","Lolic":"R","Monterisi":"T","Bracaglia":"T","Oyono A.":"T",
   "Calvani":"B+","Akpoguma":"B+","Cittadini":"B-","Amey":"R","Gelli J.":"R","Oyono J.":"R",
@@ -648,8 +659,8 @@ const XI_STATUS = {
   "Daffara":"B-","Suzuki":"R","Corvi":"T","Delprato":"T",   // Suzuki chiuso al PSG: Corvi è il titolare"Valeri":"T","Circati":"T",
   "Valenti":"B-","Troilo":"T","Britschgi":"B-","Ndiaye":"B-","Carboni F.":"R","Bernabè":"T",
   "Nicolussi Caviglia":"B+","Keita M.":"T","Ondrejka":"B+","Almqvist":"B-","Sorensen O.":"B-",
-  "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"T","Frigan":"B-",
-  "Elphege":"B-","Tourè E.":"B+",
+  "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"R","Frigan":"B-",
+  "Elphege":"B-","Tourè E.":"T",   // Pellegrino ceduto alla Fiorentina: Tourè e la punta titolare del Parma
   /* Roma (3-4-2-1 Gasperini) */
   "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","N'Dicka":"T",
   "Hermoso":"T","Koulierakis":"B+","Molina":"T","Rensch":"R","Ghilardi":"B-",   // Molina UFFICIALE: quinto destro titolare, Rensch chiuso
