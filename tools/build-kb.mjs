@@ -76,10 +76,12 @@ function findOld(p){
 const statRows = y => JSON.parse(fs.readFileSync(`${REPO}/data/statistiche-${y}.json`, "utf8")).slice(2);
 const mkStat = y => new Map(statRows(y).map(r => [r[0], {
   pv:+r[5]||0, mv:+r[6]||0, fm:+r[7]||0, gf:+r[8]||0, gs:+r[9]||0,
-  rp:+r[10]||0, ass:+r[14]||0, amm:+r[15]||0, esp:+r[16]||0
+  rp:+r[10]||0, rc:+r[11]||0, rplus:+r[12]||0, rminus:+r[13]||0,
+  ass:+r[14]||0, amm:+r[15]||0, esp:+r[16]||0
 }]));
 const ST26 = mkStat("2025-26");   // stagione appena conclusa: la fonte primaria
 const ST25 = mkStat("2024-25");   // serve solo per la traiettoria (stava crescendo?)
+const ST24 = mkStat("2023-24");   // terza stagione: serve per la traiettoria della media voto
 
 /* ---- ETÀ VERIFICATE (ricognizione agosto 2026, fonte transfermarkt) ----
    Prima dell'audit quasi tutti avevano l'età di default (26): i correttivi del motore
@@ -878,6 +880,40 @@ for (const role of ["P","D","C","A"]) {
       else if (dA <= -2.5) signal = `💎 ${u.ass} assist ma ${u.xa.toFixed(1)} attesi: crea occasioni che i compagni sprecano, gli assist arriveranno.`;
       else if (p90 >= 0.45 && u.min < 1600) signal = `⚡ ${p90.toFixed(2)} npxG/90 in sole ${Math.round(u.min/90)} partite piene: rendimento alto con pochi minuti, se gioca di più esplode.`;
     }
+
+    /* ---- SEGNALI DAL DATABASE UFFICIALE (media voto, cartellini, dischetto, traiettoria) ----
+       Sono dati che c'erano già nei file delle statistiche ma che il motore non leggeva.
+       Non entrano nella fantamedia attesa — la Fm ufficiale li contiene GIÀ tutti, sommarli
+       sarebbe contarli due volte — ma cambiano la decisione all'asta, quindi vanno detti. */
+    const extra = [];
+    const stx = ST26.get(p.id);
+    if (stx && stx.pv >= 15) {
+      /* 1) MEDIA VOTO: col modificatore difesa la lega somma i VOTI di difensori e portiere,
+            non le fantamedie. Per quei due ruoli è il numero che decide il modificatore. */
+      if ((p.r === "D" || p.r === "P") && stx.mv > 0) {
+        const soglia = p.r === "P" ? [6.10, 5.85] : [6.15, 5.95];
+        if (stx.mv >= soglia[0])      extra.push(`📊 Media voto ${stx.mv.toFixed(2)} su ${stx.pv} partite: se la tua lega ha il modificatore difesa è QUESTO il numero che conta, e lui lo alza.`);
+        else if (stx.mv <= soglia[1]) extra.push(`📊 Media voto solo ${stx.mv.toFixed(2)}: col modificatore difesa abbassa la media del reparto anche quando la fantamedia sembra buona.`);
+      }
+      /* 2) CARTELLINI: già dentro la Fm, ma dicono QUANTO di quella Fm se ne va in malus. */
+      const malus = (stx.amm * 0.5 + stx.esp * 1) / stx.pv;
+      if (stx.pv >= 20 && malus >= 0.12)
+        extra.push(`🟨 ${stx.amm} ammonizioni${stx.esp ? ` e ${stx.esp} espulsion${stx.esp === 1 ? "e" : "i"}` : ""} in ${stx.pv} partite: −${malus.toFixed(2)} di fantamedia a gara buttati in malus.`);
+      /* 3) DISCHETTO: il record vero, non l'indicazione delle fonti. */
+      const tot = stx.rplus + stx.rminus;
+      if (tot >= 2)
+        extra.push(`⚽ Dal dischetto nel 25-26: ${stx.rplus} su ${tot}${stx.rminus === 0 ? " (nessuno sbagliato)" : ""}.`);
+      /* 4) TRAIETTORIA su tre stagioni: la media voto sale o scende? */
+      const s25 = ST25.get(p.id), s24 = ST24.get(p.id);
+      if (s25 && s24 && s25.pv >= 15 && s24.pv >= 15 && stx.mv && s25.mv && s24.mv) {
+        const d = stx.mv - s24.mv;
+        if (stx.mv > s25.mv && s25.mv > s24.mv && d >= 0.15)
+          extra.push(`📈 Media voto in crescita da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}): sta migliorando davvero, non è un'annata isolata.`);
+        else if (stx.mv < s25.mv && s25.mv < s24.mv && d <= -0.15)
+          extra.push(`📉 Media voto in calo da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}): la parabola punta in giù.`);
+      }
+    }
+    if (extra.length) signal = [signal, ...extra.slice(0, 3)].filter(Boolean).join(" ");
     const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
     const note = [injNote, baseNote, signal].filter(Boolean).join(" ");
     /* fm2 = fantamedia della stagione PRECEDENTE (24-25), solo se significativa in
