@@ -708,7 +708,7 @@ const INJURY = {
   "Beukema":[2,"Riacutizzazione della tendinopatia achillea: punta alla 2ª giornata, la 1ª è a forte rischio."],
   "Berardi":[1,"Sovraccarico alla caviglia, in riatletizzazione: atteso comunque a disposizione per la 1ª."],
   "Ekhator":[1,"Lesione al bicipite femorale: da valutare per la 1ª giornata."],
-  "Isaksen":[1,"Operato di pubalgia a inizio luglio: rientro in gruppo dal 10 agosto, in campo tra fine agosto e settembre."],
+  "Isaksen":[2,"⚠️ Operato di pubalgia a inizio luglio: rientro in gruppo dal 10 agosto ma in campo tra fine agosto e settembre. Salta la 1ª e probabilmente la 2ª."],
   "Cataldi":[1,"Operato di pubalgia: rientro in gruppo dal 10 agosto, in campo tra fine agosto e settembre."],
   "Walukiewicz":[0,"Acciaccato: in dubbio per la 1ª giornata."],
   "Tavares N.":[0,"Infiammazione al ginocchio superata: rientro in gruppo a breve."],
@@ -872,6 +872,7 @@ for (const role of ["P","D","C","A"]) {
        gol molto sotto npxG = ha creato più di quanto ha segnato → risalirà (e viceversa).
        Stessa logica su assist vs xA. Solo con minuti sufficienti per essere significativo. */
     let signal = "";
+    const volSig = [];
     if (u && u.min >= 700) {
       /* Confronto gol totali con xG TOTALE (non npxG): npxG esclude i rigori, quindi userebbe
          un metro sbagliato per i rigoristi (es. Calhanoglu risulterebbe +7.7 sopra le attese). */
@@ -881,6 +882,18 @@ for (const role of ["P","D","C","A"]) {
       else if (dG >= 3)  signal = `🔻 ${u.gol} gol su ${u.xg.toFixed(1)} attesi (+${dG.toFixed(1)}): stagione sopra le righe, difficile da ripetere.`;
       else if (dA <= -2.5) signal = `💎 ${u.ass} assist ma ${u.xa.toFixed(1)} attesi: crea occasioni che i compagni sprecano, gli assist arriveranno.`;
       else if (p90 >= 0.45 && u.min < 1600) signal = `⚡ ${p90.toFixed(2)} npxG/90 in sole ${Math.round(u.min/90)} partite piene: rendimento alto con pochi minuti, se gioca di più esplode.`;
+    }
+
+    /* ---- VOLUME: tiri e passaggi chiave per 90 ----
+       Erano nel file di Understat e non li leggeva nessuno. Sono i dati più stabili che
+       abbiamo: misurati su 338 giocatori con 900+ minuti, tiri/90 predice l'xG/90 con
+       r=0.89 e i passaggi chiave/90 predicono l'xA/90 con r=0.90. Il volume si ripete di
+       anno in anno, la conversione no — per questo un giocatore ad alto volume che ha
+       convertito poco è un'occasione, non un rischio. */
+    if (u && u.min >= 900) {
+      const t90 = u.tiri / u.min * 90, k90 = u.kp / u.min * 90;
+      if (t90 >= 2.5)      volSig.push(`🎯 ${t90.toFixed(2)} tiri ogni 90 minuti: volume da protagonista, ed è il dato che si ripete più di ogni altro.`);
+      if (k90 >= 1.75)     volSig.push(`🅰️ ${k90.toFixed(2)} passaggi chiave ogni 90: fabbrica occasioni, gli assist seguono il volume.`);
     }
 
     /* ---- SEGNALI DAL DATABASE UFFICIALE (media voto, cartellini, dischetto, traiettoria) ----
@@ -915,7 +928,7 @@ for (const role of ["P","D","C","A"]) {
           extra.push(`📉 Media voto in calo da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}): la parabola punta in giù.`);
       }
     }
-    if (extra.length) signal = [signal, ...extra.slice(0, 3)].filter(Boolean).join(" ");
+    if (volSig.length || extra.length) signal = [signal, ...volSig, ...extra.slice(0, 3)].filter(Boolean).join(" ");
     const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
     const note = [injNote, baseNote, signal].filter(Boolean).join(" ");
     /* fm2 = fantamedia della stagione PRECEDENTE (24-25), solo se significativa in
