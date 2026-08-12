@@ -484,6 +484,8 @@ const MERCATO_NOTE = {
   "De Gea":"Titolare indiscusso della Fiorentina (37 presenze, 93% di titolarità). ⚠️ Ma FM 5.00 tonda e una difesa da rating 3: a quota 13 stai pagando il nome più della resa.",
   "Taylor K.":"Titolare in mediana nel 4-3-3 di Gattuso in entrambe le formazioni tipo, ed è la seconda scelta sui rigori dietro Zaccagni: il pacchetto piazzati gli dà un margine che la FM da sola non mostra.",
   "Rodriguez Je.":"Sceso a CENTROCAMPISTA col nuovo listone (era attaccante): stesso rendimento, ruolo più conveniente. ⚠️ Ma nel Como di Fabregas si gioca la fascia con Diao, che nelle formazioni tipo parte davanti: 76% di titolarità è il numero onesto.",
+  "Molina":"✅ UFFICIALE alla Roma il 12 agosto, a titolo definitivo dall'Atletico Madrid con contratto di 4 anni. Quinto destro titolare nel 3-4-2-1 di Gasperini: è il ruolo che nell'era Gasperini ha prodotto più bonus dai difensori (101 gol dal reparto). 249 presenze e 19 gol tra Udinese e Atletico, campione del mondo 2022. ⚠️ Nessun dato in Serie A recente — l'ultimo campionato italiano è del 2022 — quindi la fantamedia è STIMATA dalla quota, non misurata: è la scommessa sul ruolo, non sul rendimento certificato. E ha 28 anni, quindi niente margine di crescita.",
+  "Rensch":"❌ CHIUSO da Molina, ufficiale il 12 agosto: sulla fascia destra parte l'argentino. A quota 5 non vale più nemmeno l'ultimo slot.",
   "Kaiki":"✅ CORREZIONE: è il terzino SINISTRO titolare del Como, dato favorito su Valle. Yan Couto occupa la fascia destra, non la sua: non erano in concorrenza diretta.",
   "Valle":"⚠️ CORREZIONE: parte dietro a Kaiki sulla fascia sinistra secondo le fonti. Non è il titolare che il database indicava fino a stamattina.",
   "Kempf":"⚠️ Alle spalle di Chalobah al centro della difesa: nelle formazioni tipo il titolare accanto a Ramon è il nuovo acquisto dal Chelsea.",
@@ -650,7 +652,7 @@ const XI_STATUS = {
   "Elphege":"B-","Tourè E.":"B+",
   /* Roma (3-4-2-1 Gasperini) */
   "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","N'Dicka":"T",
-  "Hermoso":"T","Koulierakis":"B+","Rensch":"B-","Ghilardi":"B-",   // trio titolare Mancini-N'Dicka-Hermoso, Koulierakis insidia
+  "Hermoso":"T","Koulierakis":"B+","Molina":"T","Rensch":"R","Ghilardi":"B-",   // Molina UFFICIALE: quinto destro titolare, Rensch chiuso
   "Ziolkowski":"R","Konè M.":"T","Cristante":"T","Pisilli":"B-","El Aynaoui":"B-","Malen":"T",
   "Dybala":"T","Castro S.":"B-","Soulè":"T","Vaz":"R","Pellegrini Lo.":"B-",
   /* Sassuolo (4-3-3 Aquilani) */
