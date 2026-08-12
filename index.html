@@ -647,6 +647,8 @@ function fasciaBadge(f){ return `<span class="badge f${f<=2?f:""}">${f}ª</span>
 function budgetSpent(){ return mine().reduce((s,p)=>s+(p.paid||0),0); }
 function budgetLeft(){ return state.settings.budget - budgetSpent(); }
 function slotsLeft(r){ return state.settings.slots[r] - mine().filter(p=>p.role===r).length; }
+/* l'asta è iniziata se qualcuno è già stato assegnato, a te o agli altri */
+const astaIniziata = ()=> state.players.some(p=>p.status!=="free");
 function totSlotsLeft(){ return ROLES.reduce((s,r)=>s+Math.max(0,slotsLeft(r)),0); }
 function maxBid(){ return Math.max(0, budgetLeft() - Math.max(0, totSlotsLeft()-1)); }
 function inflation(){
@@ -1376,11 +1378,15 @@ function vStrategia(){
   </div>
   <div class="card">
     <h2>Ripartizione del budget</h2>
-    <p class="sub">I preset sono valori di convenzione, uguali per tutti. <b>Calcola l'ottima</b> invece la ricava dai giocatori ancora liberi, dal tuo budget, dal tuo modulo e dal tuo regolamento: è la ripartizione che compra più rendimento possibile ai prezzi che farà il mercato. Ricalcolala pure a metà asta.</p>
+    <p class="sub">I preset sono valori di convenzione, uguali per tutti. <b>Il piano di partenza</b> lo calcola invece sul <b>tuo</b> listone, budget, modulo e regolamento: è la ripartizione con cui entrare all'asta, e <b>non cambia mentre l'asta procede</b> — è un numero da sapere prima di cominciare.</p>
     <div class="toolbar">
-      <button class="btn pri" id="calcSplit" title="Risolve ogni reparto per ogni livello di budget e cerca la combinazione migliore. Cambia con le squadre in lega, il modulo, il regolamento e con chi è già stato venduto.">🎯 Calcola l'ottima</button>
+      <button class="btn pri" id="calcSplit" title="Risolve ogni reparto per ogni livello di budget sul listone intero e cerca la combinazione migliore. Dipende da squadre in lega, budget, modulo e regolamento: non da come sta andando l'asta.">🎯 Calcola il piano di partenza</button>
       ${Object.entries(PRESETS).map(([k,p])=>`<button class="btn" data-preset="${k}">${p.label}</button>`).join("")}
     </div>
+    ${astaIniziata() ? `<div class="toolbar" style="margin-top:-4px">
+      <button class="btn sm" id="calcSplitRes" title="Solo per metà asta: ricalcola sui crediti che ti restano, sugli slot ancora vuoti e sui giocatori ancora liberi.">↻ Adatta al residuo (asta in corso)</button>
+      <span class="help">Il piano sopra resta il tuo riferimento: usa questo solo se un reparto è saltato.</span>
+    </div>` : ""}
     ${ui.splitCalc ? `<div class="alert"><div class="txt">${ui.splitCalc}</div></div>` : ""}
     <div class="toolbar">
       ${ROLES.map(r=>`<label>${r} % <input type="number" min="0" max="100" data-split="${r}" value="${s.split[r]}" style="width:62px"></label>`).join("")}
@@ -1534,9 +1540,11 @@ function optimalSquad(strategy){
    Il prezzo usato è quello di MERCATO (auctionPrice), non il prezzo consigliato: il
    consigliato dipende dalla ripartizione, e usarlo qui creerebbe un circolo vizioso
    (la ripartizione deciderebbe i prezzi che servono a decidere la ripartizione). */
-function curvaReparto(r, n, need, maxB){
+function curvaReparto(r, n, need, maxB, tutti){
   const NEG = -1e9, W = maxB + 1;
-  const pool = state.players.filter(p => p.role === r && p.status === "free")
+  /* tutti = piano di partenza: si ragiona sul listone intero, come se l'asta non fosse
+     ancora iniziata. Altrimenti si guarda solo a chi è ancora libero. */
+  const pool = state.players.filter(p => p.role === r && (tutti || p.status === "free"))
     .map(p => {
       const a = advice(kbFor(p)), raw = a.exp || 0;
       const q = Math.max(0, Math.min(1, (a.aff || 0) / 100));
@@ -1583,25 +1591,29 @@ function fondiCurve(f1, f2, B){
   }
   return { out, cut };
 }
-function splitOttimale(){
+/* Due domande diverse, due risposte diverse:
+   - "piano"   = con quale ripartizione ENTRO all'asta. Si calcola sul listone intero e sul
+                 budget pieno, quindi NON cambia mentre l'asta procede: è il numero stabile
+                 da sapere prima di iniziare.
+   - "residuo" = da qui in avanti, con i crediti e gli slot che mi restano e i giocatori
+                 ancora liberi. Serve solo a metà asta, quando il piano è già stato scosso. */
+function splitOttimale(modo){
+  const piano = modo !== "residuo";
   const s = state.settings;
   const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
   const need = { P:1, ...mod };
-  /* Come optimalSquad: si pianifica sul RESIDUO. A metà asta contano solo gli slot ancora
-     da riempire, i crediti che restano e i titolari che ti mancano davvero — altrimenti la
-     ripartizione resterebbe quella di inizio asta e manderebbe fuori strada. */
-  const B = Math.max(4, budgetLeft()|0);
+  const B = Math.max(4, (piano ? s.budget : budgetLeft())|0);
   const slotN = {}, needLeft = {};
   for(const r of ROLES){
-    slotN[r] = Math.max(0, slotsLeft(r));
+    slotN[r] = piano ? s.slots[r] : Math.max(0, slotsLeft(r));
     const presiTit = Math.min(mine().filter(p => p.role === r).length, need[r]);
-    needLeft[r] = Math.max(0, need[r] - presiTit);
+    needLeft[r] = piano ? need[r] : Math.max(0, need[r] - presiTit);
   }
   if(ROLES.every(r => slotN[r] === 0)) return null;      // rosa già completa
   const curve = {};
   for(const r of ROLES){
     /* un reparto già pieno contribuisce con una curva piatta a zero: non chiede crediti */
-    curve[r] = slotN[r] === 0 ? new Float64Array(B+1) : curvaReparto(r, slotN[r], needLeft[r], B);
+    curve[r] = slotN[r] === 0 ? new Float64Array(B+1) : curvaReparto(r, slotN[r], needLeft[r], B, piano);
     if(!curve[r]) return null;                 // reparto senza abbastanza giocatori liberi
   }
   const m1 = fondiCurve(curve.P, curve.D, B);          // P+D
@@ -2444,7 +2456,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#calcSplit,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.astapag!==undefined){ ui.astaPag = Math.max(0, +t.dataset.astapag||0); render(); return; }
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; ui.astaPag = 0; render(); return; }
@@ -2601,21 +2613,26 @@ document.addEventListener("click", e=>{
   if(t.id==="more"){ ui.limit+=300; render(); return; }
   if(t.dataset.preset){ const p={...PRESETS[t.dataset.preset]}; delete p.label; state.settings.split=p;
     ui.splitCalc=""; _moduliCache=null; save(); render(); return; }
-  if(t.id==="calcSplit"){
-    const o = splitOttimale();
-    if(!o){ toast("Non ci sono abbastanza giocatori liberi per calcolare la ripartizione"); return; }
+  if(t.id==="calcSplit" || t.id==="calcSplitRes"){
+    const res = t.id==="calcSplitRes";
+    const o = splitOttimale(res ? "residuo" : "piano");
+    if(!o){ toast(res ? "Rosa completa: non resta niente da ripartire" : "Non ci sono abbastanza giocatori per calcolare la ripartizione"); return; }
     const prima = {...state.settings.split};
     state.settings.split = { P:o.P, D:o.D, C:o.C, A:o.A };
-    const mod = state.lineup.module;
     const uguale = ROLES.every(r => prima[r] === o[r]);
-    ui.splitCalc = `<b>Ripartizione calcolata:</b> P ${o.P}% · D ${o.D}% · C ${o.C}% · A ${o.A}% `
-      + `(${o.crediti.P} · ${o.crediti.D} · ${o.crediti.C} · ${o.crediti.A} crediti). `
-      + `Calcolata su <b>${state.players.filter(p=>p.status==="free").length}</b> giocatori ancora liberi, `
-      + `col modulo <b>${mod}</b>, <b>${state.settings.nTeams||8}</b> squadre e il regolamento "${RULE_LABEL[ruleMod()]}". `
-      + (uguale ? "Era già quella che avevi: nessun cambiamento." : `Prima era P ${prima.P}% · D ${prima.D}% · C ${prima.C}% · A ${prima.A}%.`)
-      + ` <i>Se il modulo, il regolamento o i giocatori disponibili cambiano, ricalcolala.</i>`;
+    const cifre = `P ${o.P}% · D ${o.D}% · C ${o.C}% · A ${o.A}% (${o.crediti.P} · ${o.crediti.D} · ${o.crediti.C} · ${o.crediti.A} crediti)`;
+    ui.splitCalc = res
+      ? `<b>Adattata al residuo:</b> ${cifre}. Calcolata sui <b>${budgetLeft()}</b> crediti che ti restano, `
+        + `<b>${ROLES.reduce((t2,r)=>t2+Math.max(0,slotsLeft(r)),0)}</b> slot ancora vuoti e `
+        + `<b>${state.players.filter(p=>p.status==="free").length}</b> giocatori ancora liberi. `
+        + `<i>È una correzione di rotta, non il tuo piano: cambia a ogni acquisto.</i>`
+      : `<b>Piano di partenza:</b> ${cifre}. Calcolato sul listone intero (<b>${state.players.length}</b> giocatori) `
+        + `col tuo budget di <b>${state.settings.budget}</b>, modulo <b>${state.lineup.module}</b>, `
+        + `<b>${state.settings.nTeams||8}</b> squadre e regolamento "${RULE_LABEL[ruleMod()]}". `
+        + (uguale ? "Era già la tua: nessun cambiamento. " : `Prima avevi P ${prima.P}% · D ${prima.D}% · C ${prima.C}% · A ${prima.A}%. `)
+        + `<i>Non cambia mentre l'asta procede: cambia solo se cambi modulo, regolamento, budget o numero di squadre.</i>`;
     _moduliCache = null; save(); render();
-    toast(uguale ? "La tua ripartizione era già l'ottima" : `Ottima: P${o.P} D${o.D} C${o.C} A${o.A}`);
+    toast(res ? `Residuo: P${o.P} D${o.D} C${o.C} A${o.A}` : (uguale ? "Era già il piano ottimo" : `Piano: P${o.P} D${o.D} C${o.C} A${o.A}`));
     return;
   }
   if(t.dataset.setmod){ state.lineup.module=t.dataset.setmod; save(); toast(`Modulo ${t.dataset.setmod}: il modificatore ora conta`); render(); return; }
