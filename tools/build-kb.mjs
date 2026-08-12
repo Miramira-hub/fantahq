@@ -310,6 +310,12 @@ const MERCATO_NOTE = {
   "Couto":"Yan Couto al Como in prestito dal Dortmund (riscatto a 20M): si gioca la fascia destra con Van Der Brempt, le fonti sono divise.",
   "Sow":"Djibril Sow UFFICIALE al Genoa dal Siviglia per 4-5M (contratto quadriennale): indicato come punto fermo del centrocampo di De Rossi.",
   "Robinson J.":"Ala inglese di 19 anni in prestito dal Southampton: prospetto, spazio tutto da conquistare.",
+  /* --- entrati col listone del 12 agosto (giorno d'asta) --- */
+  "Kevin Carlos":"⚠️ UFFICIALE al Cagliari in prestito dal Nizza (riscatto a 3.5M): centravanti spagnolo di 25 anni preso per sostituire Esposito. ATTENZIONE ai numeri: al Nizza 23 presenze in Ligue 1 con 874 minuti e ZERO gol, 2 in tutte le competizioni. Il suo picco resta il capocannoniere in Svizzera nel 23-24 (14 gol). Quota 13 è il prezzo della novità, non del rendimento.",
+  "Chalobah T.":"UFFICIALE al Como dal Chelsea (30M+3): l'acquisto più caro della difesa, si gioca il posto centrale con Kempf. Nessun dato in Serie A.",
+  "Aurelio":"Arrivato al Cagliari: quota minima, ruolo di rotazione tutto da verificare.",
+  "Masini":"Passato al Frosinone dal Genoa a titolo definitivo (~5M, quadriennale): regista davanti alla difesa, titolare nelle probabili.",
+  "Dominguez B.":"Passato dal Bologna al Sassuolo: gerarchie da verificare, parte dietro.",
   "Paleari":"⚠️ Il Torino ha chiuso per Lucas PERRI dal Leeds (prestito con riscatto a 11M, visite entro l'8 agosto): sarà lui il titolare. Nessun portiere del Torino presente nel listone è più da prendere.",
   "Milinkovic-Savic V.":"Allegri ha scelto Meret come titolare fisso: lui è in uscita (accostato all'Hull City). Da evitare.",
   "Meret":"✅ Allegri ha sciolto il ballottaggio: titolare fisso, niente alternanza. Titolare in entrambe le amichevoli. Con la difesa del Napoli vale più della quota 11.",
@@ -350,7 +356,6 @@ const MERCATO_NOTE = {
   "Mandas":"⚠️ Ballottaggio aperto: nell'ultima amichevole è partito dalla panchina con Motta titolare. Gattuso non ha ancora dichiarato la gerarchia.",
   "Bowie":"Arrivato dal Verona per ~10M: se il Sassuolo cede Pinamonti diventa il titolare, altrimenti resta alternativa.",
   /* --- audit giocatore per giocatore, 7 agosto --- */
-  "Djimsiti":"❌ Ha chiesto la cessione: Al-Diriyah (Arabia) in chiusura, non convocato per l'amichevole del 7 agosto. Non prenderlo.",
   "Vigorito":"❌ Svincolato: ha lasciato il Como. Non è più in Serie A.",
   "Maldini":"❌ Passato al Cagliari (prestito 1M + riscatto 8M): non convocato dall'Atalanta il 7 agosto. Lì sarebbe titolare, ma nel listone risulta ancora all'Atalanta.",
   "De Roon":"⚠️ 35 anni e scavalcato da Gaetano in regia nelle probabili di Sarri: non è più il titolare inamovibile di un tempo.",
@@ -425,7 +430,6 @@ const MERCATO_UNC = {
   "Milinkovic-Savic V.":2, // in uscita dal Napoli (accostato all'Hull City)
   "Pinamonti":2,     // cedibile dopo l'arrivo di Bowie
   "Lukaku":2,        // rapporto col Napoli in deterioramento
-  "Djimsiti":3,      // ha chiesto la cessione, Al-Diriyah in chiusura
   "Vigorito":3,      // svincolato dal Como
   "Lucumì":2,        // la Juventus insiste (offerti Miretti e Cabal)
   "Romagnoli":2,     // trattativa Al-Sadd congelata ma non chiusa
@@ -437,7 +441,6 @@ const MERCATO_UNC = {
   "Zhegrova":2,      // dichiarato cedibile dalla Juventus
   "Douglas Luiz":2,  // rientrato dal prestito, in uscita
   /* --- audit 7 agosto, tutte e 20 le squadre --- */
-  "Masini":3,        // CEDUTO al Frosinone (era nel listone come Genoa)
   "Piccoli":3,       // cessione al Bologna in chiusura
   "Parisi":3,        // crociato: fuori fino a fine 2026
   "Konè I.":3,       // grave infortunio al Mondiale: mezza stagione
@@ -469,7 +472,7 @@ const MERCATO_UNC = {
 const XI_STATUS = {
   /* Atalanta (4-3-3 Sarri) */
   "Carnesecchi":"T","Sportiello":"R","Scalvini":"T","Hien":"T","Zappacosta":"T",
-  "Djimsiti":"R","Ahanor":"B-","Bellanova":"B-","Bernasconi":"B+","Kolasinac":"B-","Kossounou":"B-",
+  "Ahanor":"B-","Bellanova":"B-","Bernasconi":"B+","Kolasinac":"B-","Kossounou":"B-",
   "Ederson D.S.":"T","Samardzic":"B+","Pasalic":"B-","Gaetano":"B+","Zalewski":"R","De Roon":"B-",
   "Sulemana I.":"R","Scamacca":"B+","Krstovic":"B-","De Ketelaere":"T","Raspadori":"T",
   "Sulemana K.":"R","Vismara":"R",
@@ -480,17 +483,17 @@ const XI_STATUS = {
   "Ferguson":"T","Pobega":"B+","Amondarain":"R","Moro N.":"B+","Dominguez B.":"R",
   "El Azzouzi O.":"R","Dovbyk":"T","Dallinga":"R",
   /* Cagliari (4-4-2 Pisacane) */
-  "Caprile":"T","Ciocci":"R","Sherri":"R","Mina":"T","Obert":"T","Kofler":"B-","Zè Pedro":"B+",
+  "Caprile":"T","Sherri":"R","Mina":"T","Obert":"T","Kofler":"B-","Zè Pedro":"B+",
   "Zappa":"B-","Rodriguez Ju.":"B+","Idrissi R.":"B-","Raterink":"R","Fazzini":"T","Adopo":"T",
   "Winks":"T","Romano":"B+","Felici":"B-","Prati":"B-","Deiola":"B-","Liteta":"R",
   "Esposito Se.":"R","Mutandwa":"B+","Borrelli":"B-","Mendy P.":"T","Albarracin":"R","Trepy":"R",
-  "Maldini":"B+",   // ora nel listone col Cagliari: si gioca il posto in attacco
+  "Maldini":"B+","Kevin Carlos":"B+","Aurelio":"B-",   // Cagliari: attacco rifatto dopo l'addio di Esposito
   /* Como (4-2-3-1 Fabregas) */
   "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"B-","Valle":"B+","Kempf":"B+",
   "Smolcic I.":"R","Van Der Brempt":"B-","Goldaniga":"R","Cuenca A.":"R","Paz N.":"T",
   "Baturina":"T","Da Cunha":"T","Rodriguez Je.":"B+","Perrone":"T","Caqueret":"B-","Liberali":"R",
   "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+","Morata":"B-",
-  "Kuhn":"R","Azon":"R","Couto":"B+",
+  "Kuhn":"R","Azon":"R","Couto":"B+","Chalobah T.":"B+",
   /* Fiorentina (4-3-2-1 Grosso) */
   "De Gea":"T","Christensen O.":"R","Lezzerini":"R","Dodò":"B+","Dragusin":"T","Jimenez A.":"B+",
   "Valdepenas":"B+","Viery":"B+","Parisi":"R","Pongracic":"B-","Ranieri L.":"B-","Joao Mario":"B-",
@@ -505,7 +508,7 @@ const XI_STATUS = {
   "Bijlow":"T","Sommariva":"R","Stolz":"R","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T",
   "Marcandalli":"T","Martin":"B-","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-",
   "Matturro":"R","Baldanzi":"B+","Frendrup":"T","Ellertsson":"B-","Meichtry":"B-",
-  "Traorè Hj.":"B-","Amorim":"B-","Messias":"R","Masini":"R","Venturino":"R","Colombo":"T",
+  "Traorè Hj.":"B-","Amorim":"B-","Messias":"R","Masini":"B+","Venturino":"R","Colombo":"T",
   "Vitinha O.":"B+","Havel":"B-","Sow":"T",
   /* Inter (3-5-2 Chivu) */
   "Martinez Jo.":"T","Provedel":"R","Di Gennaro":"R","Dimarco":"T","Akanji":"T","Bastoni":"T",
@@ -563,7 +566,7 @@ const XI_STATUS = {
   "Muric":"T","Russo A.":"R","Turati":"B-","Idzes":"T","Walukiewicz":"T","Doig":"T",
   "Candè":"B-","Missori":"B+","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
   "Matic":"T","Adzic":"B-","Bakola":"R","Boloca":"B-","Lipani":"T","Iannoni":"R","Berardi":"T",
-  "Laurientè":"T","Pinamonti":"B+","Bowie":"B-","Moro L.":"R","Satalino":"R",
+  "Laurientè":"T","Pinamonti":"B+","Bowie":"B-","Moro L.":"R","Satalino":"R","Dominguez B.":"R",
   /* Torino (3-4-2-1 Abate) — il titolare in porta sarà Perri, non presente nel listone */
   "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T",
   "Pedersen":"T","Comert":"B-","Biraghi":"R","Vlasic":"T","Casadei":"T","Oristanio":"T",
@@ -807,7 +810,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("8 agosto 2026 — listone aggiornato + audit di tutte e 20 le squadre")},
+  date: ${JSON.stringify("12 agosto 2026 — listone del giorno d'asta")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
