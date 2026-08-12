@@ -1732,10 +1732,47 @@ function squadHtml(){
       <div class="kpi"><div class="l">Modulo</div><div class="v" style="font-size:17px">${state.lineup.module}</div><div class="s">cambialo in Formazione</div></div>
     </div>
     ${sections || '<div class="empty">Nessun piano possibile con i crediti rimasti.</div>'}
+    ${allertaConcentrazione(plan, need)}
     ${slotLeftTot > budgetNow
       ? `<div class="alert crit" style="margin-top:10px"><div class="txt"><b>Crediti insufficienti:</b> ti restano <b>${budgetNow}</b> crediti per <b>${slotLeftTot}</b> slot da riempire, ma serve almeno 1 credito a giocatore. Dovrai liberare slot (svincolare) o la rosa resterà incompleta.</div></div>`
       : `<p class="help" style="margin-top:10px">${plan.ok?"":"<b>Attenzione:</b> con questa ripartizione qualche reparto non riesce a coprire tutti gli slot — sposta percentuali in Ripartizione del budget. "}Questo è un <b>piano</b>, non una gabbia: all'asta i prezzi reali cambiano e il motore ricalcola da solo escludendo chi è già stato preso e tenendo conto di quello che hai già comprato. Rigeneralo quando vuoi, anche a metà asta.</p>`}
   </div>`;
+}
+
+/* ================= CONCENTRAZIONE PER SQUADRA =================
+   Il knapsack massimizza la resa attesa e non sa che le squadre esistono: può proporti
+   tre attaccanti titolari della stessa squadra. Sulla carta è ottimo, in pratica è un
+   undici che vive e muore su una partita sola — quando quella squadra gioca male, il
+   reparto intero fa 6 di media. Non è un errore di previsione, è rischio non pagato:
+   la resa attesa resta identica, la varianza raddoppia.
+   Non tocco la scelta del motore: la segnalo, e decidi tu. */
+function allertaConcentrazione(plan, need){
+  const avvisi = [];
+  const NOMI = { P:"portieri", D:"difensori", C:"centrocampisti", A:"attaccanti" };
+  for(const r of ROLES){
+    const tit = (plan.roles[r]?.picks || []).slice(0, need[r]);
+    if(tit.length < 2) continue;
+    const conta = {};
+    for(const x of tit) conta[x.p.team] = (conta[x.p.team] || 0) + 1;
+    for(const [team, n] of Object.entries(conta)){
+      /* scatta dalla maggioranza in su: 2 su 3 basta, è già la stessa partita */
+      if(n < 2 || n / tit.length < 0.6) continue;
+      avvisi.push(n === tit.length
+        ? `<b>${n} ${NOMI[r]} titolari su ${tit.length} giocano tutti nella stessa squadra (${team})</b>`
+        : `<b>${n} dei ${tit.length} ${NOMI[r]} titolari giocano nella stessa squadra (${team})</b>`);
+    }
+  }
+  /* e il caso più insidioso: un solo club che copre mezzo undici titolare */
+  const tuttiTit = ROLES.flatMap(r => (plan.roles[r]?.picks || []).slice(0, need[r]));
+  const perClub = {};
+  for(const x of tuttiTit) perClub[x.p.team] = (perClub[x.p.team] || 0) + 1;
+  const grosso = Object.entries(perClub).sort((a,b) => b[1]-a[1])[0];
+  if(grosso && grosso[1] >= 4) avvisi.push(`<b>${grosso[1]} titolari su ${tuttiTit.length} giocano nella stessa squadra (${grosso[0]})</b>`);
+  if(!avvisi.length) return "";
+  return `<div class="alert warn" style="margin-top:10px"><div class="txt">
+    <b>⚠️ Rischio concentrazione:</b> ${avvisi.join(" e ")}. Il motore massimizza la resa attesa e non guarda le squadre:
+    su una singola giornata storta di quel club perdi tutto il reparto insieme, e la stessa resa la ottieni distribuendo.
+    Se un'alternativa di un altro club costa uguale a parità di fantamedia attesa, <b>preferiscila</b>.</div></div>`;
 }
 
 /* ================= piano B: alternative equivalenti =================

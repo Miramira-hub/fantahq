@@ -362,7 +362,7 @@ const MERCATO_NOTE = {
   "Maldini":"❌ Passato al Cagliari (prestito 1M + riscatto 8M): non convocato dall'Atalanta il 7 agosto. Lì sarebbe titolare, ma nel listone risulta ancora all'Atalanta.",
   "De Roon":"⚠️ 35 anni e scavalcato da Gaetano in regia nelle probabili di Sarri: non è più il titolare inamovibile di un tempo.",
   "Gaetano":"Regista titolare nelle probabili di Sarri (in adattamento nel ruolo), davanti a De Roon: a quota 7 vale la scommessa.",
-  "Samardzic":"💎 Ha superato Pasalic come mezzala titolare nelle probabili, ed è il terzo rigorista con le punizioni: quota 12 per un titolare dell'Atalanta.",
+  "Samardzic":"💎 Mezzala titolare di Sarri insieme a Gaetano ed Ederson (Pasalic è alternativa), terzo rigorista e sulle punizioni. 2.51 passaggi chiave/90, tra i migliori del campionato. La media voto in calo NON è un difetto: sui dati delle ultime tre stagioni chi arrivava da un calo è risalito il 75% delle volte. A quota 12 è un titolare dell'Atalanta pagato come riserva.",
   "Bernasconi":"20 anni, terzino sinistro titolare nelle probabili davanti ad Ahanor: quota 6 per un posto da titolare.",
   "Lucumì":"⚠️ Titolare del Bologna ma la Juventus insiste (offerti Miretti e Cabal per abbassare i 25M): se parte, sale Vitik.",
   "Obert":"Titolare a sinistra nel nuovo 4-4-2 di Pisacane: promosso rispetto ai ballottaggi di luglio.",
@@ -929,14 +929,20 @@ for (const role of ["P","D","C","A"]) {
       const tot = stx.rplus + stx.rminus;
       if (tot >= 2)
         extra.push(`⚽ Dal dischetto nel 25-26: ${stx.rplus} su ${tot}${stx.rminus === 0 ? " (nessuno sbagliato)" : ""}.`);
-      /* 4) TRAIETTORIA su tre stagioni: la media voto sale o scende? */
+      /* 4) TRAIETTORIA su tre stagioni — ATTENZIONE AL VERSO.
+         La prima versione di questo segnale diceva che una media voto in calo era una
+         parabola in discesa. È FALSO, e l'ho misurato sulle tre stagioni che abbiamo:
+         di chi arrivava da due stagioni in calo, il 75% è RISALITO l'anno dopo (+0.08 di
+         media voto); di chi arrivava da due stagioni in crescita, solo il 42% ha
+         continuato a salire (-0.08). È regressione verso la media, e va nel verso opposto
+         all'intuizione: il calo è più spesso rumore che tendenza. n=36 per gruppo. */
       const s25 = ST25.get(p.id), s24 = ST24.get(p.id);
       if (s25 && s24 && s25.pv >= 15 && s24.pv >= 15 && stx.mv && s25.mv && s24.mv) {
         const d = stx.mv - s24.mv;
         if (stx.mv > s25.mv && s25.mv > s24.mv && d >= 0.15)
-          extra.push(`📈 Media voto in crescita da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}): sta migliorando davvero, non è un'annata isolata.`);
+          extra.push(`📈 Media voto in crescita da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}). ⚠️ Ma la crescita è già nel prezzo: sulle ultime tre stagioni chi arrivava da una salita ha poi PERSO 0.08 di media voto, e solo il 42% ha continuato a migliorare.`);
         else if (stx.mv < s25.mv && s25.mv < s24.mv && d <= -0.15)
-          extra.push(`📉 Media voto in calo da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}): la parabola punta in giù.`);
+          extra.push(`📉 Media voto in calo da tre stagioni (${s24.mv.toFixed(2)} → ${s25.mv.toFixed(2)} → ${stx.mv.toFixed(2)}). ✅ NON è un motivo per scartarlo: chi arrivava da un calo è RISALITO il 75% delle volte (+0.08 di media voto). Il mercato lo sconta, i dati dicono rimbalzo.`);
       }
     }
     if (volSig.length || extra.length) signal = [signal, ...volSig, ...extra.slice(0, 3)].filter(Boolean).join(" ");
