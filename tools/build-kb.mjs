@@ -484,7 +484,7 @@ const MERCATO_NOTE = {
   "De Gea":"Titolare indiscusso della Fiorentina (37 presenze, 93% di titolarità). ⚠️ Ma FM 5.00 tonda e una difesa da rating 3: a quota 13 stai pagando il nome più della resa.",
   "Taylor K.":"Titolare in mediana nel 4-3-3 di Gattuso in entrambe le formazioni tipo, ed è la seconda scelta sui rigori dietro Zaccagni: il pacchetto piazzati gli dà un margine che la FM da sola non mostra.",
   "Rodriguez Je.":"Sceso a CENTROCAMPISTA col nuovo listone (era attaccante): stesso rendimento, ruolo più conveniente. ⚠️ Ma nel Como di Fabregas si gioca la fascia con Diao, che nelle formazioni tipo parte davanti: 76% di titolarità è il numero onesto.",
-  "Molina":"✅ UFFICIALE alla Roma il 12 agosto, a titolo definitivo dall'Atletico Madrid con contratto di 4 anni. Quinto destro titolare nel 3-4-2-1 di Gasperini: è il ruolo che nell'era Gasperini ha prodotto più bonus dai difensori (101 gol dal reparto). 249 presenze e 19 gol tra Udinese e Atletico, campione del mondo 2022. ⚠️ Nessun dato in Serie A recente — l'ultimo campionato italiano è del 2022 — quindi la fantamedia è STIMATA dalla quota, non misurata: è la scommessa sul ruolo, non sul rendimento certificato. E ha 28 anni, quindi niente margine di crescita.",
+  "Molina N.":"✅ UFFICIALE alla Roma il 12 agosto, a titolo definitivo dall'Atletico Madrid con contratto di 4 anni. Quinto destro titolare nel 3-4-2-1 di Gasperini: è il ruolo che nell'era Gasperini ha prodotto più bonus dai difensori (101 gol dal reparto). 249 presenze e 19 gol tra Udinese e Atletico, campione del mondo 2022. ⚠️ Nessun dato in Serie A recente — l'ultimo campionato italiano è del 2022 — quindi la fantamedia è STIMATA dalla quota, non misurata: è la scommessa sul ruolo, non sul rendimento certificato. E ha 28 anni, quindi niente margine di crescita.",
   "Rensch":"❌ CHIUSO da Molina, ufficiale il 12 agosto: sulla fascia destra parte l'argentino. A quota 5 non vale più nemmeno l'ultimo slot.",
   "Kaiki":"✅ CORREZIONE: è il terzino SINISTRO titolare del Como, dato favorito su Valle. Yan Couto occupa la fascia destra, non la sua: non erano in concorrenza diretta.",
   "Valle":"⚠️ CORREZIONE: parte dietro a Kaiki sulla fascia sinistra secondo le fonti. Non è il titolare che il database indicava fino a stamattina.",
@@ -504,7 +504,13 @@ const MERCATO_NOTE = {
   /* Unico caso emerso dal confronto sistematico fra i titolari del database e i due XI
      pubblicati: le liste aggregate mettevano Comert al suo posto, le fonti dedicate no. */
   "Coco":"Titolare nella difesa a 3 di Abate secondo le fonti dedicate al Torino, che lo danno con Ismajli e Comuzzo. ⚠️ Due punti di attenzione: la concorrenza è a quattro per tre maglie (c'è anche Comert) e soprattutto la sua media voto è 5.84 — col modificatore difesa attivo un difensore che vota così basso ti abbassa la media del reparto anche quando la fantamedia sembra decente. A quota 7 prendilo solo se ti serve il quantitativo, non per il modificatore.",
-  "Ismajli":"Titolare della difesa a 3 del Torino in tutte le formazioni tipo. ⚠️ Media voto 5.92: come tutto il reparto granata, col modificatore difesa rende meno di quanto suggerisca la quota."
+  "Ismajli":"Titolare della difesa a 3 del Torino in tutte le formazioni tipo. ⚠️ Media voto 5.92: come tutto il reparto granata, col modificatore difesa rende meno di quanto suggerisca la quota.",
+  /* --- entrati col listone delle 14 del 12 agosto --- */
+  "Schmid":"UFFICIALE al Frosinone dal Werder Brema per ~8.5M, contratto di 4 anni: è l'investimento più pesante dei giallazzurri, e per una neopromossa 8.5M significa titolare. Trequartista austriaco di 26 anni, qualità offensiva. ⚠️ Nessun dato in Serie A: la fantamedia è stimata dalla quota, non misurata. A quota 8 è una scommessa ragionevole sul ruolo, non una certezza.",
+  "Grillitsch":"UFFICIALE al Frosinone a parametro zero, contratto fino al 2027: regista austriaco di 31 anni con un passato di buon livello (Hoffenheim, Ajax). Porta esperienza e gestione del ritmo, ma ⚠️ nessun dato in Serie A, 31 anni e un contratto di un anno solo: è un tampone di categoria, non un titolare garantito.",
+  "Calò":"⚠️ ATTENZIONE, la sua situazione è cambiata oggi: è il rigorista designato del Frosinone, ma con Grillitsch e Schmid ufficiali il centrocampo giallazzurro diventa affollato (Calò, Hasa, Koutsoupias, Masini più i due austriaci per tre maglie). I rigori restano il motivo per prenderlo, il posto non è più scontato.",
+  "Masini":"Regista arrivato dal Genoa a titolo definitivo (~5M, quadriennale) e dato titolare dalle fonti dedicate. ⚠️ Ma con Grillitsch ufficiale oggi — un regista di 31 anni con carriera in Bundesliga ed Eredivisie — quel posto è ora in ballottaggio vero.",
+  "Hasa":"Titolare in mediana nelle formazioni tipo del Frosinone. ⚠️ Con Grillitsch e Schmid ufficiali il reparto è passato a sei giocatori per tre maglie: verifica prima di puntarci."
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
@@ -593,7 +599,7 @@ const XI_STATUS = {
   "El Azzouzi O.":"R","Dovbyk":"T","Dallinga":"R",
   /* Cagliari (4-4-2 Pisacane) */
   "Caprile":"T","Sherri":"R","Mina":"T","Obert":"T","Kofler":"B-","Zè Pedro":"B+",
-  "Zappa":"B-","Rodriguez Ju.":"B+","Idrissi R.":"B-","Raterink":"R","Fazzini":"T","Adopo":"T",
+  "Zappa":"B-","Rodriguez Ju.":"B+","Idrissi R.":"B-","Fazzini":"T","Adopo":"T",
   "Winks":"T","Romano":"B+","Felici":"B-","Prati":"B-","Deiola":"B-","Liteta":"R",
   "Esposito Se.":"R","Mutandwa":"B+","Borrelli":"B-","Mendy P.":"T","Albarracin":"R","Trepy":"R",
   "Maldini":"B+","Kevin Carlos":"B+","Aurelio":"B-",   // Cagliari: attacco rifatto dopo l'addio di Esposito
@@ -611,8 +617,11 @@ const XI_STATUS = {
   /* Frosinone (4-2-3-1 Alvini) */
   "Palmisani":"B+","Desplanches":"B-","Lolic":"R","Monterisi":"T","Bracaglia":"T","Oyono A.":"T",
   "Calvani":"B+","Akpoguma":"B+","Cittadini":"B-","Amey":"R","Gelli J.":"R","Oyono J.":"R",
-  "Corrado":"R","Calò":"T","Zerbin":"B-","Cichella":"B-","Koutsoupias":"B+","Gelli F.":"B+",
-  "Hasa":"B+","El Azzouzi A.":"B+","Kone B.":"R","Ghedjemis":"T","Raimondo":"T","Kvernadze":"B+",
+  "Corrado":"R","Calò":"B+","Zerbin":"B-","Cichella":"R","Koutsoupias":"B+","Gelli F.":"B-",
+  "Hasa":"B-","El Azzouzi A.":"B-","Kone B.":"R","Ghedjemis":"T","Raimondo":"T","Kvernadze":"B+",
+  /* Schmid (8.5M dal Werder) e Grillitsch (a zero) ufficiali il 12 agosto: il centrocampo
+     passa a sei giocatori per tre maglie, quindi tutti gli altri scendono di un gradino. */
+  "Schmid":"T","Grillitsch":"B+","Masini":"B+",
   /* Genoa (3-4-2-1 De Rossi) */
   "Bijlow":"T","Sommariva":"R","Stolz":"R","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T",
   "Marcandalli":"T","Martin":"B-","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-",
@@ -668,7 +677,7 @@ const XI_STATUS = {
   "Elphege":"B-","Tourè E.":"T",   // Pellegrino ceduto alla Fiorentina: Tourè e la punta titolare del Parma
   /* Roma (3-4-2-1 Gasperini) */
   "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","N'Dicka":"T",
-  "Hermoso":"T","Koulierakis":"B+","Molina":"T","Rensch":"R","Ghilardi":"B-",   // Molina UFFICIALE: quinto destro titolare, Rensch chiuso
+  "Hermoso":"T","Koulierakis":"B+","Molina N.":"T","Rensch":"R","Ghilardi":"B-",   // Molina UFFICIALE: quinto destro titolare, Rensch chiuso
   "Ziolkowski":"R","Konè M.":"T","Cristante":"T","Pisilli":"B-","El Aynaoui":"B-","Malen":"T",
   "Dybala":"T","Castro S.":"B-","Soulè":"T","Vaz":"R","Pellegrini Lo.":"B-",
   /* Sassuolo (4-3-3 Aquilani) */
@@ -986,7 +995,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("12 agosto 2026 — giro pre-asta + audit gerarchie di tutte e 20 le squadre")},
+  date: ${JSON.stringify("12 agosto 2026 — listone ufficiale delle 14, mercato e gerarchie verificate")},
   official: true,
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
