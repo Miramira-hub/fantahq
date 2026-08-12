@@ -500,8 +500,11 @@ const MERCATO_NOTE = {
   "Tourè E.":"💎 PROMOSSO: con Pellegrino ceduto alla Fiorentina è rimasto lui la punta titolare del Parma, senza più ballottaggio. El Bilal Touré arriva dall'Atalanta in prestito con obbligo/diritto a 11M. A quota 11 compri il centravanti di una squadra intera al prezzo di una riserva — è l'occasione che apre questo scambio di mercato.",
   "Piccoli":"⚠️ CAMBIA SQUADRA: dalla Fiorentina al BOLOGNA (prestito con obbligo, 16-20M, quinquennale) — nel listone risulta ancora alla Fiorentina. Ma non è una promozione: a Bologna trova DOVBYK titolare nel 4-3-3 di Tedesco e parte dietro. Il suo picco resta la doppia cifra a Cagliari; a Lecce e Firenze ha faticato. A quota 8 è una scommessa sul sorpasso, non un titolare.",
   "Dovbyk":"Al Bologna da titolare dopo il ruolo perso alla Roma: xG/tiro 0.31 (7° in Serie A), il contesto ora lo favorisce, e insidia Orsolini sui rigori (27/32 in carriera dal dischetto). ⚠️ Il Bologna ha però preso Piccoli dalla Fiorentina per ~18M: non lo scalza subito, ma il turnover ora esiste.",
-  "Dallinga":"⚠️ Con Piccoli arrivato dalla Fiorentina scivola al terzo posto nelle gerarchie del Bologna: da evitare."
-};
+  "Dallinga":"⚠️ Con Piccoli arrivato dalla Fiorentina scivola al terzo posto nelle gerarchie del Bologna: da evitare.",
+  /* Unico caso emerso dal confronto sistematico fra i titolari del database e i due XI
+     pubblicati: le liste aggregate mettevano Comert al suo posto, le fonti dedicate no. */
+  "Coco":"Titolare nella difesa a 3 di Abate secondo le fonti dedicate al Torino, che lo danno con Ismajli e Comuzzo. ⚠️ Due punti di attenzione: la concorrenza è a quattro per tre maglie (c'è anche Comert) e soprattutto la sua media voto è 5.84 — col modificatore difesa attivo un difensore che vota così basso ti abbassa la media del reparto anche quando la fantamedia sembra decente. A quota 7 prendilo solo se ti serve il quantitativo, non per il modificatore.",
+  "Ismajli":"Titolare della difesa a 3 del Torino in tutte le formazioni tipo. ⚠️ Media voto 5.92: come tutto il reparto granata, col modificatore difesa rende meno di quanto suggerisca la quota."
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
 const MERCATO_UNC = {
