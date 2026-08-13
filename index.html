@@ -2016,21 +2016,56 @@ function vAsta(){
 }
 
 /* ================= forza squadre: stelle 1-5 per reparto ================= */
-function deptStars(players){
-  /* La resa, non la fantamedia nuda: un attacco di tre punte fortissime che giocano
-     sei partite su dieci non è un attacco da 5 stelle. Prima le stelle usavano l'exp
-     grezza e sopravvalutavano chi ha FM alta e posto incerto. */
-  const pick=(role,n)=>players.filter(p=>p.role===role)
+/* ================= QUANTO RENDE DAVVERO UN REPARTO =================
+   Domanda giusta: "quanto è forte il mio attacco?". Risposta sbagliata n.1: la fantamedia
+   dei tre migliori — ignora che uno dei tre magari gioca sei domeniche su dieci.
+   Risposta sbagliata n.2 (la mia): scontare ognuno verso la media di ruolo — ignora che
+   quando il titolare manca in campo va IL TUO PRIMO CAMBIO, non un giocatore qualunque.
+
+   Risposta giusta: per ogni combinazione di presenti/assenti si prendono i migliori
+   disponibili e si pesa per la sua probabilità. Con 8 giocatori sono 256 combinazioni:
+   si enumerano tutte, quindi è esatto e non stimato. Così una panchina profonda vale
+   quello che vale davvero, e due giocatori che coprono lo stesso posto non si annullano.
+
+   Limite dichiarato: le disponibilità sono trattate come indipendenti. Per due giocatori
+   della stessa squadra che si alternano (Krstovic/Scamacca) la copertura reale è persino
+   migliore di così, perché quando uno non gioca l'altro gioca quasi sempre. */
+function resaReparto(players, role, need){
+  const lista = players.filter(p=>p.role===role)
     .map(p=>{ const a=advice(kbFor(p)); if(a.exp==null) return null;
-              const q=Math.max(0,Math.min(1,(a.aff||0)/100));
-              return { p, e: q*a.exp + (1-q)*ROLE_MEAN[role] }; })
-    .filter(Boolean).sort((a,b)=>b.e-a.e).slice(0,n);
-  const avgDelta=arr=>arr.length?arr.reduce((s,x)=>s+(x.e-ROLE_MEAN[x.p.role]),0)/arr.length:null;
+              return { e:a.exp, q:Math.max(0.02, Math.min(0.99,(a.aff||0)/100)) }; })
+    .filter(Boolean).sort((a,b)=>b.e-a.e).slice(0, 12);
+  if(!lista.length || !need) return null;
+  const n = lista.length, base = ROLE_MEAN[role];
+  let atteso = 0;
+  for(let mask=0; mask<(1<<n); mask++){
+    let prob = 1, somma = 0, presi = 0;
+    for(let i=0;i<n;i++){
+      const dentro = (mask>>i)&1;
+      prob *= dentro ? lista[i].q : (1-lista[i].q);
+      if(prob === 0) break;
+      if(dentro && presi < need){ somma += lista[i].e; presi++; }
+    }
+    if(prob === 0) continue;
+    somma += (need-presi) * base;      // slot che nessuno copre: vale la media di ruolo
+    atteso += prob * somma;
+  }
+  return { tot:atteso, media:atteso/need };
+}
+function deptStars(players){
+  /* Le stelle sono lo scarto medio dalla media del ruolo, calcolato sulla RESA del reparto:
+     quanto sono forti i titolari e quanto tiene la panchina quando mancano. */
+  const scarto=(coppie)=>{                       // [[ruolo, slot], ...] pesati sugli slot
+    let somma=0, slot=0;
+    for(const [role,n] of coppie){
+      const r=resaReparto(players, role, n);
+      if(!r) continue;
+      somma += (r.media - ROLE_MEAN[role]) * n; slot += n;
+    }
+    return slot ? somma/slot : null;
+  };
   const star=d=> d==null?0 : d>=0.75?5 : d>=0.38?4 : d>=0.02?3 : d>=-0.35?2 : 1;
-  const dif=avgDelta([...pick("P",1),...pick("D",3)]);
-  const cen=avgDelta(pick("C",4));
-  const att=avgDelta(pick("A",3));
-  return { dif:star(dif), cen:star(cen), att:star(att) };
+  return { dif:star(scarto([["P",1],["D",3]])), cen:star(scarto([["C",4]])), att:star(scarto([["A",3]])) };
 }
 const starStr=n=> n ? `<span style="color:var(--gold);letter-spacing:1px">${"★".repeat(n)}<span style="color:var(--border)">${"☆".repeat(5-n)}</span></span>` : '<span class="team">—</span>';
 /* Fantamedia attesa dell'UNDICI TITOLARE, non della rosa intera: è il numero che
@@ -2041,13 +2076,10 @@ function xiFM(players, modName){
   const need = { P:1, ...mod };
   let somma = 0, n = 0;
   for(const r of ROLES){
-    const pool = players.filter(p=>p.role===r)
-      .map(p=>{ const a=advice(kbFor(p)); if(a.exp==null) return null;
-                const q=Math.max(0,Math.min(1,(a.aff||0)/100));
-                return q*a.exp + (1-q)*ROLE_MEAN[r]; })
-      .filter(x=>x!=null).sort((a,b)=>b-a).slice(0, need[r]);
-    if(pool.length < need[r]) return null;          // non può schierare quel modulo
-    for(const v of pool){ somma += v; n++; }
+    if(players.filter(p=>p.role===r && advice(kbFor(p)).exp!=null).length < need[r]) return null;
+    const res = resaReparto(players, r, need[r]);   // stesso modello delle stelle
+    if(!res) return null;
+    somma += res.tot; n += need[r];
   }
   return n ? { media: somma/n, tot: somma, n } : null;
 }
