@@ -2699,7 +2699,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,[data-openteam],#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.astapag!==undefined){ ui.astaPag = Math.max(0, +t.dataset.astapag||0); render(); return; }
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; ui.astaPag = 0; render(); return; }
@@ -2856,6 +2856,10 @@ document.addEventListener("click", e=>{
   if(t.id==="more"){ ui.limit+=300; render(); return; }
   if(t.dataset.preset){ const p={...PRESETS[t.dataset.preset]}; delete p.label; state.settings.split=p;
     ui.splitCalc=""; _moduliCache=null; save(); render(); return; }
+  if(t.dataset.openteam!==undefined){
+    ui.openTeam = ui.openTeam===t.dataset.openteam ? "" : t.dataset.openteam;
+    render(); return;
+  }
   if(t.id==="calcSplit" || t.id==="calcSplitRes"){
     const res = t.id==="calcSplitRes";
     const o = splitOttimale(res ? "residuo" : "piano");
