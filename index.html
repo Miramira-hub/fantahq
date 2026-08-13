@@ -277,7 +277,7 @@ let state = null;   // scorciatoia = store.leagues[store.current].state
 let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
            cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false, astaPag:0,
-           splitCalc:"" };   // spiegazione dell'ultima ripartizione calcolata
+           splitCalc:"", openTeam:"" };   // ripartizione calcolata + squadra aperta in Forza squadre
 let undoStack = [];
 
 const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g,"").trim();
@@ -319,6 +319,7 @@ function freshState(){
   const players = KBI.map((k,ix)=>{ const p = mkPlayer(ix+1, k.n, k.t, k.r, k.qta, k.fvm||0, k.i); p.extId = k.extId||""; return p; });
   return { official: !!DATA.official, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"}, nTeams:8, deepBench:true },
+    rivalMod:{},   // modulo imposto a mano a una squadra: { "me" | idRivale : "4-3-3" }
     players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" } };
 }
 function normState(st){                 // ripara uno state caricato da vecchi salvataggi
@@ -327,6 +328,7 @@ function normState(st){                 // ripara uno state caricato da vecchi s
   st.settings.rules = st.settings.rules || {modDef:"no"};
   st.settings.nTeams = st.settings.nTeams || 8;
   if(st.settings.deepBench === undefined) st.settings.deepBench = true;   // riserve vere, non riempitivi
+  if(!st.rivalMod || typeof st.rivalMod !== "object") st.rivalMod = {};
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
   st.managers = Array.isArray(st.managers) ? st.managers : [];
   st.lineup = st.lineup || { module:"3-4-3" };
@@ -2015,7 +2017,14 @@ function vAsta(){
 
 /* ================= forza squadre: stelle 1-5 per reparto ================= */
 function deptStars(players){
-  const pick=(role,n)=>players.filter(p=>p.role===role).map(p=>({p,e:advice(kbFor(p)).exp})).filter(x=>x.e!=null).sort((a,b)=>b.e-a.e).slice(0,n);
+  /* La resa, non la fantamedia nuda: un attacco di tre punte fortissime che giocano
+     sei partite su dieci non è un attacco da 5 stelle. Prima le stelle usavano l'exp
+     grezza e sopravvalutavano chi ha FM alta e posto incerto. */
+  const pick=(role,n)=>players.filter(p=>p.role===role)
+    .map(p=>{ const a=advice(kbFor(p)); if(a.exp==null) return null;
+              const q=Math.max(0,Math.min(1,(a.aff||0)/100));
+              return { p, e: q*a.exp + (1-q)*ROLE_MEAN[role] }; })
+    .filter(Boolean).sort((a,b)=>b.e-a.e).slice(0,n);
   const avgDelta=arr=>arr.length?arr.reduce((s,x)=>s+(x.e-ROLE_MEAN[x.p.role]),0)/arr.length:null;
   const star=d=> d==null?0 : d>=0.75?5 : d>=0.38?4 : d>=0.02?3 : d>=-0.35?2 : 1;
   const dif=avgDelta([...pick("P",1),...pick("D",3)]);
@@ -2027,8 +2036,8 @@ const starStr=n=> n ? `<span style="color:var(--gold);letter-spacing:1px">${"★
 /* Fantamedia attesa dell'UNDICI TITOLARE, non della rosa intera: è il numero che
    confronta davvero due squadre, perché in campo ne vanno 11 e non 25. Ogni giocatore
    è scontato per l'affidabilità (chi non gioca vale la media del suo ruolo). */
-function xiFM(players){
-  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+function xiFM(players, modName){
+  const mod = MODULES[modName] || MODULES[state.lineup.module] || MODULES["3-4-3"];
   const need = { P:1, ...mod };
   let somma = 0, n = 0;
   for(const r of ROLES){
@@ -2037,35 +2046,88 @@ function xiFM(players){
                 const q=Math.max(0,Math.min(1,(a.aff||0)/100));
                 return q*a.exp + (1-q)*ROLE_MEAN[r]; })
       .filter(x=>x!=null).sort((a,b)=>b-a).slice(0, need[r]);
+    if(pool.length < need[r]) return null;          // non può schierare quel modulo
     for(const v of pool){ somma += v; n++; }
   }
   return n ? { media: somma/n, tot: somma, n } : null;
 }
+/* Ogni allenatore usa il SUO modulo, non il tuo: valutare tutti col 4-3-3 sottostima
+   chi ha costruito la rosa per un altro assetto. Qui si prova ogni modulo e si tiene
+   quello che rende di più — è il massimo potenziale di quella rosa. */
+function xiMigliore(players){
+  let best = null;
+  for(const nome of Object.keys(MODULES)){
+    /* Col modificatore difesa attivo, un modulo sotto i 4 difensori NON lo fa scattare:
+       le fantamedie attese lo contengono comunque (il bonus di ruolo è applicato a monte),
+       quindi il confronto direbbe "gioca a 3 dietro" proponendoti di buttare il bonus.
+       In una lega col modificatore quei moduli non sono opzioni vere. */
+    if(ruleMod() !== "no" && (MODULES[nome].D || 0) < MOD_MIN_DIF) continue;
+    const x = xiFM(players, nome);
+    if(x && (!best || x.tot > best.tot)) best = { ...x, modulo: nome };
+  }
+  return best;
+}
+/* modulo forzato a mano per una squadra (chiave: id del rivale, oppure "me") */
+function modDi(chiave){ return (state.rivalMod || {})[chiave] || ""; }
+/* la rosa di una squadra, aperta sotto la sua riga: chi schiera e chi ha in panchina */
+function rosaAvversario(t, x){
+  const mod = MODULES[(x&&x.modulo)||state.lineup.module] || MODULES["3-4-3"];
+  const need = { P:1, ...mod };
+  const blocchi = ROLES.map(r=>{
+    const lista = t.players.filter(p=>p.role===r).map(p=>{
+      const a=advice(kbFor(p)); const q=Math.max(0,Math.min(1,(a.aff||0)/100));
+      return { p, a, resa: a.exp==null?0 : q*a.exp+(1-q)*ROLE_MEAN[r] };
+    }).sort((u,v)=>v.resa-u.resa);
+    if(!lista.length) return "";
+    return `<div style="margin-bottom:8px"><b style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">${ROLE_NAMES[r]}</b>
+      <div class="chipset" style="margin-top:4px">${lista.map((z,i)=>{
+        const tit = i < need[r];
+        const k = kbFor(z.p);
+        return `<span class="kchip ${tit?"good":""}" title="FM attesa ${fmt1(z.a.exp)} · affidabilità ${z.a.aff??"?"}${z.p.paid?" · pagato "+z.p.paid:""}">${tit?"● ":""}${esc(z.p.name)} <span style="opacity:.6">${fmt1(z.a.exp)}</span>${k&&k.rig===2?" ⚽":""}</span>`;
+      }).join("")}</div></div>`;
+  }).join("");
+  const spesa = t.players.reduce((s,p)=>s+(p.paid||0),0);
+  return `<div class="why" style="max-width:none">
+    <p style="margin:0 0 8px"><b>${esc(t.name)}</b> — ${t.players.length} giocatori${spesa?`, ${spesa} crediti spesi`:""}${x?` · schierata col <b>${x.modulo||state.lineup.module}</b> rende <b>${fmt1(x.media)}</b> di media`:""}. I pallini verdi sono gli undici titolari, ⚽ è un rigorista designato.</p>
+    ${blocchi}</div>`;
+}
 function teamStrengthHtml(){
   const teams=[{name:myTeamName(), players:mine(), me:true}]
-    .concat(state.managers.map(m=>({name:m.name, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})));
+    .concat(state.managers.map(m=>({id:m.id, name:m.name, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})));
   const withPlayers=teams.filter(t=>t.players.length);
   if(withPlayers.length<=1 && !mine().length) return "";
-  /* ordino per fantamedia attesa dell'XI: è una classifica, non un elenco */
-  const conFM = withPlayers.map(t=>({ t, x: xiFM(t.players) }))
-    .sort((a,b)=> (b.x?b.x.tot:0) - (a.x?a.x.tot:0));
+  /* per ogni squadra: il modulo che ne tira fuori di più, oppure quello che hai imposto tu */
+  const conFM = withPlayers.map(t=>{
+    const chiave = t.me ? "me" : t.id;
+    const forzato = modDi(chiave);
+    const auto = xiMigliore(t.players);
+    const x = forzato ? (xiFM(t.players, forzato) || auto) : auto;
+    return { t, x, auto, forzato, chiave };
+  }).sort((a,b)=> (b.x?b.x.tot:0) - (a.x?a.x.tot:0));
   const migliore = conFM[0]?.x?.tot || 0;
-  const rows=conFM.map(({t,x},i)=>{
+  const opz = m => Object.keys(MODULES).map(k=>`<option value="${k}" ${m===k?"selected":""}>${k}</option>`).join("");
+  const rows=conFM.map(({t,x,auto,forzato,chiave},i)=>{
     const s=deptStars(t.players);
     const gap = x ? x.tot - migliore : 0;
+    const aperta = ui.openTeam===chiave;
+    const dettaglio = aperta ? `<tr class="detail"><td colspan="9">${rosaAvversario(t, x)}</td></tr>` : "";
     return `<tr${t.me?' style="background:var(--accent-soft)"':''}>
       <td class="r num">${i+1}</td>
-      <td>${t.me?'<b>'+esc(t.name)+'</b> <span class="badge mine">TU</span>':esc(t.name)}</td>
+      <td class="pname" data-openteam="${chiave}" title="Vedi la rosa">${t.me?'<b>'+esc(t.name)+'</b> <span class="badge mine">TU</span>':'<b>'+esc(t.name)+'</b>'} <span class="team">${aperta?"▾":"▸"}</span></td>
       <td class="r num" style="font-weight:700">${x?fmt1(x.media):"—"}</td>
       <td class="r num" style="color:${gap<0?'var(--muted)':'var(--accent)'}">${x?(i===0?"—":gap.toFixed(2)):""}</td>
+      <td><select data-rivalmod="${chiave}" style="padding:2px 4px;font-size:12px">
+            <option value="">auto: ${auto?auto.modulo:"—"}</option>${opz(forzato)}</select></td>
       <td>${starStr(s.dif)}</td><td>${starStr(s.cen)}</td><td>${starStr(s.att)}</td>
-      <td class="r num">${t.players.length}</td></tr>`;
+      <td class="r num">${t.players.length}</td></tr>${dettaglio}`;
   }).join("");
   return `<div class="card">
     <h2>Forza delle squadre</h2>
-    <p class="sub"><b>FM XI</b> è la fantamedia attesa dell'undici titolare col modulo ${state.lineup.module}, con ogni giocatore già scontato per l'affidabilità: è il confronto vero fra due rose, perché in campo ne vanno 11 e non 25. <b>Scarto</b> = quanto ti separa dal primo, sull'undici intero. Le stelle restano la lettura rapida reparto per reparto (la Difesa include il portiere).</p>
+    <p class="sub"><b>FM XI</b> è la fantamedia attesa dell'undici titolare, con ogni giocatore già scontato per l'affidabilità: è il confronto vero fra due rose, perché in campo ne vanno 11 e non 25.
+    Il <b>modulo</b> non è il tuo: il motore prova tutti e sette gli assetti e tiene quello che tira fuori di più da <i>quella</i> rosa — è il suo massimo potenziale. Se sai come schiera davvero un avversario, imponiglielo dal menù e la sua FM si ricalcola.
+    <b>Clicca sul nome</b> per aprire la rosa. Le stelle sono la lettura rapida per reparto (la Difesa include il portiere) e usano la stessa resa scontata per affidabilità.</p>
     <div class="twrap"><table>
-      <thead><tr><th class="r">#</th><th>Squadra</th><th class="r">FM XI</th><th class="r">Scarto</th><th>Difesa</th><th>Centrocampo</th><th>Attacco</th><th class="r">Giocatori</th></tr></thead>
+      <thead><tr><th class="r">#</th><th>Squadra</th><th class="r">FM XI</th><th class="r">Scarto</th><th>Modulo</th><th>Difesa</th><th>Centrocampo</th><th>Attacco</th><th class="r">Giocatori</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
   </div>`;
 }
@@ -2803,6 +2865,12 @@ document.addEventListener("change", e=>{
   if(el.dataset.slot){ state.settings.slots[el.dataset.slot]=Math.max(0,Math.min(15,+el.value||0)); save(); render(); return; }
   if(el.dataset.split){ state.settings.split[el.dataset.split]=Math.max(0,Math.min(100,+el.value||0)); save(); render(); return; }
   if(el.id==="modSel"){ state.lineup.module=el.value; save(); render(); return; }
+  if(el.dataset.rivalmod!==undefined){
+    state.rivalMod = state.rivalMod || {};
+    if(el.value) state.rivalMod[el.dataset.rivalmod] = el.value;
+    else delete state.rivalMod[el.dataset.rivalmod];    // torna al modulo migliore calcolato
+    save(); render(); return;
+  }
   if(el.id==="ruleMod"){ state.settings.rules=state.settings.rules||{}; state.settings.rules.modDef=el.value; save(); toast("Regolamento aggiornato: consigli ricalcolati"); render(); return; }
   if(el.id==="setTeams"){ state.settings.nTeams=Math.max(2,Math.min(20,+el.value||8)); ensureManagers(); save(); render(); return; }
   if(el.id==="astaSort"){ ui.astaSort=el.value; ui.astaPag=0; render(); return; }
