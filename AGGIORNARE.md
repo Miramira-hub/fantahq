@@ -48,6 +48,27 @@ node tools/build-artifact.mjs <percorso-output.html>
 Prima di rigenerare, confrontare col listone precedente per vedere **nuovi / usciti / cambi
 squadra / cambi ruolo / cambi quota**: sono le informazioni da cui parte la ricerca.
 
+## Calendario
+
+`data/calendario-2026-27.json` è **generato e validato** da `tools/build-calendario.mjs`,
+che legge un file grezzo con una riga per giornata nel formato
+`numero|Casa-Trasferta,Casa-Trasferta,...` (20 squadre, 10 gare).
+
+```bash
+node tools/build-calendario.mjs <file-grezzo>
+```
+
+Il builder **rifiuta** un calendario che non sia coerente: 38 giornate numerate senza buchi,
+10 gare e 20 squadre distinte per giornata, 19 partite in casa e 19 in trasferta per ogni
+squadra, 190 accoppiamenti ciascuno esattamente due volte e mai due volte in casa dello
+stesso. Un calendario sbagliato manderebbe fuori strada *tutte* le formazioni della stagione,
+quindi meglio un errore rumoroso che un dato plausibile.
+
+Il file finisce dentro `data/kb.js` (campo `calendario`), così arriva anche nella versione
+single-file dell'Artifact. Da lì l'app calcola la **difficoltà del turno per ruolo**:
+un attaccante teme la difesa avversaria, un difensore l'attacco, e giocare in casa vale
+circa un terzo di livello (`CAMPO` in index.html).
+
 ## Dove si aggiornano i dati "di conoscenza"
 
 Tutto dentro `tools/build-kb.mjs`:

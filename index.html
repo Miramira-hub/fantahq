@@ -269,6 +269,33 @@ const PRESETS = {
 const TABS = [["consigli","Consigli"],["listone","Listone"],["strategia","Strategia"],["asta","Asta live"],["rosa","Rosa"],["formazione","Formazione"],["confronto","Confronto"],["scambi","Scambi"],["guida","Guida"],["impostazioni","Impostazioni"]];
 
 const TEAMS = DATA.teams;
+/* ================= CALENDARIO E DIFFICOLTÀ DEL TURNO =================
+   Il calendario ufficiale 2026-27, validato in fase di build. Da qui esce il pezzo che
+   mancava del tutto: non "quanto è forte il mio giocatore", ma "quanto è forte
+   l'avversario che incontra domenica".
+
+   La difficoltà non è la stessa per tutti i ruoli. Un attaccante soffre una DIFESA
+   forte; un difensore o un portiere soffrono un ATTACCO forte. Quindi si guarda il
+   rating giusto dell'avversario, non la sua forza generica — e si aggiunge il fattore
+   campo, che vale storicamente circa un terzo di livello. */
+const CAL = DATA.calendario || null;
+const CAMPO = 0.35;                       // vantaggio di giocare in casa, in "livelli"
+function turnoDi(team, giornata){
+  if(!CAL || !CAL.perSquadra[team]) return null;
+  return CAL.perSquadra[team][giornata] || null;
+}
+/* difficoltà da 1 (turno facilissimo) a 5 (proibitivo), dal punto di vista del ruolo */
+function difficoltaTurno(role, team, giornata){
+  const t = turnoDi(team, giornata);
+  if(!t) return null;
+  const avv = TEAMS[t.avv];
+  if(!avv) return null;
+  const forzaContraria = (role === "A" || role === "C") ? avv.def : avv.atk;
+  const d = forzaContraria + (t.casa ? -CAMPO : CAMPO);
+  return { avv: t.avv, casa: t.casa, val: Math.max(1, Math.min(5, d)) };
+}
+const DIFF_LABEL = d => d==null ? "—" : d<=2.2 ? "molto facile" : d<=2.9 ? "facile" : d<=3.6 ? "media" : d<=4.3 ? "difficile" : "proibitiva";
+const DIFF_COLOR = d => d==null ? "var(--muted)" : d<=2.2 ? "var(--ok)" : d<=2.9 ? "var(--accent)" : d<=3.6 ? "var(--muted)" : d<=4.3 ? "var(--warn)" : "var(--danger)";
 
 const KB = DATA.kb;
 /* ================= stato ================= */
@@ -320,7 +347,7 @@ function freshState(){
   return { official: !!DATA.official, nextId:players.length+1,
     settings:{ budget:500, slots:{P:3,D:8,C:8,A:6}, split:{P:8,D:15,C:25,A:52}, rules:{modDef:"no"}, nTeams:8, deepBench:true },
     rivalMod:{},   // modulo imposto a mano a una squadra: { "me" | idRivale : "4-3-3" }
-    players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" } };
+    players, teamsDiff:{}, avail:{}, managers:[], lineup:{ module:"3-4-3" }, giornata:1 };
 }
 function normState(st){                 // ripara uno state caricato da vecchi salvataggi
   st = st || freshState();
@@ -330,6 +357,7 @@ function normState(st){                 // ripara uno state caricato da vecchi s
   if(st.settings.deepBench === undefined) st.settings.deepBench = true;   // riserve vere, non riempitivi
   if(!st.rivalMod || typeof st.rivalMod !== "object") st.rivalMod = {};
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
+  st.giornata = Math.max(1, Math.min(38, +st.giornata || 1));
   st.managers = Array.isArray(st.managers) ? st.managers : [];
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
@@ -1022,12 +1050,13 @@ function exportRoseCsv(all){
 }
 
 /* ================= sincronizzazione dispositivi ================= */
-const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0,
+const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0, g:st.giornata||1, rm:st.rivalMod||{},
   p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0,p.extId||"",p.note||""]) });
 function decState(o){
   const st = freshState();
   st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
   st.managers = Array.isArray(o.m)?o.m:[]; st.seq = o.q||0;
+  st.giornata = Math.max(1,Math.min(38,+o.g||1)); st.rivalMod = (o.rm && typeof o.rm==="object") ? o.rm : {};
   st.players = (o.p||[]).map((a,i)=>{
     const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
     p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
@@ -2314,13 +2343,23 @@ function vFormazione(){
   const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
   const need = {P:1, ...mod};
   const myTeams = [...new Set(my.map(p=>p.team))].sort();
+  /* La difficoltà ora la dà il CALENDARIO, non un numero messo a mano: si legge chi
+     incontra quella squadra alla giornata scelta e si guarda il rating che conta per
+     il ruolo (un attaccante teme la difesa avversaria, un difensore l'attacco).
+     Se l'utente ha comunque forzato un valore a mano, quello vince. */
+  const g = state.giornata || 1;
+  const diffDi = p=>{
+    const man = state.teamsDiff[p.team];
+    if(man != null) return { val: man, manuale: true };
+    const d = difficoltaTurno(p.role, p.team, g);
+    return d ? { val: d.val, avv: d.avv, casa: d.casa } : { val: 3 };
+  };
   const score = p=>{
     const av = (state.avail||{})[p.id]||"ok";
     if(av==="out") return -99;
     const k = kbFor(p), a = advice(k);
     const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
-    const diff = state.teamsDiff[p.team] ?? 3;
-    return base + (3-diff)*0.35 - (av==="dubbio"?1.2:0);
+    return base + (3-diffDi(p).val)*0.35 - (av==="dubbio"?1.2:0);
   };
   const sections = ROLES.map(r=>{
     const list = my.filter(p=>p.role===r).map(p=>({p, sc:score(p)})).sort((a,b)=>b.sc-a.sc);
@@ -2329,7 +2368,8 @@ function vFormazione(){
       const tit = i<need[r] && x.sc>-50;
       return `
       <div class="xirow ${tit?"tit":""}">
-        ${roleChip(r)}<span class="nm">${esc(x.p.name)} <span class="team">${esc(x.p.team)} · avv. ${"●".repeat(state.teamsDiff[x.p.team]??3)}</span></span>
+        ${roleChip(r)}<span class="nm">${esc(x.p.name)} <span class="team">${esc(x.p.team)}${(()=>{const d=diffDi(x.p);
+          return d.avv ? ` · ${d.casa?"in casa con":"a"} <b style="color:${DIFF_COLOR(d.val)}">${esc(d.avv)}</b>` : ` · avv. ${"●".repeat(Math.round(d.val))}`;})()}</span></span>
         <select data-avail="${x.p.id}" title="Disponibilità">${[["ok","✓ gioca"],["dubbio","? dubbio"],["out","✗ out"]].map(([v,l])=>`<option value="${v}" ${av===v?"selected":""}>${l}</option>`).join("")}</select>
         <span class="sc">${x.sc<=-50?"—":x.sc.toFixed(1)}</span>
         ${tit?'<span class="badge mine">TITOLARE</span>':av==="out"?'<span class="badge gone">out</span>':`<span class="badge">panchina ${i-need[r]+1}</span>`}
@@ -2338,21 +2378,68 @@ function vFormazione(){
   }).join("");
   return `
   <div class="card">
-    <h2>Formazione consigliata</h2>
-    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per difficoltà dell'avversario e disponibilità (✓/?/✗). Segna "out" infortunati e squalificati: escono dai titolari. Verifica sempre le probabili formazioni.</p>
+    <h2>Formazione consigliata${CAL?` — ${g}ª giornata`:""}</h2>
+    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per la <b>difficoltà del turno presa dal calendario</b> e per la disponibilità (✓/?/✗). Segna "out" infortunati e squalificati: escono dai titolari. Verifica sempre le probabili formazioni.</p>
     <div class="toolbar">
+      ${CAL?`<label>Giornata <select id="giornataSel">${Array.from({length:38},(_,i)=>i+1).map(n=>`<option value="${n}" ${g===n?"selected":""}>${n}ª</option>`).join("")}</select></label>`:""}
       <label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option value="${m}" ${state.lineup.module===m?"selected":""}>${m}${ruleMod()!=="no"&&MODULES[m].D<MOD_MIN_DIF?" ⚠️":""}</option>`).join("")}</select></label>
       ${ruleMod()!=="no"?`<span class="help">Con il modificatore difesa servono almeno ${MOD_MIN_DIF} difensori: i moduli con ⚠️ lo annullano.</span>`:""}
     </div>
     ${ruleMod()!=="no" && !modDifAttivo() ? `<div class="alert crit"><div class="txt"><b>Con il ${state.lineup.module} non prendi il modificatore.</b> Ti serve una difesa da almeno ${MOD_MIN_DIF}: scegli ${moduliConModificatore().slice(0,3).join(" / ")}.</div></div>` : ""}
     ${sections}
   </div>
+  ${calendarioMioHtml(my)}
   <div class="card">
-    <h2>Difficoltà avversari di giornata</h2>
-    <p class="sub">1 = partita facilissima, 5 = durissima. Il consiglio si aggiorna subito.</p>
+    <h2>Forzare la difficoltà a mano</h2>
+    <p class="sub">Il calendario la calcola da solo per la giornata scelta. Qui puoi sovrascriverla se sai qualcosa che i rating non sanno — un'assenza pesante nell'avversario, una squadra in crisi. Lascia vuoto per tornare al calcolo automatico.</p>
     <div class="toolbar">
-      ${myTeams.map(t=>`<label>${esc(t)} <select data-diff="${esc(t)}">${[1,2,3,4,5].map(d=>`<option ${(state.teamsDiff[t]??3)===d?"selected":""}>${d}</option>`).join("")}</select></label>`).join("")}
+      ${myTeams.map(t=>`<label>${esc(t)} <select data-diff="${esc(t)}"><option value="">auto</option>${[1,2,3,4,5].map(d=>`<option value="${d}" ${state.teamsDiff[t]===d?"selected":""}>${d}</option>`).join("")}</select></label>`).join("")}
     </div>
+  </div>`;
+}
+
+/* ================= IL CALENDARIO DEI TUOI =================
+   La domanda pratica non è "chi è più forte" ma "chi ha il turno migliore adesso, e chi
+   ce l'ha nelle prossime settimane". Serve per schierare, e serve per gli scambi: un
+   giocatore con cinque turni facili davanti vale più di quanto dica la sua fantamedia. */
+function calendarioMioHtml(my){
+  if(!CAL) return "";
+  const g0 = state.giornata || 1;
+  const quante = 5;
+  const gg = []; for(let i=0;i<quante && g0+i<=38;i++) gg.push(g0+i);
+  if(!gg.length) return "";
+  const squadre = [...new Set(my.map(p=>p.team))];
+  /* una riga per squadra, non per giocatore: i tuoi giocatori della stessa squadra hanno
+     lo stesso calendario, e così la tabella resta leggibile */
+  const righe = squadre.map(t=>{
+    const suoi = my.filter(p=>p.team===t);
+    const ruoli = [...new Set(suoi.map(p=>p.role))];
+    /* difficoltà media pesata sui ruoli che hai davvero in quella squadra */
+    const media = gg.reduce((s,g)=>{
+      const vals = ruoli.map(r=>{ const d=difficoltaTurno(r,t,g); return d?d.val:3; });
+      return s + vals.reduce((a,b)=>a+b,0)/vals.length;
+    },0)/gg.length;
+    const celle = gg.map(g=>{
+      const perRuolo = ruoli.map(r=>difficoltaTurno(r,t,g)).filter(Boolean);
+      if(!perRuolo.length) return `<td class="r">—</td>`;
+      const val = perRuolo.reduce((s,d)=>s+d.val,0)/perRuolo.length;
+      const d0 = perRuolo[0];
+      return `<td class="r" style="color:${DIFF_COLOR(val)};font-weight:700" title="${esc(t)} ${d0.casa?"in casa contro":"in trasferta a"} ${esc(d0.avv)} — ${DIFF_LABEL(val)}">${d0.casa?"":"@"}${esc(d0.avv.slice(0,4))}</td>`;
+    }).join("");
+    return { t, media, html:`<tr>
+      <td><b>${esc(t)}</b> <span class="team">${suoi.length} tuo${suoi.length>1?"i":""}</span></td>
+      ${celle}
+      <td class="r num" style="color:${DIFF_COLOR(media)};font-weight:700">${media.toFixed(2)}</td>
+      <td class="team" style="font-size:12px">${suoi.map(p=>esc(p.name)).join(", ")}</td></tr>` };
+  }).sort((a,b)=>a.media-b.media);
+  const facile = righe[0], difficile = righe[righe.length-1];
+  return `<div class="card">
+    <h2>Il calendario dei tuoi — prossime ${gg.length} giornate</h2>
+    <p class="sub">La difficoltà è calcolata sul ruolo: i tuoi attaccanti temono le difese forti, i tuoi difensori gli attacchi forti, e giocare in casa vale circa un terzo di livello. <b>Verde = turno propizio, rosso = turno duro.</b> La media in fondo ordina le squadre dal calendario più morbido al più cattivo.</p>
+    <div class="twrap"><table>
+      <thead><tr><th>Squadra</th>${gg.map(g=>`<th class="r">${g}ª</th>`).join("")}<th class="r">media</th><th>i tuoi</th></tr></thead>
+      <tbody>${righe.map(r=>r.html).join("")}</tbody></table></div>
+    ${righe.length>1?`<p class="help" style="margin-top:8px">Nelle prossime ${gg.length} giornate il calendario più morbido ce l'ha <b>${esc(facile.t)}</b> (${facile.media.toFixed(2)}), il più duro <b>${esc(difficile.t)}</b> (${difficile.media.toFixed(2)}). Se devi scegliere fra due giocatori di valore simile, guarda questa colonna prima della fantamedia.</p>`:""}
   </div>`;
 }
 
@@ -2906,7 +2993,12 @@ document.addEventListener("change", e=>{
   if(el.id==="ruleMod"){ state.settings.rules=state.settings.rules||{}; state.settings.rules.modDef=el.value; save(); toast("Regolamento aggiornato: consigli ricalcolati"); render(); return; }
   if(el.id==="setTeams"){ state.settings.nTeams=Math.max(2,Math.min(20,+el.value||8)); ensureManagers(); save(); render(); return; }
   if(el.id==="astaSort"){ ui.astaSort=el.value; ui.astaPag=0; render(); return; }
-  if(el.dataset.diff){ state.teamsDiff[el.dataset.diff]=+el.value; save(); render(); return; }
+  if(el.dataset.diff!==undefined){
+    if(el.value==="") delete state.teamsDiff[el.dataset.diff];      // torna al calcolo dal calendario
+    else state.teamsDiff[el.dataset.diff]=+el.value;
+    save(); render(); return;
+  }
+  if(el.id==="giornataSel"){ state.giornata=Math.max(1,Math.min(38,+el.value||1)); save(); render(); return; }
   if(el.dataset.avail){ state.avail=state.avail||{}; state.avail[el.dataset.avail]=el.value; save(); render(); return; }
   if(el.id==="impCsv"){
     const f = el.files[0]; if(!f) return;

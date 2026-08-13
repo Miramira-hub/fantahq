@@ -83,6 +83,13 @@ const ST26 = mkStat("2025-26");   // stagione appena conclusa: la fonte primaria
 const ST25 = mkStat("2024-25");   // serve solo per la traiettoria (stava crescendo?)
 const ST24 = mkStat("2023-24");   // terza stagione: serve per la traiettoria della media voto
 
+/* Calendario ufficiale 2026-27: entra nel KB così l'app (e la versione single-file
+   dell'Artifact) sa chi incontra chi in ogni giornata. Generato e VALIDATO da
+   tools/build-calendario.mjs — qui si legge e basta. */
+let CALENDARIO = null;
+try { CALENDARIO = JSON.parse(fs.readFileSync(`${REPO}/data/calendario-2026-27.json`, "utf8")); }
+catch (e) { console.warn("⚠️ data/calendario-2026-27.json assente: niente difficoltà del turno"); }
+
 /* ---- ETÀ VERIFICATE (ricognizione agosto 2026, fonte transfermarkt) ----
    Prima dell'audit quasi tutti avevano l'età di default (26): i correttivi del motore
    per gli over 35 e i giovani non scattavano mai. nome listone → età al 1/9/2026. */
@@ -997,6 +1004,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
 window.FANTAHQ_DATA = {
   date: ${JSON.stringify("12 agosto 2026 — listone ufficiale delle 14, mercato e gerarchie verificate")},
   official: true,
+  calendario: ${JSON.stringify(CALENDARIO)},
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
 ${lines.join(",\n")}
