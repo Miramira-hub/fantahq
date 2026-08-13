@@ -2024,23 +2024,48 @@ function deptStars(players){
   return { dif:star(dif), cen:star(cen), att:star(att) };
 }
 const starStr=n=> n ? `<span style="color:var(--gold);letter-spacing:1px">${"★".repeat(n)}<span style="color:var(--border)">${"☆".repeat(5-n)}</span></span>` : '<span class="team">—</span>';
+/* Fantamedia attesa dell'UNDICI TITOLARE, non della rosa intera: è il numero che
+   confronta davvero due squadre, perché in campo ne vanno 11 e non 25. Ogni giocatore
+   è scontato per l'affidabilità (chi non gioca vale la media del suo ruolo). */
+function xiFM(players){
+  const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
+  const need = { P:1, ...mod };
+  let somma = 0, n = 0;
+  for(const r of ROLES){
+    const pool = players.filter(p=>p.role===r)
+      .map(p=>{ const a=advice(kbFor(p)); if(a.exp==null) return null;
+                const q=Math.max(0,Math.min(1,(a.aff||0)/100));
+                return q*a.exp + (1-q)*ROLE_MEAN[r]; })
+      .filter(x=>x!=null).sort((a,b)=>b-a).slice(0, need[r]);
+    for(const v of pool){ somma += v; n++; }
+  }
+  return n ? { media: somma/n, tot: somma, n } : null;
+}
 function teamStrengthHtml(){
   const teams=[{name:myTeamName(), players:mine(), me:true}]
     .concat(state.managers.map(m=>({name:m.name, players:state.players.filter(p=>p.status==="gone"&&p.owner===m.id)})));
   const withPlayers=teams.filter(t=>t.players.length);
   if(withPlayers.length<=1 && !mine().length) return "";
-  const rows=withPlayers.map(t=>{
+  /* ordino per fantamedia attesa dell'XI: è una classifica, non un elenco */
+  const conFM = withPlayers.map(t=>({ t, x: xiFM(t.players) }))
+    .sort((a,b)=> (b.x?b.x.tot:0) - (a.x?a.x.tot:0));
+  const migliore = conFM[0]?.x?.tot || 0;
+  const rows=conFM.map(({t,x},i)=>{
     const s=deptStars(t.players);
-    return `<tr>
+    const gap = x ? x.tot - migliore : 0;
+    return `<tr${t.me?' style="background:var(--accent-soft)"':''}>
+      <td class="r num">${i+1}</td>
       <td>${t.me?'<b>'+esc(t.name)+'</b> <span class="badge mine">TU</span>':esc(t.name)}</td>
+      <td class="r num" style="font-weight:700">${x?fmt1(x.media):"—"}</td>
+      <td class="r num" style="color:${gap<0?'var(--muted)':'var(--accent)'}">${x?(i===0?"—":gap.toFixed(2)):""}</td>
       <td>${starStr(s.dif)}</td><td>${starStr(s.cen)}</td><td>${starStr(s.att)}</td>
       <td class="r num">${t.players.length}</td></tr>`;
   }).join("");
   return `<div class="card">
-    <h2>Forza delle squadre — ⭐ per reparto</h2>
-    <p class="sub">Valutazione 1-5 stelle sui titolari di ogni reparto (Difesa include il portiere). Dopo aver importato le rose di tutti, vedi dove ogni avversario è forte o scoperto — utile per gli scambi.</p>
+    <h2>Forza delle squadre</h2>
+    <p class="sub"><b>FM XI</b> è la fantamedia attesa dell'undici titolare col modulo ${state.lineup.module}, con ogni giocatore già scontato per l'affidabilità: è il confronto vero fra due rose, perché in campo ne vanno 11 e non 25. <b>Scarto</b> = quanto ti separa dal primo, sull'undici intero. Le stelle restano la lettura rapida reparto per reparto (la Difesa include il portiere).</p>
     <div class="twrap"><table>
-      <thead><tr><th>Squadra</th><th>Difesa</th><th>Centrocampo</th><th>Attacco</th><th class="r">Giocatori</th></tr></thead>
+      <thead><tr><th class="r">#</th><th>Squadra</th><th class="r">FM XI</th><th class="r">Scarto</th><th>Difesa</th><th>Centrocampo</th><th>Attacco</th><th class="r">Giocatori</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
   </div>`;
 }
@@ -2144,13 +2169,13 @@ function vRosa(){
       return `<tr>
       <td>${roleChip(p.role)}</td><td class="pname" data-open2="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span>${p.note?' 📝':""}</td>
       <td>${advBadge(a)}</td><td class="r num">${fmt1(a.exp)}</td>
-      <td class="r num">${k?fmt1(k.fm)+(k.est?"~":""):"—"}</td>
+      <td class="r num" style="color:${a.aff>=80?"var(--ok)":a.aff>=60?"var(--warn)":"var(--danger)"};font-weight:700">${a.aff!=null?a.aff:"—"}</td>
       <td class="r num">${k&&k.r!=="P"?`${k.gol}+${k.ass}`:"—"}</td>
       <td class="r num">${p.qta}</td><td class="r num" style="color:var(--gold);font-weight:700">${p.paid}</td>
       <td><button class="btn sm warn" data-release="${p.id}">Svincola</button></td></tr>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} · ${list.length}/${s.slots[r]}</h3>
       <div class="twrap"><table>
-      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r">FM 25-26</th><th class="r">G+A</th><th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
+      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r" title="Quanto spesso lo avrai davvero in campo: titolarità meno infortuni e incertezza di mercato. È il numero che decide chi schierare.">Affid.</th><th class="r" title="Gol + assist della stagione 2025-26. In stagione andranno sostituiti dai dati correnti.">G+A 25-26</th><th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }).join("");
   const expSum = my.reduce((t,p)=>{const a=advice(kbFor(p)); return t+(a.exp||6);},0);
