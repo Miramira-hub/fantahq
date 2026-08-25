@@ -21,6 +21,7 @@ fantahq/
 │   ├── build-kb.mjs               # rigenera data/kb.js dalle fonti
 │   ├── backtest.mjs               # calibra i pesi del motore sui dati reali
 │   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
+│   ├── prova-download.mjs         # i rami del salvataggio file (link classico vs capacità Artifact)
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
 │   ├── xlsx-to-json.mjs           # converte un .xlsx estratto in JSON
 │   └── build-artifact.mjs         # genera la versione single-file per l'Artifact
@@ -193,6 +194,37 @@ Da fare la mattina dell'asta, nell'ordine:
    le gerarchie di chi c'è: annotarlo in `MERCATO_NOTE`.
 5. Rigenerare, verificare, pubblicare (sotto).
 
+## Le tre superfici, e i download
+
+L'app gira su tre superfici e il salvataggio dei file non funziona allo stesso modo:
+
+| Superficie | Come consegna un file |
+|---|---|
+| sito e `index.html` in locale | `<a download>` con un blob:, il modo classico |
+| Artifact | quel link è **inerte** — il visualizzatore non concede mai a una pagina il permesso di scaricare, blob: e data: compresi. Serve la capacità `downloads`, che mostra una conferma all'utente e **può essere rifiutata** |
+
+`downloadFile()` in `index.html` prova prima la capacità e ripiega sul link, così lo stesso
+file serve tutte e tre le superfici. Tre dettagli che non si indovinano:
+
+- **`.csv` sta nell'elenco esteso** delle estensioni ammesse e può non essere abilitato per
+  una vista: in quel caso si riprova in `.txt` (sempre ammesso). Il contenuto è identico,
+  cambia solo il nome, e il file resta importabile rinominandolo.
+- **Il messaggio di riuscita viaggia col file.** Dentro l'Artifact il salvataggio passa da
+  una conferma: annunciare "scaricato" al clic sarebbe una bugia se l'utente rifiuta.
+- **Un rifiuto non si ripropone.** Si riprova solo quando l'estensione non è abilitata, che
+  è una regola della vista, non una decisione di chi guarda.
+
+Quando si ripubblica l'Artifact **va passata la capacità**: `capabilities: {downloads: true}`.
+Ometterla in un redeploy la conserva; passare `{}` la cancella e i download tornano rotti.
+
+```bash
+node tools/prova-download.mjs
+```
+
+Esegue `downloadFile` su entrambe le meccaniche e sui casi storti: estensione non abilitata,
+utente che rifiuta, capacità non servita, `use()` che esplode. `prova-schermate.mjs` non li
+copre — verifica che le schermate si disegnino, non che un file venga consegnato.
+
 ## Dopo ogni aggiornamento
 
 1. `git add -A && git commit && git push` → il sito https://miramira-hub.github.io/fantahq/ si aggiorna da solo
@@ -201,6 +233,7 @@ Da fare la mattina dell'asta, nell'ordine:
    `https://claude.ai/code/artifact/2a71bd11-d815-46e2-b44f-3ebf9cff9c2c`
    (generare il file con `node tools/build-artifact.mjs <out.html>` e pubblicarlo passando
    quell'URL come parametro `url`)
+   **e passando `capabilities: {downloads: true}`**, altrimenti le esportazioni si rompono
 3. Dire all'utente: **Ctrl+F5** e poi **🔄 Aggiorna al database** dal tab Impostazioni
    (allinea l'elenco giocatori conservando rosa, prezzi pagati, voti e obiettivi)
 
@@ -209,4 +242,5 @@ Da fare la mattina dell'asta, nell'ordine:
 - `node --check data/kb.js` e caricamento reale (il generatore già valida l'output)
 - Titolarità: nessun consigliato con poche presenze o da riserva
 - Prezzi: la somma dei prezzi dei giocatori assegnati deve avvicinarsi a `budget × squadre`
+- `node tools/prova-schermate.mjs` e `node tools/prova-download.mjs` verdi
 - Aprire l'app e girare tutti i tab senza errori in console

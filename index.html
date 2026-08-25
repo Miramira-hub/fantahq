@@ -1039,10 +1039,53 @@ function claimTeam(mgrId){
 /* ================= export CSV rose (formato Leghe Fantacalcio) =================
    Formato reale: blocchi separati da una riga "$,$,$", righe "Fantasquadra,Id,Costo".
    Conta solo il codice Id del calciatore (viene dal listone ufficiale importato). */
-function downloadFile(name, text, mime){
+/* ---- consegnare un file all'utente: tre superfici, due meccaniche ----
+   Sul sito e sul file aperto in locale basta un <a download>. Dentro l'Artifact quel link
+   è INERTE — il visualizzatore non concede mai a una pagina il permesso di scaricare, blob:
+   e data: compresi — e la consegna passa dalla capacità `downloads`, che mostra una conferma
+   all'utente e può essere rifiutata. Si prova prima quella e si ripiega sul link, così lo
+   stesso file serve tutte e tre le superfici senza doppioni.
+   La capacità arriva sempre DOPO il primo giro sincrono dello script (e vale null se questa
+   vista non la serve), quindi si tiene la promessa e si aspetta al momento del clic. */
+const SALVA_OSPITE = (typeof window !== "undefined" && window.claude && typeof window.claude.use === "function")
+  ? window.claude.use("downloads").catch(()=>null)
+  : Promise.resolve(null);
+/* .csv sta nell'elenco ESTESO delle estensioni ammesse e può non essere abilitato per una
+   vista: in quel caso si riprova in .txt, che è sempre ammesso. Il contenuto è identico —
+   cambia solo il nome, e il file resta importabile rinominandolo. */
+const RIPIEGO_EST = { csv:"txt" };
+function erroreSalvataggio(e){
+  switch(e && e.code){
+    case "declined":       return "Salvataggio annullato";
+    case "rate_limited":   return "C'è già un salvataggio in attesa: riprova fra un attimo";
+    case "too_large":      return "File troppo grande per essere salvato da qui";
+    case "rejected_extension":
+    case "extension_not_enabled": return "Questo tipo di file non si può salvare da qui: usa il sito";
+    default:               return "Salvataggio non riuscito: usa il sito per esportare";
+  }
+}
+/* Non rifiuta mai: gestisce da sé messaggi ed errori, così chi la chiama resta sincrono. */
+async function downloadFile(name, text, mime, okMsg){
+  const ospite = await SALVA_OSPITE;
+  if(ospite){
+    const prova = async n => { await ospite.save({filename:n, data:text}); toast(okMsg || `${n} salvato`); };
+    try { await prova(name); }
+    catch(e){
+      const est = (name.split(".").pop()||"").toLowerCase();
+      /* Solo l'estensione non abilitata merita un secondo tentativo: un rifiuto dell'utente
+         va rispettato, e riproporre la richiesta sarebbe insistere. */
+      if(e && e.code === "extension_not_enabled" && RIPIEGO_EST[est]){
+        try { await prova(name.slice(0, -est.length) + RIPIEGO_EST[est]); return; }
+        catch(e2){ toast(erroreSalvataggio(e2)); return; }
+      }
+      toast(erroreSalvataggio(e));
+    }
+    return;
+  }
   const blob = new Blob([text], {type:(mime||"text/csv")+";charset=utf-8"});
   const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
   URL.revokeObjectURL(a.href);
+  if(okMsg) toast(okMsg);
 }
 function myTeamName(){ return (state.settings.myTeam||"").trim() || "La mia squadra"; }
 function exportRoseCsv(all){
@@ -1062,7 +1105,10 @@ function exportRoseCsv(all){
     }
   }
   if(!count) return {count:0, missing};
-  downloadFile(`fantahq-rose-${all?"tutte":"mia"}.csv`, lines.join("\r\n"));
+  /* Il messaggio di riuscita viaggia col file: dentro l'Artifact il salvataggio passa da una
+     conferma e può essere rifiutato, quindi "scaricato" va detto quando è davvero successo. */
+  downloadFile(`fantahq-rose-${all?"tutte":"mia"}.csv`, lines.join("\r\n"), "text/csv",
+    `CSV salvato: ${count} giocatori${missing?` · ${missing} saltati (senza Id: reimporta il listone ufficiale)`:""}`);
   return {count, missing};
 }
 
@@ -2739,12 +2785,9 @@ document.addEventListener("click", e=>{
   }
   if(t.id==="csvMine"||t.id==="csvAll"){
     const res = exportRoseCsv(t.id==="csvAll");
-    if(!res.count){
+    if(!res.count)
       toast(res.missing ? "Servono i codici Id: importa prima il listone ufficiale" : "Nessun acquisto registrato da esportare");
-      return;
-    }
-    toast(`CSV scaricato: ${res.count} giocatori${res.missing?` · ${res.missing} saltati (senza Id: reimporta il listone ufficiale)`:""}`);
-    return;
+    return;   // la riuscita la annuncia downloadFile, che sa se il salvataggio è andato in porto
   }
   if(t.id==="fastToggle"){ ui.fast=!ui.fast; ui.astaSel=null; render(); return; }
   if(t.dataset.step){
@@ -2946,9 +2989,8 @@ document.addEventListener("click", e=>{
     return;
   }
   if(t.id==="expJson"){
-    const blob = new Blob([JSON.stringify(store,null,1)],{type:"application/json"});
-    const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="fantahq-backup.json"; a.click();
-    URL.revokeObjectURL(a.href); toast("Backup scaricato (tutte le leghe)"); return;
+    downloadFile("fantahq-backup.json", JSON.stringify(store,null,1), "application/json", "Backup salvato (tutte le leghe)");
+    return;
   }
   if(t.id==="syncKB"){
     const r = syncWithKB();
