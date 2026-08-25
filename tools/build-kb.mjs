@@ -361,7 +361,7 @@ const MERCATO_NOTE = {
   "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas: titolare e doppietta col Famalicao. Quota 20 giustificata.",
   "Motta":"Titolare nell'amichevole con l'Ostiamare (5 ago) con Mandas in panchina: il ballottaggio in porta alla Lazio è vero e ancora aperto.",
   "Mandas":"⚠️ Ballottaggio aperto: nell'ultima amichevole è partito dalla panchina con Motta titolare. Gattuso non ha ancora dichiarato la gerarchia.",
-  "Bowie":"Arrivato dal Verona per ~10M: se il Sassuolo cede Pinamonti diventa il titolare, altrimenti resta alternativa.",
+  "Bowie":"💎 PROMOSSO dai fatti: Pinamonti è rimasto al Sassuolo ma è INFORTUNATO, quindi il centravanti adesso è lui. Arrivato dal Verona per ~10M. Alla 2ª il Sassuolo riceve il Torino, uno dei turni più morbidi della giornata.",
   /* --- audit giocatore per giocatore, 7 agosto --- */
   "Vigorito":"❌ Svincolato: ha lasciato il Como. Non è più in Serie A.",
   "Maldini":"❌ Passato al Cagliari (prestito 1M + riscatto 8M): non convocato dall'Atalanta il 7 agosto. Lì sarebbe titolare, ma nel listone risulta ancora all'Atalanta.",
@@ -733,7 +733,7 @@ const XI_STATUS = {
   "Muric":"T","Russo A.":"R","Turati":"B-","Idzes":"T","Walukiewicz":"T","Doig":"T",
   "Candè":"B-","Missori":"B+","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
   "Matic":"T","Adzic":"B-","Bakola":"B-","Boloca":"B-","Lipani":"B-","Iannoni":"R","Berardi":"T",   // Lipani in ballottaggio, non titolare
-  "Laurientè":"T","Pinamonti":"B+","Bowie":"B-","Satalino":"R","Dominguez B.":"R",
+  "Laurientè":"T","Pinamonti":"R","Bowie":"T","Satalino":"R","Dominguez B.":"R",
   /* Torino (3-4-2-1 Abate) — il titolare in porta sarà Perri, non presente nel listone */
   "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T",
   "Pedersen":"T","Comert":"B-","Biraghi":"R","Vlasic":"T","Casadei":"T","Oristanio":"T",
