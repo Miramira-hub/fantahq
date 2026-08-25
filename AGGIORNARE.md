@@ -90,9 +90,16 @@ Due automatismi tolgono lavoro e impediscono che l'app racconti cose vecchie:
   che inchiodano una quota (cambiano ogni settimana). Quel che resta va in coda, etichettato
   `· Ad agosto:`, così si legge come storia e non come stato attuale. `CAMPO_NOTE` non passa
   dal filtro: racconta le giornate giocate, non l'asta.
-- **Gli acciacchi si spengono da soli**: una voce `INJURY` da 0 giornate su un giocatore che
-  ha poi preso voto smette di stamparsi. Altrimenti l'app direbbe "in dubbio per la 1ª" di
-  uno che la 1ª l'ha giocata.
+- **Gli acciacchi si spengono da soli**: una voce `INJURY` da 0-1 giornate su un giocatore
+  che ha poi preso voto passa dal filtro. Cosi sparisce "c'e per la 1ª" ma resta "operato al
+  menisco, minutaggio da gestire tutto l'anno". Da 2 giornate in su il bollettino e
+  un'assenza vera e resta intatto.
+- **Le attese sono legate al calendario**: "fino alla 1ª" viene tagliato, "fino alla 3ª" no —
+  il pattern si costruisce sulle giornate davvero giocate. E "frattura rimediata alla 1ª"
+  resta: racconta un fatto, non un'attesa.
+- **Il build avvisa se il filtro perde un colpo**: ⚠️ NOTE DA GUARDARE elenca chi parla
+  ancora di giornate gia giocate. E cosi che e passata la frase di Dybala "RODRIGO MORA sta
+  arrivando dal Porto", con Mora gia alla Roma e titolare alla 1ª.
 
 Il testo generato è **prudente per costruzione**: dichiara sempre su quante giornate si basa,
 e fantamedie e medie voto di quest'anno entrano nelle note **solo da 5 giornate in su**.

@@ -1008,9 +1008,24 @@ function campoNote(nome, ora, stop) {
    profilo xG — e va in coda, dietro "Ad agosto:", così si legge come storia. */
 const SUPERATO = [
   /\bprobabil[ei]\b|formazioni? tipo|XI probabile|nell'XI\b/i,      // le formazioni vere hanno risposto
-  /amichevol|\bPerth\b|precampionato|\britiro\b|\besordio\b/i,      // il precampionato è finito
-  /per la 1ª|in dubbio fino alla|prima dell'asta|verifica prima|all'asta\b/i,  // l'attesa della 1ª è passata
-  /\bquota \d+|a quota\b|prezzo pieno|\bquota bassa|\bquota alta|\bquota minima|\bquota media|quota da riserva/i  // 85 quote cambiate col listone del 25
+  /amichevol|\bPerth\b|\bNewport\b|precampionato|\britiro\b|\besordio\b/i,   // il precampionato è finito
+  /prima dell'asta|verifica prima|all'asta\b/i,                    // l'asta di agosto è finita
+  /* Attese riferite a giornate GIÀ GIOCATE. Va costruita sul calendario vero, non fissata:
+     "in dubbio fino alla 3ª" è ancora un'informazione utile alla 2ª giornata, e un pattern
+     fisso la buttava via insieme a "atteso per la 1ª".
+     Il prefisso conta: si cattura l'ATTESA ("per la 1ª", "fino alla 1ª"), non il racconto di
+     quando è successo qualcosa — "frattura rimediata alla 1ª" descrive un fatto e resta. */
+  GIORNATE
+    ? new RegExp(`(?:per la|fino alla|entro la|in tempo per la)\\s*(?:${Array.from({length:GIORNATE},(_,i)=>i+1).join("|")})ª`, "i")
+    : /(?!)/,
+  /\bquota \d+|a quota\b|prezzo pieno|\bquota bassa|\bquota alta|\bquota minima|\bquota media|quota da riserva/i,  // 85 quote cambiate col listone del 25
+  /* Trasferimenti raccontati come ancora IN SOSPESO. A campionato iniziato non lo sono più:
+     il listone si riscarica ogni settimana e dice dove sta ciascuno, e MERCATO_UNC è stato
+     azzerato. Restava però la prosa d'agosto, che invecchia male e in modo vistoso — la nota
+     di Dybala avvisava che "RODRIGO MORA sta arrivando dal Porto" quando Mora era già alla
+     Roma, aveva giocato titolare la 1ª e nel database c'era col suo prezzo. */
+  /sta arrivando|è in arrivo|in arrivo dal|sta per arrivare|potrebbe arrivare|atteso l'arrivo|in caso di arrivo|se arriva\b|se partono/i,
+  /in dirittura|firma attesa|è in uscita|in uscita dal|lista delle uscite|accostato a|in pressing|si parla di|trattativa|resta un'ipotesi|il club chiede/i
 ];
 /* Si divide sulla punteggiatura forte tenendo il separatore, così una frase scartata non
    si porta via il punto della precedente. Il ":" NON separa: spezzerebbe a metà quasi tutte
@@ -1098,12 +1113,15 @@ for (const role of ["P","D","C","A"]) {
     if (INJURY[p.n]) {
       const [gior, txt] = INJURY[p.n];
       inj = gior >= 4 ? 3 : gior >= 2 ? 2 : Math.min(inj, 1);
-      /* Un acciacco da 0 giornate è un dubbio, non uno stop. Se il giocatore ha poi preso
-         voto, il dubbio se l'è sciolto il campo e la nota non serve più: tenerla vorrebbe
-         dire far leggere "in dubbio per la 1ª" di uno che la 1ª l'ha giocata. Si spegne da
-         sola, senza aspettare la riscrittura a mano di gennaio. */
-      const spento = gior === 0 && ora && ora.pv > 0;
-      if (!spento) injNote = `⚕️ ${txt}`;
+      /* Un acciacco da 0-1 giornate è un dubbio, non uno stop: se il giocatore ha poi preso
+         voto, quel dubbio se l'è sciolto il campo. Prima qui si buttava via la nota intera;
+         ora si passa dal filtro frase per frase, che è meglio — la nota di Dybala diceva
+         "la contusione col Newport non è grave: c'è per la 1ª" (superata) MA anche "operato
+         al menisco a marzo, minutaggio da gestire tutto l'anno", che vale ancora e andava
+         persa. Da 2 giornate in su il bollettino è un'assenza vera e resta intatto. */
+      const risolto = gior <= 1 && ora && ora.pv > 0;
+      const testo = (GIORNATE && risolto) ? ripulisci(txt) : txt;
+      if (testo) injNote = `⚕️ ${testo}`;
     }
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     /* "nuovo acquisto" = non era in Serie A l'anno scorso, oppure c'era ma in un'altra
@@ -1256,6 +1274,35 @@ for (const role of ["P","D","C","A"]) {
   });
   if (inghiottite.length)
     console.warn(`⚠️ VOCI PERSE: un commento // si sta mangiando delle voci di mappa alle righe ${inghiottite.join(", ")} — spostale prima del commento.`);
+}
+
+/* ---- verifica: niente linguaggio superato in quello che il filtro doveva ripulire ----
+   Il filtro `ripulisci()` vale quanto valgono i suoi pattern, e i pattern si scoprono
+   mancanti solo leggendo le note una per una — cosa che nessuno fa su 396 note. È così che
+   è passata la frase di Dybala "RODRIGO MORA sta arrivando dal Porto", quando Mora era già
+   alla Roma e aveva giocato titolare la 1ª.
+   Si controlla SOLO quello che il filtro ha attraversato: la coda "Ad agosto" e le note
+   d'infermeria risolte. CAMPO_NOTE è esente per scelta e va esclusa, altrimenti la tripletta
+   "all'esordio" di Malen risulterebbe un errore. */
+if (GIORNATE) {
+  const sospette = [];
+  for (const riga of lines) {
+    const m = riga.match(/,"((?:[^"\\]|\\.)*)","\d+",/);           // il campo nota della riga kb
+    if (!m) continue;
+    const nota = m[1];
+    const coda = nota.includes("· Ad agosto:") ? nota.split("· Ad agosto:")[1] : "";
+    const inf  = nota.startsWith("⚕️ ") ? nota.slice(0, nota.indexOf("🟢") + 1 || 200) : "";
+    const daControllare = coda + " " + inf;
+    const re = SUPERATO.find(r => r.test(daControllare));
+    if (re) sospette.push(`${(riga.match(/"([^"]+)","[^"]+",\d/) || [,"?"])[1]}: ${(daControllare.match(re) || [""])[0]}`);
+  }
+  /* Due cause diverse, stessa azione: guardare quel giocatore. O manca un pattern al filtro,
+     oppure è una voce scritta a mano che il campo ha superato e che il filtro non attraversa
+     (un bollettino INJURY di chi non ha ancora preso voto non viene ripulito, perché lì il
+     dubbio potrebbe essere ancora vero — va aggiornato col bollettino del giorno). */
+  if (sospette.length)
+    console.warn(`⚠️ NOTE DA GUARDARE: ${sospette.length} parlano di giornate già giocate → ${sospette.slice(0, 6).join(" · ")}` +
+      `\n   (manca un pattern a SUPERATO, oppure quella voce di INJURY/MERCATO_NOTE va aggiornata a mano)`);
 }
 
 /* verifica: ogni nome nelle mappe deve esistere nel listone (un typo = dato perso in silenzio) */
