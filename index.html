@@ -2406,6 +2406,48 @@ function vRosa(){
 }
 
 /* ================= tab: FORMAZIONE ================= */
+/* ---- il motore della formazione, fuori dalla vista ----
+   Stava dentro vFormazione, quindi nessuno strumento poteva chiamarlo e la prova se ne era
+   fatta una copia: due versioni della stessa regola, libere di divergere in silenzio. È lo
+   stesso errore che occasioni.mjs aveva fatto col motore dei consigli. Qui c'è la regola,
+   e la vista, gli strumenti e le prove chiamano tutti questa. */
+/* La difficoltà ora la dà il CALENDARIO, non un numero messo a mano: si legge chi
+   incontra quella squadra alla giornata scelta e si guarda il rating che conta per
+   il ruolo (un attaccante teme la difesa avversaria, un difensore l'attacco).
+   Se l'utente ha comunque forzato un valore a mano, quello vince. */
+const diffDi = p=>{
+  const man = state.teamsDiff[p.team];
+  if(man != null) return { val: man, manuale: true };
+  const d = difficoltaTurno(p.role, p.team, state.giornata||1);
+  return d ? { val: d.val, avv: d.avv, casa: d.casa } : { val: 3 };
+};
+/* ---- disponibilità: la sa già il database ----
+   Prima veniva SOLO da `state.avail`, la tendina che l'utente compila a mano: quindi chi
+   non la compilava schierava tranquillamente un infortunato. La FM attesa toglie 0.20 a
+   chi è fermo da un mese, che non basta neanche lontanamente a farlo scendere dai titolari.
+   Ora il bollettino decide da solo — `inj` si aggiorna a ogni giro e comprende anche le
+   squalifiche — e la scelta a mano resta più forte, perché chi guarda le probabili la sera
+   prima ne sa più del database. */
+const dispAuto = k => {
+  if(!k) return "ok";
+  /* Quante giornate mancano da qui a quella che stai preparando: 1 = la prossima. Chi il
+     bollettino ferma per almeno quel numero non c'è. Un giocatore fermo 1 giornata è OUT
+     per la prossima ma torna disponibile se stai guardando più avanti. */
+  const via = Math.max(1, (state.giornata||1) - GIORNATE_GIOCATE);
+  if(k.stop >= via) return "out";
+  /* Voce nel bollettino senza uno stop dichiarato: è un acciacco, non un forfait. */
+  if(k.stop === 0 && (k.note||"").startsWith("⚕️")) return "dubbio";
+  return k.inj>=3 ? "out" : k.inj===2 ? "dubbio" : "ok";
+};
+const dispDi = p => (state.avail||{})[p.id] || dispAuto(kbFor(p));
+const scoreFormazione = p=>{
+  const av = dispDi(p);
+  if(av==="out") return -99;
+  const k = kbFor(p), a = advice(k);
+  const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
+  return base + (3-diffDi(p).val)*0.35 - (av==="dubbio"?1.2:0);
+};
+
 function vFormazione(){
   const my = mine();
   if(!my.length) return `<div class="card">
@@ -2421,45 +2463,9 @@ function vFormazione(){
   const mod = MODULES[state.lineup.module] || MODULES["3-4-3"];
   const need = {P:1, ...mod};
   const myTeams = [...new Set(my.map(p=>p.team))].sort();
-  /* La difficoltà ora la dà il CALENDARIO, non un numero messo a mano: si legge chi
-     incontra quella squadra alla giornata scelta e si guarda il rating che conta per
-     il ruolo (un attaccante teme la difesa avversaria, un difensore l'attacco).
-     Se l'utente ha comunque forzato un valore a mano, quello vince. */
   const g = state.giornata || 1;
-  const diffDi = p=>{
-    const man = state.teamsDiff[p.team];
-    if(man != null) return { val: man, manuale: true };
-    const d = difficoltaTurno(p.role, p.team, g);
-    return d ? { val: d.val, avv: d.avv, casa: d.casa } : { val: 3 };
-  };
-  /* ---- disponibilità: la sa già il database ----
-     Prima veniva SOLO da `state.avail`, la tendina che l'utente compila a mano: quindi chi
-     non la compilava schierava tranquillamente un infortunato. La FM attesa toglie 0.20 a
-     chi è fermo da un mese, che non basta neanche lontanamente a farlo scendere dai titolari.
-     Ora il bollettino decide da solo — `inj` si aggiorna a ogni giro e comprende anche le
-     squalifiche — e la scelta a mano resta più forte, perché chi guarda le probabili la sera
-     prima ne sa più del database. */
-  const dispAuto = k => {
-    if(!k) return "ok";
-    /* Quante giornate mancano da qui a quella che stai preparando: 1 = la prossima. Chi il
-       bollettino ferma per almeno quel numero non c'è. Un giocatore fermo 1 giornata è OUT
-       per la prossima ma torna disponibile se stai guardando più avanti. */
-    const via = Math.max(1, (state.giornata||1) - GIORNATE_GIOCATE);
-    if(k.stop >= via) return "out";
-    /* Voce nel bollettino senza uno stop dichiarato: è un acciacco, non un forfait. */
-    if(k.stop === 0 && (k.note||"").startsWith("⚕️")) return "dubbio";
-    return k.inj>=3 ? "out" : k.inj===2 ? "dubbio" : "ok";
-  };
-  const dispDi = p => (state.avail||{})[p.id] || dispAuto(kbFor(p));
-  const score = p=>{
-    const av = dispDi(p);
-    if(av==="out") return -99;
-    const k = kbFor(p), a = advice(k);
-    const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
-    return base + (3-diffDi(p).val)*0.35 - (av==="dubbio"?1.2:0);
-  };
   const sections = ROLES.map(r=>{
-    const list = my.filter(p=>p.role===r).map(p=>({p, sc:score(p)})).sort((a,b)=>b.sc-a.sc);
+    const list = my.filter(p=>p.role===r).map(p=>({p, sc:scoreFormazione(p)})).sort((a,b)=>b.sc-a.sc);
     const rows = list.map((x,i)=>{
       const kx = kbFor(x.p);
       const av = dispDi(x.p);

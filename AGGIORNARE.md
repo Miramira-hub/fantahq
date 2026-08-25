@@ -22,6 +22,7 @@ fantahq/
 │   ├── backtest.mjs               # calibra i pesi del motore sui dati reali
 │   ├── app.mjs                    # carica l'app fuori dal browser: UN motore solo, non copie
 │   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
+│   ├── formazione.mjs             # l'XI consigliato da riga di comando, dal CSV della rosa
 │   ├── prova-download.mjs         # i rami del salvataggio file (link classico vs capacità Artifact)
 │   ├── prova-formazione.mjs       # la formazione esclude davvero infortunati e squalificati
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
@@ -145,6 +146,23 @@ Con una giornata sola pesa l'8%, alla quinta il 42%, dalla dodicesima in poi l'8
 arriva mai al 100% perché le gerarchie cambiano anche a stagione inoltrata. Chi è
 infortunato è escluso dalla correzione: l'assenza la sconta già `inj`, contarla due volte
 lo affosserebbe.
+
+## Schierare ()
+
+
+
+La rosa vive nel localStorage del browser, quindi da riga di comando non si vede: le si dà
+il CSV che l'app esporta (**Rosa → Esporta CSV**) e si ottiene lo stesso XI del tab
+Formazione, con gli stessi numeri. Aggancia per **Id ufficiale**, senza rischio di omonimia.
+
+Non ricalcola niente per conto suo: chiama ,  e  di
+ attraverso . Se il tab e il comando dicessero cose diverse sarebbe un
+bug, non una differenza di opinione.
+
+**Infortunati e squalificati escono da soli**, letti da  tramite la colonna .
+L'esclusione è relativa alla giornata scelta: chi salta una sola giornata torna disponibile
+se ne guardi una più avanti. La tendina del tab resta più forte del bollettino, perché chi
+legge le probabili la sera prima ne sa di più.
 
 ## Calendario
 

@@ -4,13 +4,10 @@ const app = caricaApp();
 const { KBI, GIORNATE_GIOCATE: G } = app;
 const k = n => KBI.find(x => x.n === n);
 
-function dispAuto(x, giornata){
-  if(!x) return "ok";
-  const via = Math.max(1, giornata - G);
-  if(x.stop >= via) return "out";
-  if(x.stop === 0 && (x.note||"").startsWith("⚕️")) return "dubbio";
-  return x.inj>=3 ? "out" : x.inj===2 ? "dubbio" : "ok";
-}
+/* Si chiama il dispAuto VERO dell'app, non una copia: era proprio il difetto che questa
+   prova doveva sorvegliare. La giornata si imposta sullo stato, che e quello che legge. */
+function dispAuto(x, giornata){ app.setGiornata(giornata); return app.dispAuto(x); }
+
 const casi = [];
 const ok = (n,c) => casi.push([n,c]);
 const G2 = G + 1;   // la prossima da giocare

@@ -22,7 +22,11 @@ export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 /* Tutto quello che l'app espone e che gli strumenti possono usare. Aggiungere qui una
    funzione è il modo giusto per renderla disponibile: copiarla altrove non lo è. */
 const ESPOSTE = ["DATA", "KBI", "KB", "expFM", "advice", "affOf", "chipsOf", "ROLE_MEAN", "ROLES",
-                 "TEAMS", "GIORNATE_GIOCATE", "downloadFile", "freshState", "mkPlayer"];
+                 "ROLE_NAMES", "TEAMS", "MODULES", "GIORNATE_GIOCATE", "CAL",
+                 "difficoltaTurno", "DIFF_LABEL",
+                 /* il motore della formazione, ora fuori dalla vista */
+                 "dispAuto", "dispDi", "diffDi", "scoreFormazione", "kbFor",
+                 "downloadFile", "freshState", "mkPlayer", "setGiornata"];
 
 export function caricaApp(opzioni = {}) {
   const html = fs.readFileSync(`${REPO}/index.html`, "utf8");
@@ -55,7 +59,9 @@ export function caricaApp(opzioni = {}) {
   };
   /* `toast` mostra un avviso in fondo allo schermo: fuori dal browser non ha dove andare,
      e a chi prova serve leggerlo. Si dirotta su una funzione passata da fuori. */
-  let coda = "";
+  /* Fuori dal browser il bootstrap non gira, quindi `state` è null finché non lo si crea:
+     `load()` lo fa e ricade su uno stato nuovo, dato che il localStorage qui è finto. */
+  let coda = "; var setGiornata = n => { if(!state) load(); state.giornata = n; return state; };";
   if (opzioni.toast) { ctx.__toast = opzioni.toast; coda += "; toast = __toast;"; }
   const nomi = Object.keys(ctx);
   return new Function(...nomi, script + coda + `; return { ${ESPOSTE.join(", ")} };`)(...Object.values(ctx));
