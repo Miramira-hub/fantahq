@@ -2297,17 +2297,15 @@ function vRosa(){
       <td>${roleChip(p.role)}</td><td class="pname" data-open2="${p.id}"><b>${esc(p.name)}</b> <span class="team">${esc(p.team)}</span>${p.note?' 📝':""}</td>
       <td>${advBadge(a)}</td><td class="r num">${fmt1(a.exp)}</td>
       <td class="r num" style="color:${a.aff>=80?"var(--ok)":a.aff>=60?"var(--warn)":"var(--danger)"};font-weight:700">${a.aff!=null?a.aff:"—"}</td>
-      ${GIORNATE_GIOCATE ? `
-      <td class="r num" style="color:${!k?"var(--muted)":k.pvOra===GIORNATE_GIOCATE?"var(--ok)":k.pvOra===0?"var(--danger)":"var(--warn)"}">${k?`${k.pvOra}/${GIORNATE_GIOCATE}${k.pvOra?" · "+fmt1(k.fmOra):""}`:"—"}</td>
-      <td class="r num">${k&&k.pvOra?`${k.golOra}+${k.assOra}`:(k?"—":"—")}</td>` : `
-      <td class="r num">${k&&k.r!=="P"?`${k.gol}+${k.ass}`:"—"}</td>`}
+      <td class="r num" style="color:${!k||!GIORNATE_GIOCATE?"var(--muted)":k.pvOra===GIORNATE_GIOCATE?"var(--ok)":k.pvOra===0?"var(--danger)":"var(--warn)"}">${
+        k&&GIORNATE_GIOCATE ? `${k.pvOra}/${GIORNATE_GIOCATE}${k.pvOra?" · "+fmt1(k.fmOra):""}` : "—"}</td>
+      <td class="r num">${k&&k.pvOra?`${k.golOra}+${k.assOra}`:"—"}</td>
       <td class="r num">${p.qta}</td><td class="r num" style="color:var(--gold);font-weight:700">${p.paid}</td>
       <td><button class="btn sm warn" data-release="${p.id}">Svincola</button></td></tr>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} · ${list.length}/${s.slots[r]}</h3>
       <div class="twrap"><table>
-      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r" title="Quanto spesso lo avrai davvero in campo: titolarità meno infortuni e incertezza di mercato. È il numero che decide chi schierare.">Affid.</th>${GIORNATE_GIOCATE
-  ? `<th class="r" title="Partite giocate su ${GIORNATE_GIOCATE}, e la fantamedia che ha realmente fatto quest'anno.">Pres. · FM</th><th class="r" title="Gol + assist di QUESTA stagione.">G+A ora</th>`
-  : `<th class="r" title="Gol + assist della stagione 2025-26: appena parte il campionato vengono sostituiti dai dati correnti.">G+A 25-26</th>`}
+      <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r" title="Quanto spesso lo avrai davvero in campo: titolarità meno infortuni e incertezza di mercato. È il numero che decide chi schierare.">Affid.</th><th class="r" title="${GIORNATE_GIOCATE ? `Partite giocate su ${GIORNATE_GIOCATE}, e la fantamedia realizzata quest'anno.` : "Si riempie con la prima giornata."}">Pres. · FM</th>
+      <th class="r" title="Gol + assist di QUESTA stagione.">G+A ora</th>
       <th class="r">Quota</th><th class="r">Pagato</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }).join("");

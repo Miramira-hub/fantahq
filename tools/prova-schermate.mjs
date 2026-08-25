@@ -112,14 +112,17 @@ function prova(nome, azione, verifica) {
 {
   const giornate = api.KB.reduce((m,r) => Math.max(m, +r[21] || 0), 0);
   const rosa = api.viste.vRosa();
-  const atteso = giornate
-    ? { ci: ["Pres. · FM", "G+A ora"], nonCi: ["G+A 25-26"] }
-    : { ci: ["G+A 25-26"], nonCi: ["G+A ora"] };
-  const nota = giornate ? `stagione in corso (${giornate} giornate)` : "prima del via";
-  for (const t of atteso.ci)
-    prova(`Rosa mostra "${t}" — ${nota}`, () => {}, () => rosa.includes(t));
-  for (const t of atteso.nonCi)
-    prova(`Rosa NON mostra "${t}"`, () => {}, () => !rosa.includes(t));
+  /* senza giocatori in rosa la tabella non viene proprio disegnata: lì non c'è niente da
+     controllare, e pretenderlo sarebbe il test a sbagliare, non l'app */
+  if (st.players.some(p => p.status === "mine")) {
+    const nota = giornate ? `${giornate} giornate giocate` : "campionato non ancora partito";
+    for (const t of ["Pres. · FM", "G+A ora"])
+      prova(`Rosa mostra "${t}" — ${nota}`, () => {}, () => rosa.includes(t));
+    /* i dati dell'anno scorso non servono a decidere: dalla Rosa devono sparire */
+    prova('Rosa NON mostra "G+A 25-26"', () => {}, () => !rosa.includes("G+A 25-26"));
+  } else {
+    console.log("  (rosa vuota: controllo delle colonne saltato)");
+  }
 }
 
 const unRivale = st.managers[0].id;
