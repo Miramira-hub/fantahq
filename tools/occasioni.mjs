@@ -74,6 +74,12 @@ const GIOR = G === 1 ? "1ª giornata" : `${G} giornate`;
 const TUTTE = G === 1 ? "nella 1ª giornata" : `in tutte e ${G} le giornate`;
 const N_MAX = 12;                       // una rosa di nomi, non un elenco telefonico
 
+/* Il builder accetta una fantamedia come "reale" già da 5 presenze. Sotto le 12 quel numero
+   balla parecchio, e siccome lo scarto dal prezzo si calcola proprio su quello, i primi posti
+   della classifica finiscono per riempirsi di gente con mezza stagione buona alle spalle.
+   Non si nascondono: si marcano, perché un'occasione su 8 partite resta un'occasione, ma va
+   comprata sapendo su cosa si sta scommettendo. */
+const THIN = 12;
 const fmt = p => {
   const s = sopra(p);
   const bonus = (p.gol || p.ass) ? ` ${p.gol}g${p.ass ? "/"+p.ass+"a" : ""}` : "";
@@ -81,7 +87,8 @@ const fmt = p => {
     `${String(p.q).padStart(3)}cr  tit ${String(p.tit).padStart(3)}%  ` +
     `${p.pv}/${G}${bonus.padEnd(7)} ` +
     (s === null ? "fm stimata: nessuno storico in A, si giudica solo dal campo"
-                : `${s >= 0 ? "+" : ""}${s.toFixed(2)} di fm sopra quello che il prezzo prevede`);
+                : `${s >= 0 ? "+" : ""}${s.toFixed(2)} di fm sopra quello che il prezzo prevede`) +
+    (s !== null && p.pres < THIN ? `  ⚠ ma su sole ${p.pres} presenze nel 25-26` : "");
 };
 const sezione = (titolo, spiega, righe, scartati = 0) => {
   console.log(`\n${titolo}`);
