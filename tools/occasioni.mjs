@@ -135,10 +135,17 @@ if (promossi.length > N_MAX) console.log(`  … e altri ${promossi.length - N_MA
    Speculare alle occasioni: a settembre si rischia di ricomprare a prezzo pieno chi ad
    agosto era dato titolare e da allora non si è ancora visto. Qui NON si filtra per
    valore: il punto è proprio che valgono e non giocano. */
-const trappole = P.filter(k => k.pvOra === 0 && k.tit >= 70 && SANO(k)).sort((a,b) => b.qta - a.qta);
+/* Chi è nel bollettino di OGGI non è una trappola: la sua assenza è spiegata, e vale anche
+   per le squalifiche, che stanno in INJURY come tutto il resto. Il dato c'è già senza
+   aggiungere colonne — il builder mette ⚕️ in testa alla nota solo a chi ha una voce viva.
+   Senza questo controllo il report accusava Kabasele, che è semplicemente squalificato per
+   la 2ª, e Berardi, fermo alla caviglia. Il campo `inj` da solo non basta: vale 1 sia per un
+   dubbio di oggi sia per la fragilità ereditata dallo storico. */
+const inBollettino = k => (k.note || "").startsWith("⚕️");
+const trappole = P.filter(k => k.pvOra === 0 && k.tit >= 70 && SANO(k) && !inBollettino(k)).sort((a,b) => b.qta - a.qta);
 sezione(
   "④ TRAPPOLE — dati titolari ad agosto, non ancora a referto",
-  `nessun voto in ${G} ${G === 1 ? "giornata" : "giornate"}, titolarità attesa ≥ 70%, nessun infortunio a spiegarlo. Ordinate per quanto costano.`,
+  `nessun voto in ${G} ${G === 1 ? "giornata" : "giornate"}, titolarità attesa ≥ 70%, e nessuna voce nel bollettino di oggi a spiegarlo (infortuni e squalifiche comprese). Ordinate per quanto costano.`,
   trappole
 );
 
