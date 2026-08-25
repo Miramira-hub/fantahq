@@ -4,17 +4,25 @@
    quella di agosto è che stavolta qualche giornata si è giocata: non si compra più su
    probabili formazioni e amichevoli, si compra su chi è sceso in campo davvero.
 
-   Un'occasione è uno SCARTO fra due cose che dovrebbero coincidere:
-     - quello che dice il PREZZO   (la quota ufficiale del listone)
-     - quello che dice il CAMPO    (chi ha preso voto, quante volte, con che resa)
-   Quando il campo dice più del prezzo, quello è un colpo. Quando dice meno, è una trappola.
+   COSA VUOL DIRE "OCCASIONE", e perché la prima versione sbagliava.
+   La prima versione di questo strumento si era costruita una metrica sua — quanto la
+   fantamedia dell'anno scorso stava sopra la retta fm = a + b*ln(quota) — e ordinava per
+   quella. È sbagliato, e si vede subito su un caso: N'Dri, attaccante del Lecce da 3
+   crediti, risultava secondo in classifica perché rendeva +0.45 sopra quello che il suo
+   prezzo lasciava prevedere. Ma la sua fantamedia attesa è 6.21 contro una media di ruolo
+   di 6.60: è 0.39 SOTTO il livello di un attaccante qualunque. Non è un colpo, è un
+   riempitivo che costa poco. Il motore dell'app infatti lo classifica "filler".
 
-   Come si misura "il prezzo dovrebbe prevedere". Si rifà la stessa regressione del motore,
-   fm = a + b*ln(quota) per ruolo, sui soli giocatori con fantamedia REALE. Lo scarto fra la
-   fantamedia vera e quella che la quota lascia prevedere è quanto rende sopra il suo prezzo.
-   Chi non ha storico in Serie A non ha scarto misurabile (la sua fm è stimata dalla quota,
-   quindi lo scarto verrebbe zero per costruzione): entra in una famiglia a parte, giudicato
-   solo sul campo, e il report lo dice.
+   Quindi il valore si misura come lo misura il motore: FM ATTESA MENO LA MEDIA DEL RUOLO.
+   È quanto quel giocatore rende in più rispetto a un titolare qualsiasi del suo reparto —
+   la stessa idea del VORP che l'app usa per i prezzi. Sotto zero non c'è occasione che
+   tenga: qualunque sia il prezzo, stai comprando meno della media.
+
+   E la FM attesa la calcola `expFM` di index.html, non una sua imitazione: tiene dentro i
+   minuti giocati, la forza della squadra, il profilo dell'allenatore, i rigori, l'età, gli
+   infortuni, la regressione xG e la base pluriennale 65/35. Riscriverne una copia qui
+   significherebbe avere due motori che si contraddicono — che è esattamente l'errore che
+   questo commento documenta.
 
    IL LIMITE, DETTO SUBITO. tools/scovatore.mjs ha misurato su tre stagioni che "era già
    titolare l'anno prima" predice le esplosioni da pochi crediti (53% contro il 19% medio).
@@ -25,170 +33,110 @@
 
    Uso:  node tools/occasioni.mjs [quotaMax]        (default 12 crediti)
 */
-import path from "path";
-import { fileURLToPath } from "url";
+import { caricaApp } from "./app.mjs";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const QMAX = +process.argv[2] || 12;
+const app = caricaApp();
+const { KBI: P, expFM, advice, ROLE_MEAN, GIORNATE_GIOCATE: G } = app;
 
-/* Si legge lo STESSO database che usa l'app: se il report e l'app dicessero cose diverse,
-   il report avrebbe torto per definizione. */
-globalThis.window = {};
-await import(`file://${REPO}/data/kb.js`);
-const { kb: KB, date: DATA } = globalThis.window.FANTAHQ_DATA;
-
-const P = KB.map(r => ({
-  r:r[0], n:r[1], t:r[2], q:r[3], fm:r[4], est:r[5], pres:r[6], rig:r[9], tit:r[10],
-  up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], fvm:r[18],
-  pv:r[21]||0, gol:r[22]||0, ass:r[23]||0, fmOra:r[24]||0, mvOra:r[25]||0
-}));
-const G = P.reduce((m,p) => Math.max(m, p.pv), 0);
 if (!G) {
   console.log("Nessuna giornata giocata in data/statistiche-2026-27.json: senza campo non ci sono occasioni da scovare.");
   process.exit(0);
 }
 
-/* ---- quanto rende sopra quello che il prezzo lascia prevedere ----
-   Stessa regressione del builder: fm = a + b*ln(q), una per ruolo, sui soli dati reali. */
-const REG = {};
-for (const ruolo of ["P","D","C","A"]) {
-  const c = P.filter(p => p.r === ruolo && !p.est && p.pres >= 15);
-  const n = c.length;
-  const sx = c.reduce((s,p) => s + Math.log(p.q), 0), sy = c.reduce((s,p) => s + p.fm, 0);
-  const sxx = c.reduce((s,p) => s + Math.log(p.q)**2, 0), sxy = c.reduce((s,p) => s + Math.log(p.q)*p.fm, 0);
-  const b = (n*sxy - sx*sy) / (n*sxx - sx*sx);
-  REG[ruolo] = { a:(sy - b*sx)/n, b, n };
-}
-const sopra = p => p.est ? null : +(p.fm - (REG[p.r].a + REG[p.r].b * Math.log(p.q))).toFixed(2);
+/* ---- valore: quanto rende sopra un titolare qualunque del suo ruolo ---- */
+const valore = k => +(expFM(k) - ROLE_MEAN[k.r]).toFixed(2);
+const tier = k => { const a = advice(k); return (a && a.tier) || String(a); };
+const TIER_IT = { must:"DA PRENDERE", target:"obiettivo", bet:"scommessa", safe:"usato sicuro",
+                  watch:"da monitorare", avoid:"da evitare", filler:"riempitivo", nd:"senza dati" };
 
 /* XI_STATUS non è nel database, ma il builder lo ha già impresso dentro `tit`:
    T alza a 88+, B+ resta fra 74 e 84, B- scende sotto 60, R sotto 42. Si legge da lì. */
-const TITOLARE  = p => p.tit >= 88;
-const PANCHINA  = p => p.tit < 70;
-const SEMPRE    = p => p.pv === G;          // ha preso voto in tutte le giornate finora
-const SANO      = p => p.inj < 2;
-const FERMO     = p => p.inj >= 3;          // 4+ giornate di stop: il posto si libera davvero
+const TITOLARE = k => k.tit >= 88;
+const PANCHINA = k => k.tit < 70;
+const SEMPRE   = k => k.pvOra === G;      // ha preso voto in tutte le giornate finora
+const SANO     = k => k.inj < 2;
+const FERMO    = k => k.inj >= 3;         // 4+ giornate di stop: il posto si libera davvero
 
 const RUOLO = { P:"Por", D:"Dif", C:"Cen", A:"Att" };
-const GIOR = G === 1 ? "1ª giornata" : `${G} giornate`;
 const TUTTE = G === 1 ? "nella 1ª giornata" : `in tutte e ${G} le giornate`;
-const N_MAX = 12;                       // una rosa di nomi, non un elenco telefonico
-
-/* Il builder accetta una fantamedia come "reale" già da 5 presenze. Sotto le 12 quel numero
-   balla parecchio, e siccome lo scarto dal prezzo si calcola proprio su quello, i primi posti
-   della classifica finiscono per riempirsi di gente con mezza stagione buona alle spalle.
-   Non si nascondono: si marcano, perché un'occasione su 8 partite resta un'occasione, ma va
-   comprata sapendo su cosa si sta scommettendo. */
+const N_MAX = 10;
+/* Il builder accetta una fantamedia come "reale" già da 5 presenze; sotto le 12 quel numero
+   balla, e siccome entra nella FM attesa va detto su cosa si sta scommettendo. */
 const THIN = 12;
-const fmt = p => {
-  const s = sopra(p);
-  const bonus = (p.gol || p.ass) ? ` ${p.gol}g${p.ass ? "/"+p.ass+"a" : ""}` : "";
-  return `  ${RUOLO[p.r]} ${p.n.padEnd(18)} ${p.t.padEnd(11)} ` +
-    `${String(p.q).padStart(3)}cr  tit ${String(p.tit).padStart(3)}%  ` +
-    `${p.pv}/${G}${bonus.padEnd(7)} ` +
-    (s === null ? "fm stimata: nessuno storico in A, si giudica solo dal campo"
-                : `${s >= 0 ? "+" : ""}${s.toFixed(2)} di fm sopra quello che il prezzo prevede`) +
-    (s !== null && p.pres < THIN ? `  ⚠ ma su sole ${p.pres} presenze nel 25-26` : "");
-};
-const sezione = (titolo, spiega, righe, scartati = 0) => {
-  console.log(`\n${titolo}`);
-  console.log(`  ${spiega}`);
-  if (!righe.length) { console.log("  (nessuno questa settimana)"); return; }
-  righe.forEach(r => console.log(r));
-  /* Un taglio silenzioso si legge come "non c'era altro": va detto quanti restano fuori. */
-  if (scartati > 0) console.log(`  … e altri ${scartati} rispondono ai requisiti ma restano fuori dai primi ${N_MAX}.`);
-};
-/* Chi ha uno storico in Serie A si ordina per scarto dal prezzo; chi non ce l'ha non ha
-   scarto misurabile e si ordina per quello che ha fatto in campo. Mescolarli in una
-   classifica sola darebbe un ordine finto. */
-const perScarto = (lista, soglia = 0.05) => {
-  const conStorico = lista.filter(p => sopra(p) !== null && sopra(p) >= soglia)
-                          .sort((a,b) => sopra(b) - sopra(a));
-  return { top: conStorico.slice(0, N_MAX), fuori: Math.max(0, conStorico.length - N_MAX) };
-};
-const senzaStorico = lista => lista.filter(p => sopra(p) === null)
-  .sort((a,b) => (b.gol*3 + b.ass) - (a.gol*3 + a.ass) || b.tit - a.tit || a.q - b.q)
-  .slice(0, 8);
 
-console.log(`OCCASIONI — database del ${DATA}`);
+const fmt = k => {
+  const v = valore(k), bonus = (k.golOra || k.assOra) ? ` ${k.golOra}g${k.assOra ? "/"+k.assOra+"a" : ""}` : "";
+  return `  ${RUOLO[k.r]} ${k.n.padEnd(18)} ${k.t.padEnd(11)} ${String(k.qta).padStart(3)}cr  ` +
+    `tit ${String(k.tit).padStart(3)}%  ${k.pvOra}/${G}${bonus.padEnd(7)} ` +
+    `${v >= 0 ? "+" : ""}${v.toFixed(2)} sopra la media ${RUOLO[k.r]}  · ${TIER_IT[tier(k)] || tier(k)}` +
+    (k.est ? "  ⚠ fm stimata dalla quota" : k.pres < THIN ? `  ⚠ fm su sole ${k.pres} presenze` : "");
+};
+const sezione = (titolo, spiega, lista) => {
+  console.log(`\n${titolo}\n  ${spiega}`);
+  if (!lista.length) { console.log("  (nessuno questa settimana)"); return; }
+  lista.slice(0, N_MAX).forEach(k => console.log(fmt(k)));
+  if (lista.length > N_MAX) console.log(`  … e altri ${lista.length - N_MAX} oltre i primi ${N_MAX}.`);
+};
+/* Sotto la media del ruolo non è un'occasione, per quanto costi poco. */
+const utili = l => l.filter(k => valore(k) > 0).sort((a,b) => valore(b) - valore(a));
+
+console.log(`OCCASIONI — database del ${app.DATA.date}`);
 console.log(`Giornate giocate: ${G}. Soglia prezzo: fino a ${QMAX} crediti.`);
-console.log(`Regressione fm~ln(quota): ` + ["P","D","C","A"].map(r => `${r} n=${REG[r].n}`).join(" "));
+console.log(`Valore = FM attesa (motore dell'app) meno la media del ruolo: ` +
+  ["P","D","C","A"].map(r => `${r} ${ROLE_MEAN[r].toFixed(2)}`).join("  "));
 console.log(`\n⚠️ Con ${G} ${G === 1 ? "giornata" : "giornate"} il campo è un indizio, non una prova.` +
   ` Il peso che il motore gli dà è ${(Math.min(0.80, G/12)*100).toFixed(0)}%.`);
 
 /* ---- 1. titolari pagati come riserve ----
-   È il profilo che scovatore.mjs ha già misurato come il più affidabile in assoluto fra i
-   giocatori economici: conta quanto giocava già, non quanto era bravo quando giocava. */
-const titolariCheap = P.filter(p => p.q <= QMAX && TITOLARE(p) && SEMPRE(p) && SANO(p) && p.unc < 2);
-const t1 = perScarto(titolariCheap);
+   Il profilo che scovatore.mjs ha già misurato come il più affidabile fra gli economici:
+   conta quanto giocava già, non quanto era bravo quando giocava. */
 sezione(
-  "① TITOLARI A DUE LIRE — costano poco, giocano sempre",
+  "① TITOLARI A DUE LIRE — costano poco, giocano, e rendono sopra il loro reparto",
   `quota ≤ ${QMAX}, titolari nelle formazioni vere, a referto ${TUTTE}, sani e senza mercato aperto.`,
-  t1.top.map(fmt), t1.fuori
-);
-sezione(
-  "   ↳ …e gli stessi, ma senza storico in Serie A",
-  `stesse condizioni, però la loro fantamedia è stimata dalla quota: qui c'è solo il campo, e sono ${G} ${G === 1 ? "giornata" : "giornate"}.`,
-  senzaStorico(titolariCheap).map(fmt)
+  utili(P.filter(k => k.qta <= QMAX && TITOLARE(k) && SEMPRE(k) && SANO(k) && k.unc < 2))
 );
 
 /* ---- 2. chi entra e porta a casa il voto ----
-   Non è titolare, e le formazioni vere lo confermano. Ma prende voto lo stesso: per l'ultimo
-   slot di una rosa vale più di un titolare di una squadra che non segna mai. */
-const panchinari = P.filter(p => p.q <= QMAX && PANCHINA(p) && SEMPRE(p) && SANO(p));
-/* Qui la soglia è più alta: partire dietro e prendere comunque voto è, con poche giornate,
-   il segnale più esposto al caso. Se non rende molto più del suo prezzo, non è una notizia. */
-const t2 = perScarto(panchinari, 0.30);
+   Non è titolare, e le formazioni vere lo confermano. Ma prende voto lo stesso: per
+   l'ultimo slot vale più di un titolare che non fa mai bonus. */
 sezione(
   "② SUBENTRANTI CHE PRENDONO VOTO — l'ultimo slot che non resta vuoto",
-  `quota ≤ ${QMAX}, dati dietro nelle gerarchie (tit < 70%) eppure a referto ${TUTTE}. Soglia alzata a +0.30: da dietro serve un margine vero.`,
-  t2.top.map(fmt), t2.fuori
-);
-const conBonus = panchinari.filter(p => p.gol || p.ass).sort((a,b) => (b.gol*3+b.ass)-(a.gol*3+a.ass));
-sezione(
-  "   ↳ …e chi è entrato e ha fatto bonus",
-  `stessa panchina, ma alla ${GIOR} ha messo il suo. Su ${G} ${G === 1 ? "giornata" : "giornate"} è un episodio: serve a sapere chi guardare, non chi comprare.`,
-  conBonus.slice(0, 8).map(fmt)
+  `quota ≤ ${QMAX}, dati dietro nelle gerarchie (tit < 70%), eppure a referto ${TUTTE}.`,
+  utili(P.filter(k => k.qta <= QMAX && PANCHINA(k) && SEMPRE(k) && SANO(k)))
 );
 
 /* ---- 3. il posto si è liberato ----
-   Il caso Bowie: Pinamonti è rimasto al Sassuolo ma è infortunato, e il centravanti diventa
-   un altro. È l'occasione che il listone recepisce sempre in ritardo, perché la quota si
-   muove sui trasferimenti, non sulle infermerie. */
+   Il caso Bowie: Pinamonti è rimasto al Sassuolo ma è infortunato, e il centravanti
+   diventa un altro. È l'occasione che il listone recepisce sempre in ritardo, perché la
+   quota si muove sui trasferimenti, non sulle infermerie. */
 const fermiPerReparto = new Map();
-for (const p of P.filter(FERMO)) {
-  const k = p.t + "|" + p.r;
-  if (!fermiPerReparto.has(k)) fermiPerReparto.set(k, []);
-  fermiPerReparto.get(k).push(p);
+for (const k of P.filter(FERMO)) {
+  const key = k.t + "|" + k.r;
+  if (!fermiPerReparto.has(key)) fermiPerReparto.set(key, []);
+  fermiPerReparto.get(key).push(k);
 }
-const promossi = P.filter(p => p.q <= QMAX && SANO(p) && p.pv > 0)
-  .map(p => ({ p, davanti: (fermiPerReparto.get(p.t + "|" + p.r) || []).filter(f => f.q > p.q) }))
-  .filter(x => x.davanti.length)
-  .sort((a,b) => Math.max(...b.davanti.map(f=>f.q)) - Math.max(...a.davanti.map(f=>f.q)));
-sezione(
-  "③ PROMOSSI DALL'INFERMERIA — davanti a loro si è liberato il posto",
-  `quota ≤ ${QMAX}, già a referto, con un compagno di reparto più caro fermo per 4+ giornate.`,
-  promossi.slice(0, N_MAX).map(({p, davanti}) =>
-    fmt(p) + `\n      ↳ fermo davanti a lui: ${davanti.map(f => `${f.n} (${f.q}cr)`).join(", ")}`),
-  Math.max(0, promossi.length - N_MAX)
-);
+const promossi = utili(P.filter(k => k.qta <= QMAX && SANO(k) && k.pvOra > 0))
+  .map(k => ({ k, davanti: (fermiPerReparto.get(k.t + "|" + k.r) || []).filter(f => f.qta > k.qta) }))
+  .filter(x => x.davanti.length);
+console.log(`\n③ PROMOSSI DALL'INFERMERIA — davanti a loro si è liberato il posto`);
+console.log(`  quota ≤ ${QMAX}, già a referto, sopra la media del ruolo, con un compagno di reparto più caro fermo per 4+ giornate.`);
+if (!promossi.length) console.log("  (nessuno questa settimana)");
+promossi.slice(0, N_MAX).forEach(({k, davanti}) =>
+  console.log(fmt(k) + `\n      ↳ fermo davanti a lui: ${davanti.map(f => `${f.n} (${f.qta}cr)`).join(", ")}`));
+if (promossi.length > N_MAX) console.log(`  … e altri ${promossi.length - N_MAX} oltre i primi ${N_MAX}.`);
 
 /* ---- 4. le trappole ----
-   Speculare alle occasioni, e altrettanto utile: a settembre si rischia di ricomprare a
-   prezzo pieno chi ad agosto era dato titolare e da allora non si è ancora visto. */
+   Speculare alle occasioni: a settembre si rischia di ricomprare a prezzo pieno chi ad
+   agosto era dato titolare e da allora non si è ancora visto. Qui NON si filtra per
+   valore: il punto è proprio che valgono e non giocano. */
+const trappole = P.filter(k => k.pvOra === 0 && k.tit >= 70 && SANO(k)).sort((a,b) => b.qta - a.qta);
 sezione(
   "④ TRAPPOLE — dati titolari ad agosto, non ancora a referto",
-  `nessun voto in ${GIOR}, titolarità attesa ≥ 70%, nessun infortunio a spiegarlo. Ordinati per quanto costano.`,
-  P.filter(p => p.pv === 0 && p.tit >= 70 && SANO(p))
-   .sort((a,b) => b.q - a.q)
-   .slice(0, N_MAX)
-   .map(fmt),
-  Math.max(0, P.filter(p => p.pv === 0 && p.tit >= 70 && SANO(p)).length - N_MAX)
+  `nessun voto in ${G} ${G === 1 ? "giornata" : "giornate"}, titolarità attesa ≥ 70%, nessun infortunio a spiegarlo. Ordinate per quanto costano.`,
+  trappole
 );
 
-/* ---- riepilogo ---- */
-const tot = P.filter(p => p.q <= QMAX && SEMPRE(p) && SANO(p)).length;
 console.log(`\n────────────────────────────────────────────────────────────`);
-console.log(`${tot} giocatori sotto i ${QMAX} crediti hanno preso voto ${TUTTE}.`);
-console.log(`Il campo pesa ${(Math.min(0.80, G/12)*100).toFixed(0)}% nella titolarità del motore; il resto è ancora la stima d'agosto.`);
+console.log(`Valore e verdetto vengono da expFM/advice di index.html: report e app non possono divergere.`);
 console.log(`Rilancia dopo ogni giornata: node tools/occasioni.mjs [quotaMax]`);

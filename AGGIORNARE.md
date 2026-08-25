@@ -20,6 +20,7 @@ fantahq/
 ├── tools/
 │   ├── build-kb.mjs               # rigenera data/kb.js dalle fonti
 │   ├── backtest.mjs               # calibra i pesi del motore sui dati reali
+│   ├── app.mjs                    # carica l'app fuori dal browser: UN motore solo, non copie
 │   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
 │   ├── prova-download.mjs         # i rami del salvataggio file (link classico vs capacità Artifact)
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
@@ -104,12 +105,17 @@ node tools/occasioni.mjs        # default: fino a 12 crediti
 node tools/occasioni.mjs 20     # alza la soglia di prezzo
 ```
 
-Legge `data/kb.js` — lo stesso database dell'app — e cerca lo **scarto fra quello che dice il
-prezzo e quello che dice il campo**. Rifà la regressione `fm = a + b·ln(quota)` per ruolo sui
-soli giocatori con fantamedia reale: chi rende sopra quella riga costa meno di quanto vale.
+Carica **il motore vero dell'app** (`tools/app.mjs`) e misura il valore come lo misura lui:
+**FM attesa meno la media del ruolo**, cioè quanto rende in più di un titolare qualunque del
+suo reparto. Sotto zero non è un colpo, è un riempitivo che costa poco — per quanto poco costi.
 Quattro famiglie: titolari a due lire · subentranti che prendono voto · promossi
 dall'infermeria (chi ha davanti un compagno di reparto fermo per 4+ giornate) · e le
 **trappole**, chi era dato titolare e non si è ancora visto.
+
+⚠️ **Un solo motore.** La prima versione si era costruita una metrica sua (fantamedia contro
+prezzo) e metteva secondo N'Dri, che il motore giudica «riempitivo» perché è 0.39 sotto la
+media del suo ruolo. Qualunque strumento che giudichi un giocatore deve chiamare `expFM` e
+`advice` di index.html tramite `app.mjs`, mai reimplementarli: due motori si contraddicono.
 
 **Il limite, dichiarato anche dentro lo strumento.** `scovatore.mjs` ha misurato su tre
 stagioni che "era già titolare l'anno prima" predice le esplosioni da pochi crediti (53%

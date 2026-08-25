@@ -14,49 +14,22 @@
 
    uso: node tools/prova-download.mjs
 */
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { caricaApp } from "./app.mjs";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const html = fs.readFileSync(`${REPO}/index.html`, "utf8");
-let script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join("\n");
-script = script.replace(/\ntry\{ const th = localStorage[\s\S]*$/, "\n");   // via il bootstrap
-const kb = fs.readFileSync(`${REPO}/data/kb.js`, "utf8");
-
-/* Costruisce l'app con un `window.claude` a scelta e registra dove finiscono i file.
-   Il finto <a> annota il download invece di eseguirlo, così si distingue quale delle due
-   strade è stata presa — che è esattamente la cosa che si vuole misurare. */
+/* Costruisce l'app con un window.claude a scelta e registra dove finiscono i file.
+   Il finto <a> annota il download invece di eseguirlo, cosi si distingue quale delle due
+   strade e stata presa — che e esattamente la cosa che si vuole misurare.
+   L'armatura (DOM finto, kb, contesto) sta in app.mjs: una sola, condivisa. */
 function costruisci(claudeFinto, salvataggi, toasts) {
-  const noop = () => {};
-  const finto = new Proxy(function(){}, {
-    get: (t, p) => p === "style" || p === "dataset" || p === "classList"
-        ? new Proxy({}, { get: () => noop, set: () => true })
-        : p === "value" || p === "textContent" || p === "innerHTML" ? "" : finto,
-    set: () => true, apply: () => finto
-  });
-  const document = {
-    getElementById: () => finto, querySelector: () => finto, querySelectorAll: () => [],
-    addEventListener: noop, documentElement: { dataset:{}, style:{} }, body: finto,
+  return caricaApp({
+    claude: claudeFinto,
+    toast: m => toasts.push(m),
     createElement: () => ({
       set href(v){}, get href(){ return "blob:x"; },
       set download(v){ this._n = v; },
       click(){ salvataggi.push({ via:"link", filename:this._n }); }
     })
-  };
-  const localStorage = { _d:{}, getItem(k){return this._d[k] ?? null;},
-    setItem(k,v){this._d[k]=String(v);}, removeItem(k){delete this._d[k];} };
-  const win = {}; new Function("window", kb)(win);
-  if (claudeFinto) win.claude = claudeFinto;
-  const Blob = function(p,o){ this.p=p; this.o=o; };
-  const URL = { createObjectURL: () => "blob:x", revokeObjectURL: noop };
-
-  const ctx = { window:win, document, localStorage, console, setTimeout, clearTimeout, Math, JSON, Blob, URL };
-  const nomi = Object.keys(ctx);
-  return new Function(...nomi, script + `
-    ; toast = m => { arguments[${nomi.length}].push(m); };
-    ; return { downloadFile };`
-  )(...Object.values(ctx), toasts);
+  });
 }
 
 const casi = [];
@@ -92,6 +65,10 @@ const err = code => { const e = new Error(code); e.code = code; return e; };
   await api.downloadFile("rose.csv", "a,b", "text/csv", "CSV salvato");
   ok("csv non abilitato: ripiega su .txt", salv.length === 1 && salv[0].filename === "rose.txt");
   ok("ripiego: contenuto invariato", salv[0].data === "a,b");
+  /* Il messaggio DEVE dire che il nome è cambiato: chi legge "CSV salvato" cerca un .csv,
+     non lo trova, e non sa che basta rinominarlo. */
+  ok("ripiego: dice che il nome è cambiato", /rose\.txt/.test(toasts[0]) && /rinomina/i.test(toasts[0]));
+  ok("ripiego: non annuncia un CSV che non c'è", toasts[0] !== "CSV salvato");
 }
 /* 4) l'utente rifiuta: non si insiste e non si annuncia una riuscita che non c'è stata */
 {

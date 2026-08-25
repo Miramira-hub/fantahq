@@ -1068,15 +1068,19 @@ function erroreSalvataggio(e){
 async function downloadFile(name, text, mime, okMsg){
   const ospite = await SALVA_OSPITE;
   if(ospite){
-    const prova = async n => { await ospite.save({filename:n, data:text}); toast(okMsg || `${n} salvato`); };
-    try { await prova(name); }
+    const prova = (n, msg) => ospite.save({filename:n, data:text}).then(()=>toast(msg));
+    try { await prova(name, okMsg || `${name} salvato`); }
     catch(e){
       const est = (name.split(".").pop()||"").toLowerCase();
       /* Solo l'estensione non abilitata merita un secondo tentativo: un rifiuto dell'utente
-         va rispettato, e riproporre la richiesta sarebbe insistere. */
+         va rispettato, e riproporre la richiesta sarebbe insistere.
+         E il messaggio deve DIRE che il nome è cambiato: il file salvato è un .txt, e chi
+         legge "CSV salvato" poi non lo trova e non sa che basta rinominarlo. */
       if(e && e.code === "extension_not_enabled" && RIPIEGO_EST[est]){
-        try { await prova(name.slice(0, -est.length) + RIPIEGO_EST[est]); return; }
-        catch(e2){ toast(erroreSalvataggio(e2)); return; }
+        const alt = name.slice(0, -est.length) + RIPIEGO_EST[est];
+        try { await prova(alt, `Qui i .${est} non si possono salvare: l'ho salvato come ${alt}. Il contenuto è identico — rinominalo in .${est} per importarlo.`); }
+        catch(e2){ toast(erroreSalvataggio(e2)); }
+        return;
       }
       toast(erroreSalvataggio(e));
     }
