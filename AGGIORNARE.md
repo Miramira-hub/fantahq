@@ -147,24 +147,34 @@ arriva mai al 100% perché le gerarchie cambiano anche a stagione inoltrata. Chi
 infortunato è escluso dalla correzione: l'assenza la sconta già `inj`, contarla due volte
 lo affosserebbe.
 
-## Schierare ()
+## Schierare (`tools/formazione.mjs`)
 
-
+```bash
+node tools/formazione.mjs <rose.csv> [giornata] [modulo]
+node tools/formazione.mjs rose.csv 2 3-4-3
+```
 
 La rosa vive nel localStorage del browser, quindi da riga di comando non si vede: le si dà
-il CSV che l'app esporta (**Rosa → Esporta CSV**) e si ottiene lo stesso XI del tab
-Formazione, con gli stessi numeri. Aggancia per **Id ufficiale**, senza rischio di omonimia.
+il CSV che l'app esporta (**Rosa → Esporta CSV**, formato Leghe Fantacalcio) e si ottiene
+lo stesso XI del tab Formazione, con gli stessi numeri. L'aggancio è per **Id ufficiale**,
+quindi senza rischio di omonimia.
 
-Non ricalcola niente per conto suo: chiama ,  e  di
- attraverso . Se il tab e il comando dicessero cose diverse sarebbe un
+Non ricalcola niente per conto suo: chiama `scoreFormazione`, `dispDi` e `diffDi` di
+`index.html` attraverso `app.mjs`. Se il tab e il comando dicessero cose diverse sarebbe un
 bug, non una differenza di opinione.
 
-**Infortunati e squalificati escono da soli**, letti da  tramite la colonna .
-L'esclusione è relativa alla giornata scelta: chi salta una sola giornata torna disponibile
-se ne guardi una più avanti. La tendina del tab resta più forte del bollettino, perché chi
-legge le probabili la sera prima ne sa di più.
+**Infortunati e squalificati escono da soli**, letti da `INJURY` attraverso la colonna
+`stop` del database. L'esclusione è relativa alla giornata scelta: chi salta una sola
+giornata torna disponibile se ne guardi una più avanti. La scelta manuale nella tendina del
+tab resta più forte del bollettino, perché chi legge le probabili la sera prima ne sa di più.
+
+⚠️ **Il motore della formazione sta fuori dalla vista** (`diffDi`, `dispAuto`, `dispDi`,
+`scoreFormazione` a livello di modulo in `index.html`). Ci stava dentro, e la prova se n'era
+fatta una copia: due versioni della stessa regola libere di divergere in silenzio. Vale la
+stessa regola di `occasioni.mjs` — chi giudica un giocatore chiama il motore, non lo riscrive.
 
 ## Calendario
+
 
 `data/calendario-2026-27.json` è **generato e validato** da `tools/build-calendario.mjs`,
 che legge un file grezzo con una riga per giornata nel formato
