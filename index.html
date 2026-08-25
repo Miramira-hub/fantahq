@@ -621,6 +621,19 @@ function chipsOf(k){
      Senza questa seconda condizione il tag perdeva proprio i colpi migliori del mercato. */
   if(k.qta<=10 && (k.pres>=28 || k.tit>=88)) c.push(["Occasione affidabile","good"]);
   else if(k.qta<=10 && !k.newT && k.pres<=2) c.push(["Mai in campo in A","bad"]);
+  /* A stagione iniziata il campo dice cose che nessuna probabile formazione sapeva. Sono
+     due tag e non un giudizio: "ha preso voto in tutte le giornate" e "dato titolare ma non
+     si è ancora visto". Fuori stagione (GIORNATE_GIOCATE = 0) non compaiono affatto, così il
+     Listone d'agosto resta quello di prima. NB: prendere voto non vuol dire partire titolare
+     — un subentrato entra nel conteggio — ma non prenderlo mai, quando ci si aspettava un
+     titolare, è il segnale che all'asta di settembre vale di più. */
+  /* Il tag chiede DUE cose insieme: che fosse atteso titolare e che il campo lo confermi.
+     Col solo "ha preso voto ogni giornata" alla 1ª giornata il tag toccava 277 giocatori su
+     516 — un filtro che seleziona metà del listone non seleziona niente. */
+  if(GIORNATE_GIOCATE>0){
+    if(k.pvOra===GIORNATE_GIOCATE && k.tit>=88 && k.inj<2) c.push(["Confermato dal campo","good"]);
+    else if(k.pvOra===0 && k.tit>=70 && k.inj<2) c.push(["Non ancora visto","bad"]);
+  }
   /* un rigorista designato che costa poco è il singolo profilo più sottovalutato all'asta */
   if(k.rig===2 && k.qta<=13) c.push(["Rigorista a poco prezzo","hot"]);
   if(k.up>=4) c.push(["Upside alto","good"]);
@@ -631,7 +644,7 @@ function chipsOf(k){
 /* tag filtrabili: i 4 più usati come chip fissi, gli altri nella tendina "+ altri".
    Le etichette dinamiche ("36 anni", "Solo N presenze") restano solo informative. */
 const TAGS_MAIN = ["Rigorista a poco prezzo","Occasione affidabile","Rigorista","Titolare fisso"];
-const TAGS_MORE = ["Attacco top","Difesa top","Rigore n.2","Ballottaggio","Rischio panchina","Mai in campo in A","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
+const TAGS_MORE = ["Confermato dal campo","Non ancora visto","Attacco top","Difesa top","Rigore n.2","Ballottaggio","Rischio panchina","Mai in campo in A","Rischio infortuni","Futuro incerto","Nuovo acquisto","U21","Upside alto"];
 const TAG_SET = new Set([...TAGS_MAIN, ...TAGS_MORE]);
 function hasTag(p, tag){ const k=kbFor(p); return !!k && chipsOf(k).some(c=>c[0]===tag); }
 const chipHtml = ([t,c]) => TAG_SET.has(t)
@@ -2647,6 +2660,7 @@ Verificato su due stagioni indipendenti, con lo stesso risultato.</li>
 <li>2-3 obiettivi per fascia, mai uno solo: se te lo soffiano hai il piano B (lo trovi scritto in ogni scheda, con nome e prezzo).</li>
 <li>I giocatori <b>"da monitorare"</b> vanno ricontrollati la sera prima: se la situazione si chiarisce diventano affari o trappole.</li>
 <li>Usa i <b>filtri per tag</b> nel Listone. I due che valgono più di tutti: <b>Rigorista a poco prezzo</b> (il profilo più sottovalutato in assoluto — i rigori valgono 1-2 fasce e il mercato non li prezza) e <b>Occasione affidabile</b> (costa poco ed è titolare, per storico o per probabile formazione).</li>
+<li><b>A stagione iniziata cambia tutto.</b> Se qualche giornata si è già giocata (come per l'asta di riparazione), compaiono due tag che valgono più di ogni previsione d'agosto: <b>Confermato dal campo</b> — era atteso titolare e ha davvero preso voto in tutte le giornate — e <b>Non ancora visto</b>, chi era dato titolare e non si è ancora visto senza che un infortunio lo spieghi. Quelli sono i nomi da non ricomprare a prezzo pieno.</li>
 <li>Fai più fantacalci? In <b>Impostazioni</b> → <b>Copia obiettivi e voti</b> porti tutto da un'altra lega: i tetti vengono ricalcolati sul budget di quella nuova.</li>
 </ul>`],
 ["Come si distribuisce il budget", `

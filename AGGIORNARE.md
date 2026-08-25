@@ -11,6 +11,7 @@ fantahq/
 │   ├── kb.js                      # DATABASE USATO DALL'APP — generato, non modificare a mano
 │   ├── listone-2026-27.json       # listone ufficiale convertito (fonte)
 │   ├── listone-2025-26.json       # listone stagione precedente: decide "nuovo acquisto"
+│   ├── statistiche-2026-27.json   # STAGIONE IN CORSO: presenze, voti, gol di quest'anno
 │   ├── statistiche-2025-26.json   # FONTE PRIMARIA: fantamedie ufficiali (aggancio per Id)
 │   ├── statistiche-2024-25.json   # storico: traiettoria dei minuti
 │   ├── statistiche-2023-24.json   # storico: controprova dell'analisi
@@ -19,6 +20,7 @@ fantahq/
 ├── tools/
 │   ├── build-kb.mjs               # rigenera data/kb.js dalle fonti
 │   ├── backtest.mjs               # calibra i pesi del motore sui dati reali
+│   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
 │   ├── xlsx-to-json.mjs           # converte un .xlsx estratto in JSON
 │   └── build-artifact.mjs         # genera la versione single-file per l'Artifact
@@ -61,7 +63,59 @@ Dopo ogni giornata, in quest'ordine:
 3. Aggiornare `INJURY` col bollettino del giorno e gli squalificati del giudice sportivo.
 4. Correggere `XI_STATUS` con le **formazioni vere**, non con le probabili: una giornata
    giocata vale più di dieci articoli di agosto.
-5. `node tools/build-kb.mjs` · `node tools/prova-schermate.mjs` · pubblicare.
+5. Scrivere il fatto della giornata in **`CAMPO_NOTE`** (non in `MERCATO_NOTE`): una riga per
+   giocatore, si sovrascrive, non si accumula. È l'unica mappa di testo che va toccata durante
+   la stagione.
+6. `node tools/build-kb.mjs` · `node tools/occasioni.mjs` · `node tools/prova-schermate.mjs` ·
+   pubblicare.
+
+### Le note si aggiornano da sole
+
+Dalla 1ª giornata in poi la nota di ogni giocatore si compone in quest'ordine:
+
+| Pezzo | Da dove viene | Chi lo scrive |
+|---|---|---|
+| ⚕️ infermeria | `INJURY` | a mano, ogni giro |
+| cosa dice il campo | `campoNote()` da `statistiche-2026-27.json` × `XI_STATUS` | **generato** |
+| il fatto della giornata | `CAMPO_NOTE` | a mano, ogni giro |
+| segnali storici xG e volume | Understat + statistiche 25-26 | **generato** |
+| `· Ad agosto:` … | `MERCATO_NOTE` / `NOTE` filtrate | **generato** |
+
+Due automatismi tolgono lavoro e impediscono che l'app racconti cose vecchie:
+
+- **Il filtro `ripulisci()`** taglia dalle note d'asta, frase per frase, quello che i fatti
+  hanno superato: probabili formazioni, amichevoli, l'attesa della 1ª giornata, e le frasi
+  che inchiodano una quota (cambiano ogni settimana). Quel che resta va in coda, etichettato
+  `· Ad agosto:`, così si legge come storia e non come stato attuale. `CAMPO_NOTE` non passa
+  dal filtro: racconta le giornate giocate, non l'asta.
+- **Gli acciacchi si spengono da soli**: una voce `INJURY` da 0 giornate su un giocatore che
+  ha poi preso voto smette di stamparsi. Altrimenti l'app direbbe "in dubbio per la 1ª" di
+  uno che la 1ª l'ha giocata.
+
+Il testo generato è **prudente per costruzione**: dichiara sempre su quante giornate si basa,
+e fantamedie e medie voto di quest'anno entrano nelle note **solo da 5 giornate in su**.
+Sotto quella soglia una media è il racconto di un episodio.
+
+## Trovare i colpi (`tools/occasioni.mjs`)
+
+```bash
+node tools/occasioni.mjs        # default: fino a 12 crediti
+node tools/occasioni.mjs 20     # alza la soglia di prezzo
+```
+
+Legge `data/kb.js` — lo stesso database dell'app — e cerca lo **scarto fra quello che dice il
+prezzo e quello che dice il campo**. Rifà la regressione `fm = a + b·ln(quota)` per ruolo sui
+soli giocatori con fantamedia reale: chi rende sopra quella riga costa meno di quanto vale.
+Quattro famiglie: titolari a due lire · subentranti che prendono voto · promossi
+dall'infermeria (chi ha davanti un compagno di reparto fermo per 4+ giornate) · e le
+**trappole**, chi era dato titolare e non si è ancora visto.
+
+**Il limite, dichiarato anche dentro lo strumento.** `scovatore.mjs` ha misurato su tre
+stagioni che "era già titolare l'anno prima" predice le esplosioni da pochi crediti (53%
+contro il 19% medio). *"Ha giocato le prime giornate"* **non è stato misurato**: i file
+storici contengono solo aggregati di stagione, non giornata per giornata, quindi quel
+backtest non è possibile con i dati che abbiamo. È un indizio col campione dichiarato, non
+un peso calibrato — e il motore lo tratta di conseguenza, con `PESO_CAMPO`.
 
 **Come il campo corregge la stima.** La titolarità è la probabilità di prendere voto, e sul
 campo si misura direttamente (presenze ÷ giornate). Il builder fonde la stima di agosto con
@@ -98,7 +152,8 @@ Tutto dentro `tools/build-kb.mjs`:
 
 | Cosa | Costante | Note |
 |---|---|---|
-| Note di mercato | `MERCATO_NOTE` | ha la precedenza su tutto, si aggiorna a ogni giro |
+| Fatti della giornata | `CAMPO_NOTE` | **l'unica da toccare in stagione**: una riga per giocatore, si sovrascrive. Non passa dal filtro e non viene retrocessa |
+| Note di mercato | `MERCATO_NOTE` | il testo d'asta: da qui in poi viene filtrato e messo in coda dietro `· Ad agosto:` |
 | Trattative aperte | `MERCATO_UNC` | 2 = futuro in bilico → "da monitorare"; azzerare a mercato chiuso |
 | Probabili XI 2026-27 | `XI_STATUS` | T/B+/B-/R per giocatore; corregge la titolarità dai minuti vecchi |
 | Infortunati attuali | `INJURY` | [giornate saltate, nota]; 4+ → inj=3, 2-3 → inj=2 |

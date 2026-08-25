@@ -533,7 +533,15 @@ const MERCATO_NOTE = {
   "Calò":"⚠️ ATTENZIONE, la sua situazione è cambiata oggi: è il rigorista designato del Frosinone, ma con Grillitsch e Schmid ufficiali il centrocampo giallazzurro diventa affollato (Calò, Hasa, Koutsoupias, Masini più i due austriaci per tre maglie). I rigori restano il motivo per prenderlo, il posto non è più scontato.",
   "Masini":"Regista arrivato dal Genoa a titolo definitivo (~5M, quadriennale) e dato titolare dalle fonti dedicate. ⚠️ Ma con Grillitsch ufficiale oggi — un regista di 31 anni con carriera in Bundesliga ed Eredivisie — quel posto è ora in ballottaggio vero.",
   "Hasa":"Titolare in mediana nelle formazioni tipo del Frosinone. ⚠️ Con Grillitsch e Schmid ufficiali il reparto è passato a sei giocatori per tre maglie: verifica prima di puntarci.",
-  /* ===== DOPO LA 1ª GIORNATA, 25 agosto: queste hanno la precedenza su tutto ===== */
+};
+
+/* ================= NOTE DELLA STAGIONE IN CORSO =================
+   Queste NON sono note d'asta: sono i fatti delle giornate giocate. Hanno la precedenza su
+   tutto, non passano dal filtro ripulisci() e non vengono retrocesse in coda — sarebbe
+   assurdo etichettare "Ad agosto:" il racconto di una tripletta di domenica scorsa.
+   È QUI che si scrive il giro settimanale: una riga per giocatore, il fatto della giornata.
+   Le voci vecchie si sovrascrivono, non si accumulano. */
+const CAMPO_NOTE = {
   "Malen":"💥 TRIPLETTA all'esordio in Roma-Fiorentina 4-0, voto 8,5-9: 'inarrestabile'. Il listone lo ha già premiato portandolo da 34 a 36. È il rigorista e il terminale di Gasperini, servito da Dybala.",
   "Dybala":"💥 TRE ASSIST in Roma-Fiorentina 4-0, voto 8. Titolare sulla trequarti accanto a Mora, sostituito al 79' a partita chiusa. I 3,64 passaggi chiave a partita dell'anno scorso non erano un caso: è il rifornitore di Malen.",
   "Mora":"UFFICIALE alla Roma dal Porto, quota 19. TITOLARE all'esordio sulla trequarti accanto a Dybala (uscito al 54' per Soulè). A 19 anni è il investimento di Gasperini sulla creatività: prezzo alto per uno senza storico in Serie A, ma il posto ce l'ha.",
@@ -543,7 +551,8 @@ const MERCATO_NOTE = {
   "Di Gregorio":"❌ FUORI DAI GIOCHI: Vicario titolare alla 1ª e lui è in partenza verso il Bournemouth. Non prenderlo.",
   "Celik":"✅ CORREZIONE (avevo sbagliato): titolare all'esordio come TERZINO SINISTRO al posto di Cambiaso, non come dodicesimo di Kalulu. Spalletti lo usa davvero.",
   "Douglas Luiz":"✅ CORREZIONE: titolare in mediana accanto a Locatelli nella 1ª giornata. Non era 'fuori dall'XI' come indicavano le fonti d'agosto.",
-  "Yildiz":"❌ FRATTURA AL PIEDE a Frosinone: si opera, fuori due-tre mesi, salta una decina di giornate. Il listone lo ha già abbassato da 23 a 22, ma è comunque da non prendere fino a novembre.",
+  /* Yildiz: l'infortunio lo racconta già INJURY, qui basta l'effetto sul valore */
+  "Yildiz":"Il listone lo ha già abbassato da 23 a 22, ma finché non rientra vale zero: non è una occasione, è un posto rosa bloccato.",
   "Krstovic":"💥 ENTRATO NELLA RIPRESA E DECISIVO in Atalanta-Sassuolo 2-1: gol dopo sei minuti dal suo ingresso. Sarri lo usa in staffetta con Scamacca, e le pagelle parlano di 'staffetta d'oro'. Prenderli entrambi copre il posto di centravanti dell'Atalanta quasi sempre.",
   "Scamacca":"Titolare all'esordio contro il Sassuolo, poi sostituito da Krstovic che ha deciso la partita. È lui il rigorista, l'altro entra e segna: la staffetta funziona per chi ha tutti e due.",
   "Pasalic":"✅ CORREZIONE: TITOLARE in mediana alla 1ª con Gaetano ed Ederson. Le fonti d'agosto lo davano dietro Samardzic: sbagliavano.",
@@ -919,6 +928,96 @@ const TEAMS = {
   "Frosinone":{atk:2,def:2,coach:"Alvini",cn:"Neopromossa, obiettivo salvezza"}
 };
 
+/* ================= NOTE: LA STAGIONE IN CORSO PARLA PER PRIMA =================
+   Fino a ieri i dati di quest'anno correggevano la titolarità ma non arrivavano al testo:
+   le note restavano quelle scritte a mano fra il 6 e il 12 agosto, con la cornice dell'asta
+   addosso. Da qui in poi il campo scrive per primo, e quel che è stato superato dai fatti
+   viene tolto automaticamente — la prossima riscrittura a mano è prevista a fine gennaio,
+   quindi tutto quello che cambia ogni settimana deve uscire dai file di dati da solo. */
+
+/* ---- 1) il blocco della stagione in corso ----
+   ATTENZIONE alla differenza fra presenza e titolarità: nelle statistiche ufficiali `Pv`
+   conta chi ha preso VOTO, subentrati compresi. Chi è partito dal primo minuto lo sa solo
+   XI_STATUS, che è curato a mano sulle formazioni vere. Per questo il testo dice sempre
+   "in campo" / "ha preso voto" e mai "è partito titolare", tranne quando è XI_STATUS a dirlo. */
+const RISERVA = new Set(["R", "B-"]);
+/* Con una giornata sola ogni formula plurale suona sbagliata, e sono proprio le settimane
+   in cui questo testo viene letto di più. */
+const inGior  = g => g === 1 ? "nella 1ª giornata" : `in ${g} giornate`;
+const tutteGior = g => g === 1 ? "nella 1ª giornata" : `in tutte e ${g} le giornate`;
+function campoNote(nome, ora, inj, haInfortunio) {
+  if (!GIORNATE) return "";
+  const g = GIORNATE, pv = ora ? ora.pv : 0;
+  const xi = XI_STATUS[nome] || "";
+  const parti = [];
+
+  /* --- stato: cosa dice il campo sulle gerarchie ---
+     Due cautele che qui contano più della prosa.
+     1) `pv` conta chi ha preso VOTO. Zero non vuol dire per forza "non ha giocato": si può
+        entrare per pochi minuti e restare senza voto. Per questo si dice "non ha preso voto"
+        e non "non ha giocato" — è l'unica cosa che il dato permette di affermare.
+     2) XI_STATUS è GIÀ riscritto sulle formazioni vere della 1ª giornata. Quindi una riserva
+        che prende voto non è un giocatore "promosso dal campo": è un subentrato, e dirlo al
+        contrario contraddirebbe il dato curato a mano (è il caso di Samardzic, entrato ma
+        dato dietro a Pasalic proprio dalla formazione vera).
+     3) Chi è fermo per infortunio serio non riceve la riga positiva: aver preso voto prima
+        di rompersi non è una conferma utile a nessuno. */
+  if (pv === g && pv > 0 && inj < 2) {
+    if (xi === "T")            parti.push(`🟢 Confermato dal campo: ha preso voto ${tutteGior(g)}.`);
+    else if (RISERVA.has(xi))  parti.push(`🔄 Le formazioni vere lo danno dietro, ma ha preso voto ${tutteGior(g)}: subentra e porta a casa il voto.`);
+    else                       parti.push(`🟢 In campo: ha preso voto ${tutteGior(g)}.`);
+  }
+  /* L'allarme si tace se c'è un bollettino aperto: l'assenza è già spiegata, ripeterla come
+     "gerarchia da verificare" darebbe la colpa al tecnico invece che all'infermeria. */
+  else if (pv === 0 && !haInfortunio && (xi === "T" || xi === "B+"))
+    parti.push(`⚠️ Dato ${xi === "T" ? "titolare" : "in ballottaggio"} ad agosto ma non ha ancora preso voto ${inGior(g)}: il campo per ora non lo conferma.`);
+  else if (pv > 0 && pv < g && inj < 2)
+    parti.push(`🔄 ${pv} presenze su ${g}: rotazione, non un titolare fisso.`);
+
+  /* --- produzione: solo fatti, e con il campione dichiarato --- */
+  if (ora && pv > 0) {
+    const bonus = [];
+    if (ora.gf) bonus.push(`${ora.gf} gol`);
+    if (ora.ass) bonus.push(`${ora.ass} assist`);
+    /* i rigori CALCIATI quest'anno valgono più di qualunque fonte di agosto: la gerarchia
+       dal dischetto la decide l'allenatore in campo, non l'indiscrezione di mercato. */
+    const rTot = ora.rplus + ora.rminus;
+    if (rTot) bonus.push(`${ora.rplus} rigor${ora.rplus === 1 ? "e" : "i"} segnat${ora.rplus === 1 ? "o" : "i"} su ${rTot} calciat${rTot === 1 ? "o" : "i"}`);
+    if (ora.rp) bonus.push(`${ora.rp} rigor${ora.rp === 1 ? "e parato" : "i parati"}`);
+    if (bonus.length)
+      parti.push(`⚽ Quest'anno ${bonus.join(", ")} in ${pv} ${pv === 1 ? "giornata" : "giornate"}.` +
+        (g <= 4 ? ` Su ${g} ${g === 1 ? "giornata" : "giornate"} è un fatto, non ancora una tendenza.` : ""));
+    /* Medie e fantamedie di quest'anno solo quando il campione regge: sotto le 5 giornate
+       una fantamedia è il racconto di un episodio, non di un rendimento. */
+    if (g >= 5 && pv >= 3)
+      parti.push(`📊 Fantamedia ${ora.fm.toFixed(2)} e media voto ${ora.mv.toFixed(2)} su ${pv} ${pv === 1 ? "giornata" : "giornate"} di quest'anno.`);
+  }
+  return parti.join(" ");
+}
+
+/* ---- 2) il filtro sulle note d'asta ----
+   Le voci scritte a mano restano (a settembre si rifà un'asta completa e quel contesto
+   serve ancora), ma si tagliano FRASE PER FRASE i pezzi che i fatti hanno superato.
+   Quel che sopravvive è contesto di sfondo — chi tira i rigori, da dove arriva uno, il
+   profilo xG — e va in coda, dietro "Ad agosto:", così si legge come storia. */
+const SUPERATO = [
+  /\bprobabil[ei]\b|formazioni? tipo|XI probabile|nell'XI\b/i,      // le formazioni vere hanno risposto
+  /amichevol|\bPerth\b|precampionato|\britiro\b|\besordio\b/i,      // il precampionato è finito
+  /per la 1ª|in dubbio fino alla|prima dell'asta|verifica prima|all'asta\b/i,  // l'attesa della 1ª è passata
+  /\bquota \d+|a quota\b|prezzo pieno|\bquota bassa|\bquota alta|\bquota minima|\bquota media|quota da riserva/i  // 85 quote cambiate col listone del 25
+];
+/* Si divide sulla punteggiatura forte tenendo il separatore, così una frase scartata non
+   si porta via il punto della precedente. Il ":" NON separa: spezzerebbe a metà quasi tutte
+   le note, che sono scritte nella forma "fatto: conseguenza". */
+function ripulisci(txt) {
+  if (!txt) return "";
+  const frasi = String(txt).match(/[^.!?]+[.!?]*/g) || [];
+  const tenute = frasi.filter(f => f.trim() && !SUPERATO.some(re => re.test(f)));
+  if (!tenute.length) return "";
+  const out = tenute.join("").replace(/\s+/g, " ").trim();
+  return out.length < 15 ? "" : out;   // moncherini senza senso: meglio niente
+}
+
 /* ---- costruzione ---- */
 const esc = s => String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"');
 const ROLE_TITLE = { P:"PORTIERI", D:"DIFENSORI", C:"CENTROCAMPISTI", A:"ATTACCANTI" };
@@ -989,10 +1088,16 @@ for (const role of ["P","D","C","A"]) {
        a escluderlo dai consigliati (stesso motivo per cui i rigoristi non si ereditano). */
     let inj  = o ? o.inj : 0;
     let injNote = "";
+    const ora = ST_ORA.get(p.id);                       // stagione in corso: serve già qui
     if (INJURY[p.n]) {
       const [gior, txt] = INJURY[p.n];
       inj = gior >= 4 ? 3 : gior >= 2 ? 2 : Math.min(inj, 1);
-      injNote = `⚕️ ${txt}`;
+      /* Un acciacco da 0 giornate è un dubbio, non uno stop. Se il giocatore ha poi preso
+         voto, il dubbio se l'è sciolto il campo e la nota non serve più: tenerla vorrebbe
+         dire far leggere "in dubbio per la 1ª" di uno che la 1ª l'ha giocata. Si spegne da
+         sola, senza aspettare la riscrittura a mano di gennaio. */
+      const spento = gior === 0 && ora && ora.pv > 0;
+      if (!spento) injNote = `⚕️ ${txt}`;
     }
     const unc  = MERCATO_UNC[p.n] ?? 0;   // trattativa aperta -> il motore lo marca "da monitorare"
     /* "nuovo acquisto" = non era in Serie A l'anno scorso, oppure c'era ma in un'altra
@@ -1083,8 +1188,24 @@ for (const role of ["P","D","C","A"]) {
       }
     }
     if (volSig.length || extra.length) signal = [signal, ...volSig, ...extra.slice(0, 3)].filter(Boolean).join(" ");
+    /* ---- ORDINE DELLA NOTA ----
+       Prima l'infermeria, poi quello che dice il campo di quest'anno, poi i segnali storici
+       (xG, volume, dischetto: restano validi, sono un profilo di giocatore, non una notizia),
+       e infine — retrocesso — quel che sopravvive delle note d'asta di agosto.
+       Prima il testo d'agosto stava in testa e si leggeva come stato attuale: era la ragione
+       per cui l'app diceva "titolare nelle probabili" di gente già scesa in campo. */
+    const campo = campoNote(p.n, ora, inj, !!INJURY[p.n]);
+    /* CAMPO_NOTE è il giro settimanale: racconta le giornate giocate, quindi non è
+       "roba d'asta" e non passa dal filtro né dalla retrocessione. */
+    const fatti = CAMPO_NOTE[p.n] || "";
     const baseNote = MERCATO_NOTE[p.n] || NOTE[p.n] || (o ? o.note : "");   // il mercato ha la precedenza
-    const note = [injNote, baseNote, signal].filter(Boolean).join(" ");
+    const storico = GIORNATE ? ripulisci(baseNote) : baseNote;              // fuori stagione resta com'era
+    const testa = [injNote, campo, fatti, signal].filter(Boolean).join(" ");
+    /* Il "·" separa la coda da quello che viene prima. Se prima non c'è niente — capita ai
+       giocatori di cui si sa solo quel che si diceva ad agosto — la nota comincerebbe con un
+       punto sospeso: allora l'etichetta resta, il separatore no. */
+    const coda = !storico ? "" : GIORNATE ? `${testa ? "· " : ""}Ad agosto: ${storico}` : storico;
+    const note = [testa, coda].filter(Boolean).join(" ");
     /* fm2 = fantamedia della stagione PRECEDENTE (24-25), solo se significativa in
        entrambe le annate: il motore la fonde 65/35 con l'ultima (misurato su 140
        giocatori: errore di previsione -9% rispetto alla sola ultima stagione).
@@ -1097,7 +1218,6 @@ for (const role of ["P","D","C","A"]) {
        presenze / giornate giocate. Si fondono le due con un peso che cresce col campionato.
        Chi è infortunato NON viene punito due volte: l'assenza è già scontata da `inj`,
        quindi la correzione si applica solo a chi era disponibile. */
-    const ora = ST_ORA.get(p.id);
     const pvOra = ora ? ora.pv : 0;
     const golOra = ora ? ora.gf : 0, assOra = ora ? ora.ass : 0;
     const mvOra = (ora && ora.pv) ? ora.mv : 0, fmOra = (ora && ora.pv) ? ora.fm : 0;
@@ -1113,7 +1233,7 @@ for (const role of ["P","D","C","A"]) {
 
 /* verifica: ogni nome nelle mappe deve esistere nel listone (un typo = dato perso in silenzio) */
 const LNAMES = new Set(L.map(p => p.n));
-for (const [label, map] of [["XI_STATUS", XI_STATUS], ["INJURY", INJURY], ["MERCATO_NOTE", MERCATO_NOTE], ["MERCATO_UNC", MERCATO_UNC], ["RIG", RIG], ["NOTE", NOTE], ["ETA", ETA]]) {
+for (const [label, map] of [["XI_STATUS", XI_STATUS], ["INJURY", INJURY], ["MERCATO_NOTE", MERCATO_NOTE], ["CAMPO_NOTE", CAMPO_NOTE], ["MERCATO_UNC", MERCATO_UNC], ["RIG", RIG], ["NOTE", NOTE], ["ETA", ETA]]) {
   const missing = Object.keys(map).filter(n => !n.startsWith("_") && !LNAMES.has(n));
   if (missing.length) console.warn(`⚠️ ${label}: nomi non nel listone → ${missing.join(", ")}`);
 }
@@ -1125,7 +1245,11 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    - kb: [ruolo, nome, squadra, quotaUfficiale, fantamedia, fmStimata(0/1), presenze, gol, assist,
           rigorista(2=primo,1=alternativa,0=no), titolarità%, upside0-5, rischioInfortuni0-3,
           età, incertezzaMercato0-3, nuovoAcquisto(0/1), nota, idUfficiale, FVM(fantavalore su base 1000),
-          xgd(correzione FM da regressione xG, ±0.40), fm2(fantamedia 24-25 se significativa)]
+          xgd(correzione FM da regressione xG, ±0.40), fm2(fantamedia 24-25 se significativa),
+          e infine la STAGIONE IN CORSO: presenze, gol, assist, fantamedia, media voto 26-27]
+   Nota: la nota è composta in quest'ordine — infermeria, cosa dice il campo di quest'anno,
+   il fatto della giornata (CAMPO_NOTE), i segnali storici xG/volume, e in coda, dietro
+   "· Ad agosto:", quel che resta delle note d'asta dopo il filtro delle frasi superate.
    Nomi allineati al listone ufficiale ("Cognome I."): l'app aggancia per NOME+RUOLO.
    FM: reale 2025-26 dove disponibile (est=0); altrimenti stimata dalla quota ufficiale via
    regressione calibrata per ruolo sui giocatori con dati reali (est=1).
