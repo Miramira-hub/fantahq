@@ -31,11 +31,15 @@
    i dati che abbiamo. Quello che segue è un indizio col campione dichiarato, non un peso
    calibrato. Con 1-2 giornate è un sussurro; con 4-5 comincia a essere una voce.
 
-   Uso:  node tools/occasioni.mjs [quotaMax]        (default 12 crediti)
+   Uso:  node tools/occasioni.mjs [quotaMax] [--tutti]
+         quotaMax: soglia di prezzo (default 12 crediti)
+         --tutti:  stampa ogni nome, non solo i primi 10 per famiglia
 */
 import { caricaApp } from "./app.mjs";
 
-const QMAX = +process.argv[2] || 12;
+const ARGS = process.argv.slice(2);
+const TUTTI = ARGS.includes("--tutti");
+const QMAX = +ARGS.find(a => /^d+$/.test(a)) || 12;
 const app = caricaApp();
 const { KBI: P, expFM, advice, ROLE_MEAN, GIORNATE_GIOCATE: G } = app;
 
@@ -60,7 +64,7 @@ const FERMO    = k => k.inj >= 3;         // 4+ giornate di stop: il posto si li
 
 const RUOLO = { P:"Por", D:"Dif", C:"Cen", A:"Att" };
 const TUTTE = G === 1 ? "nella 1ª giornata" : `in tutte e ${G} le giornate`;
-const N_MAX = 10;
+const N_MAX = TUTTI ? Infinity : 10;
 /* Il builder accetta una fantamedia come "reale" già da 5 presenze; sotto le 12 quel numero
    balla, e siccome entra nella FM attesa va detto su cosa si sta scommettendo. */
 const THIN = 12;
@@ -69,14 +73,15 @@ const fmt = k => {
   const v = valore(k), bonus = (k.golOra || k.assOra) ? ` ${k.golOra}g${k.assOra ? "/"+k.assOra+"a" : ""}` : "";
   return `  ${RUOLO[k.r]} ${k.n.padEnd(18)} ${k.t.padEnd(11)} ${String(k.qta).padStart(3)}cr  ` +
     `tit ${String(k.tit).padStart(3)}%  ${k.pvOra}/${G}${bonus.padEnd(7)} ` +
-    `${v >= 0 ? "+" : ""}${v.toFixed(2)} sopra la media ${RUOLO[k.r]}  · ${TIER_IT[tier(k)] || tier(k)}` +
+    /* "-0.45 sopra la media" non si legge: sotto zero cambia la parola, non solo il segno. */
+    `${v >= 0 ? "+" : ""}${v.toFixed(2)} ${v >= 0 ? "sopra" : "SOTTO"} la media ${RUOLO[k.r]}  · ${TIER_IT[tier(k)] || tier(k)}` +
     (k.est ? "  ⚠ fm stimata dalla quota" : k.pres < THIN ? `  ⚠ fm su sole ${k.pres} presenze` : "");
 };
 const sezione = (titolo, spiega, lista) => {
   console.log(`\n${titolo}\n  ${spiega}`);
   if (!lista.length) { console.log("  (nessuno questa settimana)"); return; }
   lista.slice(0, N_MAX).forEach(k => console.log(fmt(k)));
-  if (lista.length > N_MAX) console.log(`  … e altri ${lista.length - N_MAX} oltre i primi ${N_MAX}.`);
+  if (lista.length > N_MAX) console.log(`  … e altri ${lista.length - N_MAX} oltre i primi ${N_MAX} — rilancia con --tutti per vederli.`);
 };
 /* Sotto la media del ruolo non è un'occasione, per quanto costi poco. */
 const utili = l => l.filter(k => valore(k) > 0).sort((a,b) => valore(b) - valore(a));
@@ -124,7 +129,7 @@ console.log(`  quota ≤ ${QMAX}, già a referto, sopra la media del ruolo, con 
 if (!promossi.length) console.log("  (nessuno questa settimana)");
 promossi.slice(0, N_MAX).forEach(({k, davanti}) =>
   console.log(fmt(k) + `\n      ↳ fermo davanti a lui: ${davanti.map(f => `${f.n} (${f.qta}cr)`).join(", ")}`));
-if (promossi.length > N_MAX) console.log(`  … e altri ${promossi.length - N_MAX} oltre i primi ${N_MAX}.`);
+if (promossi.length > N_MAX) console.log(`  … e altri ${promossi.length - N_MAX} oltre i primi ${N_MAX} — rilancia con --tutti per vederli.`);
 
 /* ---- 4. le trappole ----
    Speculare alle occasioni: a settembre si rischia di ricomprare a prezzo pieno chi ad
@@ -139,4 +144,4 @@ sezione(
 
 console.log(`\n────────────────────────────────────────────────────────────`);
 console.log(`Valore e verdetto vengono da expFM/advice di index.html: report e app non possono divergere.`);
-console.log(`Rilancia dopo ogni giornata: node tools/occasioni.mjs [quotaMax]`);
+console.log(`Rilancia dopo ogni giornata: node tools/occasioni.mjs [quotaMax] [--tutti]`);
