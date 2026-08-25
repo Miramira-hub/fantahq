@@ -314,7 +314,7 @@ const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r
   /* stagione IN CORSO: presenze, gol, assist, fantamedia e media voto di quest'anno */
   pvOra:+r[21]||0, golOra:+r[22]||0, assOra:+r[23]||0, fmOra:+r[24]||0, mvOra:+r[25]||0 }));
 /* quante giornate si sono giocate: il massimo delle presenze in giro */
-const GIORNATE_GIOCATE = KB.reduce((m,k)=>Math.max(m,k.pvOra||0), 0);
+const GIORNATE_GIOCATE = KBI.reduce((m,k)=>Math.max(m,k.pvOra||0), 0);   // KBI, non KB: KB e l array grezzo
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */

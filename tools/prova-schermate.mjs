@@ -105,6 +105,23 @@ function prova(nome, azione, verifica) {
     console.log(`  ${nome.padEnd(38)} ${ok ? "ok" : "❌ non fa quello che dovrebbe"}`); if (!ok) problemi++;
   } catch (e) { console.log(`  ${nome.padEnd(38)} ❌ ${e.message}`); problemi++; }
 }
+/* Contenuti, non solo "la pagina si disegna": una schermata può renderizzare benissimo
+   e mostrare la colonna sbagliata. È già successo — GIORNATE_GIOCATE leggeva l'array
+   grezzo invece di quello interpretato, quindi la Rosa continuava a mostrare i dati
+   dell'anno scorso mentre tutti i test passavano. */
+{
+  const giornate = api.KB.reduce((m,r) => Math.max(m, +r[21] || 0), 0);
+  const rosa = api.viste.vRosa();
+  const atteso = giornate
+    ? { ci: ["Pres. · FM", "G+A ora"], nonCi: ["G+A 25-26"] }
+    : { ci: ["G+A 25-26"], nonCi: ["G+A ora"] };
+  const nota = giornate ? `stagione in corso (${giornate} giornate)` : "prima del via";
+  for (const t of atteso.ci)
+    prova(`Rosa mostra "${t}" — ${nota}`, () => {}, () => rosa.includes(t));
+  for (const t of atteso.nonCi)
+    prova(`Rosa NON mostra "${t}"`, () => {}, () => !rosa.includes(t));
+}
+
 const unRivale = st.managers[0].id;
 prova("apri la rosa di un avversario", () => clicca({ openteam: unRivale }), () => api.ui.openTeam === unRivale);
 prova("richiudila", () => clicca({ openteam: unRivale }), () => api.ui.openTeam === "");
