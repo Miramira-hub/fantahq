@@ -83,6 +83,27 @@ const ST26 = mkStat("2025-26");   // stagione appena conclusa: la fonte primaria
 const ST25 = mkStat("2024-25");   // serve solo per la traiettoria (stava crescendo?)
 const ST24 = mkStat("2023-24");   // terza stagione: serve per la traiettoria della media voto
 
+/* ================= STAGIONE IN CORSO 2026-27 =================
+   Il dato che conta davvero, e che cresce ogni settimana. Serve a due cose:
+     1. mostrare gol, assist e media DI QUEST'ANNO invece di quelli dell'anno scorso;
+     2. correggere la titolarità con quello che succede sul campo — la stima di agosto
+        pesa sempre meno man mano che le giornate si accumulano.
+   Si rigenera scaricando le Statistiche da fantacalcio.it dopo ogni giornata. */
+let ST_ORA = new Map(), GIORNATE = 0;
+try {
+  ST_ORA = mkStat("2026-27");
+  for (const v of ST_ORA.values()) if (v.pv > GIORNATE) GIORNATE = v.pv;
+} catch (e) { console.warn("ℹ️ data/statistiche-2026-27.json assente: nessun dato di stagione in corso"); }
+if (GIORNATE) {
+  const attivi = [...ST_ORA.values()].filter(v => v.pv > 0).length;
+  console.log(`stagione in corso: ${GIORNATE} giornate giocate, ${attivi} giocatori con almeno una presenza`);
+}
+/* Quanto pesa il campo rispetto alla stima di agosto. Con una giornata sola il campo
+   dice pochissimo (una squalifica, un turnover, un raffreddore); con dieci dice quasi
+   tutto. Cresce piano e si ferma all'80%: un po' di stima serve sempre, perché le
+   gerarchie cambiano anche dopo venti giornate. */
+const PESO_CAMPO = GIORNATE ? Math.min(0.80, GIORNATE / 12) : 0;
+
 /* Calendario ufficiale 2026-27: entra nel KB così l'app (e la versione single-file
    dell'Artifact) sa chi incontra chi in ogni giornata. Generato e VALIDATO da
    tools/build-calendario.mjs — qui si legge e basta. */
@@ -1070,7 +1091,21 @@ for (const role of ["P","D","C","A"]) {
        Un'annata anomala — in su o in giù — così non domina più la proiezione. */
     const st25p = ST25.get(p.id);
     const fm2 = (hasReal && st25p && st25p.pv >= 15 && st.pv >= 15) ? st25p.fm : 0;
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2}]`;
+
+    /* ---- STAGIONE IN CORSO: il campo corregge la stima ----
+       La titolarità è la probabilità di prendere voto. Sul campo si misura direttamente:
+       presenze / giornate giocate. Si fondono le due con un peso che cresce col campionato.
+       Chi è infortunato NON viene punito due volte: l'assenza è già scontata da `inj`,
+       quindi la correzione si applica solo a chi era disponibile. */
+    const ora = ST_ORA.get(p.id);
+    const pvOra = ora ? ora.pv : 0;
+    const golOra = ora ? ora.gf : 0, assOra = ora ? ora.ass : 0;
+    const mvOra = (ora && ora.pv) ? ora.mv : 0, fmOra = (ora && ora.pv) ? ora.fm : 0;
+    if (GIORNATE && inj < 3) {
+      const daCampo = Math.max(0, Math.min(100, pvOra / GIORNATE * 100));
+      tit = Math.round(tit * (1 - PESO_CAMPO) + daCampo * PESO_CAMPO);
+    }
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }

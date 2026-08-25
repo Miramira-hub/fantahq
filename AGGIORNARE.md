@@ -48,6 +48,29 @@ node tools/build-artifact.mjs <percorso-output.html>
 Prima di rigenerare, confrontare col listone precedente per vedere **nuovi / usciti / cambi
 squadra / cambi ruolo / cambi quota**: sono le informazioni da cui parte la ricerca.
 
+## Giro settimanale (in campionato)
+
+Dopo ogni giornata, in quest'ordine:
+
+1. **Scaricare le Statistiche** da fantacalcio.it (stesso posto delle Quotazioni) e
+   convertirle in `data/statistiche-2026-27.json` con `tools/xlsx-to-json.mjs`.
+   È il dato che fa vivere tutto il resto: presenze, voti, gol e assist di quest'anno.
+2. **Riscaricare le Quotazioni**: durante la stagione cambiano ogni settimana, e sono anche
+   il modo in cui i trasferimenti entrano nel database (un giocatore ceduto compare con la
+   squadra nuova solo qui).
+3. Aggiornare `INJURY` col bollettino del giorno e gli squalificati del giudice sportivo.
+4. Correggere `XI_STATUS` con le **formazioni vere**, non con le probabili: una giornata
+   giocata vale più di dieci articoli di agosto.
+5. `node tools/build-kb.mjs` · `node tools/prova-schermate.mjs` · pubblicare.
+
+**Come il campo corregge la stima.** La titolarità è la probabilità di prendere voto, e sul
+campo si misura direttamente (presenze ÷ giornate). Il builder fonde la stima di agosto con
+il dato reale usando un peso che cresce col campionato — `PESO_CAMPO = min(0.80, giornate/12)`.
+Con una giornata sola pesa l'8%, alla quinta il 42%, dalla dodicesima in poi l'80%. Non
+arriva mai al 100% perché le gerarchie cambiano anche a stagione inoltrata. Chi è
+infortunato è escluso dalla correzione: l'assenza la sconta già `inj`, contarla due volte
+lo affosserebbe.
+
 ## Calendario
 
 `data/calendario-2026-27.json` è **generato e validato** da `tools/build-calendario.mjs`,
