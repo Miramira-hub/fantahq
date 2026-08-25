@@ -711,7 +711,7 @@ const XI_STATUS = {
   "Martinez Jo.":"T","Provedel":"R","Di Gennaro":"R","Dimarco":"T","Akanji":"T","Bastoni":"T",
   "Stones":"B+","Bisseck":"B-","Carlos Augusto":"B-","Pavard":"R","Calhanoglu":"T","Barella":"T",
   "Zielinski":"B+","Diouf":"B-","Sucic P.":"B-","Frattesi":"T","Mkhitaryan":"B-",
-  "Luis Henrique":"B-","Stankovic A.":"R",   // Spence titolare a destra: Diouf e Luis Henrique alternative"Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",
+  "Luis Henrique":"B-","Stankovic A.":"R", "Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",   // Spence titolare a destra: Diouf e Luis Henrique alternative
   "Bonny":"B-",
   /* Juventus (4-2-3-1 Spalletti) */
   "Di Gregorio":"R","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"B+",   // Spalletti lo ha scaricato: aspetta Suzuki
@@ -745,11 +745,11 @@ const XI_STATUS = {
   /* Napoli (4-3-3 Allegri) */
   "Meret":"T","Milinkovic-Savic V.":"B-","Contini":"R","Rrahmani":"T","Di Lorenzo":"T",
   "Spinazzola":"T","Buongiorno":"R","Beukema":"B+","Olivera":"B-","Marin R.":"B-",   // Beukema: arriva Badiashile
-  "Marianucci":"R","Mazzocchi":"R",   // Marianucci: collaterale, stop lungo"McTominay":"T","De Bruyne":"T","Zambo Anguissa":"B-",
+  "Marianucci":"R","Mazzocchi":"R", "McTominay":"T","De Bruyne":"T","Zambo Anguissa":"B-",   // Marianucci: collaterale, stop lungo
   "Politano":"T","Vergara":"B-","Lobotka":"T","Folorunsho":"R","Gilmour":"B-","Hojlund":"T",
   "Santos A.":"T","Neres":"R","Giovane":"B-","Lang":"R","Lucca":"R",
   /* Parma (3-5-2 Cuesta) */
-  "Daffara":"B-","Corvi":"T","Delprato":"T",   // Suzuki chiuso al PSG: Corvi è il titolare"Valeri":"T",
+  "Daffara":"B-","Corvi":"T","Delprato":"T", "Valeri":"T",   // Suzuki chiuso al PSG: Corvi e il titolare
   "Valenti":"B-","Troilo":"T","Britschgi":"B-","Ndiaye":"B-","Carboni F.":"R","Bernabè":"T",
   "Nicolussi Caviglia":"B+","Keita M.":"T","Almqvist":"B-","Sorensen O.":"B-",
   "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"B+","Frigan":"B-",
@@ -945,9 +945,15 @@ const RISERVA = new Set(["R", "B-"]);
    in cui questo testo viene letto di più. */
 const inGior  = g => g === 1 ? "nella 1ª giornata" : `in ${g} giornate`;
 const tutteGior = g => g === 1 ? "nella 1ª giornata" : `in tutte e ${g} le giornate`;
-function campoNote(nome, ora, inj, haInfortunio) {
+/* `stop` = giornate di assenza dal bollettino di OGGI (null se non è in INJURY). Non si usa
+   `inj`, che vale anche 2 per fragilità ereditata dallo storico: De Bruyne ha 35 anni e un
+   passato di infortuni, quindi eredita inj=2 pur essendo sanissimo — e con `inj` al posto di
+   `stop` gli spariva la riga "confermato dal campo" dopo che aveva segnato all'esordio. */
+function campoNote(nome, ora, stop) {
   if (!GIORNATE) return "";
   const g = GIORNATE, pv = ora ? ora.pv : 0;
+  const fermoOra = stop !== null && stop >= 2;      // assenza vera, in corso
+  const inBollettino = stop !== null;               // anche solo un acciacco segnalato oggi
   const xi = XI_STATUS[nome] || "";
   const parti = [];
 
@@ -960,18 +966,18 @@ function campoNote(nome, ora, inj, haInfortunio) {
         che prende voto non è un giocatore "promosso dal campo": è un subentrato, e dirlo al
         contrario contraddirebbe il dato curato a mano (è il caso di Samardzic, entrato ma
         dato dietro a Pasalic proprio dalla formazione vera).
-     3) Chi è fermo per infortunio serio non riceve la riga positiva: aver preso voto prima
-        di rompersi non è una conferma utile a nessuno. */
-  if (pv === g && pv > 0 && inj < 2) {
+     3) Chi è fermo per infortunio serio (2+ giornate nel bollettino di oggi) non riceve la
+        riga positiva: aver preso voto prima di rompersi non è una conferma utile a nessuno. */
+  if (pv === g && pv > 0 && !fermoOra) {
     if (xi === "T")            parti.push(`🟢 Confermato dal campo: ha preso voto ${tutteGior(g)}.`);
     else if (RISERVA.has(xi))  parti.push(`🔄 Le formazioni vere lo danno dietro, ma ha preso voto ${tutteGior(g)}: subentra e porta a casa il voto.`);
     else                       parti.push(`🟢 In campo: ha preso voto ${tutteGior(g)}.`);
   }
   /* L'allarme si tace se c'è un bollettino aperto: l'assenza è già spiegata, ripeterla come
      "gerarchia da verificare" darebbe la colpa al tecnico invece che all'infermeria. */
-  else if (pv === 0 && !haInfortunio && (xi === "T" || xi === "B+"))
+  else if (pv === 0 && !inBollettino && (xi === "T" || xi === "B+"))
     parti.push(`⚠️ Dato ${xi === "T" ? "titolare" : "in ballottaggio"} ad agosto ma non ha ancora preso voto ${inGior(g)}: il campo per ora non lo conferma.`);
-  else if (pv > 0 && pv < g && inj < 2)
+  else if (pv > 0 && pv < g && !fermoOra)
     parti.push(`🔄 ${pv} presenze su ${g}: rotazione, non un titolare fisso.`);
 
   /* --- produzione: solo fatti, e con il campione dichiarato --- */
@@ -1194,7 +1200,7 @@ for (const role of ["P","D","C","A"]) {
        e infine — retrocesso — quel che sopravvive delle note d'asta di agosto.
        Prima il testo d'agosto stava in testa e si leggeva come stato attuale: era la ragione
        per cui l'app diceva "titolare nelle probabili" di gente già scesa in campo. */
-    const campo = campoNote(p.n, ora, inj, !!INJURY[p.n]);
+    const campo = campoNote(p.n, ora, INJURY[p.n] ? INJURY[p.n][0] : null);
     /* CAMPO_NOTE è il giro settimanale: racconta le giornate giocate, quindi non è
        "roba d'asta" e non passa dal filtro né dalla retrocessione. */
     const fatti = CAMPO_NOTE[p.n] || "";
@@ -1229,6 +1235,27 @@ for (const role of ["P","D","C","A"]) {
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }
+}
+
+/* ---- verifica: nessuna voce inghiottita da un commento di riga ----
+   La validazione dei nomi controlla che chi c'è sia scritto giusto, ma non si accorge di chi
+   MANCA. È successo davvero: tre commenti `//` scritti in coda a una riga si sono mangiati le
+   voci che stavano dopo, sulla STESSA riga, e sette titolari (McTominay, De Bruyne, Thuram,
+   Martinez L., Zambo Anguissa, Esposito F.P., Valeri) non entravano in XI_STATUS. Nessun
+   errore e nessun avviso: venivano semplicemente valutati sui soli minuti dell'anno prima,
+   e McTominay si portava dietro una nota sulla caviglia di agosto che il campo aveva smentito.
+   Contare i titolari per squadra non serve — `B+` indica chi è nell'undici ma in ballottaggio,
+   e squadre con pochi "T" sono normali. Il guasto sta nel testo sorgente, e lì si cerca: una
+   coppia "chiave":"valore" dentro un commento di riga non è mai una cosa voluta. */
+{
+  const righe = fs.readFileSync(new URL(import.meta.url), "utf8").split(/\r?\n/);
+  const inghiottite = [];
+  righe.forEach((r, i) => {
+    const c = r.indexOf("//");
+    if (c >= 0 && /"[^"]+"\s*:\s*("|\[|\d)/.test(r.slice(c + 2))) inghiottite.push(i + 1);
+  });
+  if (inghiottite.length)
+    console.warn(`⚠️ VOCI PERSE: un commento // si sta mangiando delle voci di mappa alle righe ${inghiottite.join(", ")} — spostale prima del commento.`);
 }
 
 /* verifica: ogni nome nelle mappe deve esistere nel listone (un typo = dato perso in silenzio) */
