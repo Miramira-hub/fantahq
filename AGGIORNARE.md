@@ -63,6 +63,12 @@ Dopo ogni giornata, in quest'ordine:
    il modo in cui i trasferimenti entrano nel database (un giocatore ceduto compare con la
    squadra nuova solo qui).
 3. Aggiornare `INJURY` col bollettino del giorno e gli squalificati del giudice sportivo.
+   Usare un elenco **squadra per squadra** (Sky pubblica quello degli indisponibili di
+   giornata): vale anche per esclusione, e chi non compare va TOLTO da `INJURY`. È il modo
+   in cui si chiudono le voci vecchie, che altrimenti nessuno pensa ad andare a cercare.
+   Dove una fonte dà una **data di rientro dichiarata**, è quella a decidere le giornate.
+   ⚠️ Sparire da un elenco non è una conferma di rientro: chi viene da un'operazione lunga
+   resta un dubbio dichiarato, non un azzeramento.
 4. Correggere `XI_STATUS` con le **formazioni vere**, non con le probabili: una giornata
    giocata vale più di dieci articoli di agosto.
 5. Scrivere il fatto della giornata in **`CAMPO_NOTE`** (non in `MERCATO_NOTE`): una riga per

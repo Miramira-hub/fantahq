@@ -382,7 +382,6 @@ const MERCATO_NOTE = {
   "Douvikas":"Confermato punta titolare del 4-2-3-1 di Fabregas: titolare e doppietta col Famalicao. Quota 20 giustificata.",
   "Motta":"Titolare nell'amichevole con l'Ostiamare (5 ago) con Mandas in panchina: il ballottaggio in porta alla Lazio è vero e ancora aperto.",
   "Mandas":"⚠️ Ballottaggio aperto: nell'ultima amichevole è partito dalla panchina con Motta titolare. Gattuso non ha ancora dichiarato la gerarchia.",
-  "Bowie":"💎 PROMOSSO dai fatti: Pinamonti è rimasto al Sassuolo ma è INFORTUNATO, quindi il centravanti adesso è lui. Arrivato dal Verona per ~10M. Alla 2ª il Sassuolo riceve il Torino, uno dei turni più morbidi della giornata.",
   /* --- audit giocatore per giocatore, 7 agosto --- */
   "Vigorito":"❌ Svincolato: ha lasciato il Como. Non è più in Serie A.",
   "Maldini":"❌ Passato al Cagliari (prestito 1M + riscatto 8M): non convocato dall'Atalanta il 7 agosto. Lì sarebbe titolare, ma nel listone risulta ancora all'Atalanta.",
@@ -542,6 +541,7 @@ const MERCATO_NOTE = {
    È QUI che si scrive il giro settimanale: una riga per giocatore, il fatto della giornata.
    Le voci vecchie si sovrascrivono, non si accumulano. */
 const CAMPO_NOTE = {
+  "Bowie":"💎 Centravanti titolare nella formazione VERA della 1ª, arrivato dal Verona per ~10M. ⚠️ Ma il motivo è cambiato: Pinamonti è uscito dal bollettino del 25 agosto, quindi il posto non è più libero per infortunio — se lo tiene solo continuando a giocarselo. Alla 2ª il Sassuolo riceve il Torino, uno dei turni più morbidi.",
   "Malen":"💥 TRIPLETTA all'esordio in Roma-Fiorentina 4-0, voto 8,5-9: 'inarrestabile'. Il listone lo ha già premiato portandolo da 34 a 36. È il rigorista e il terminale di Gasperini, servito da Dybala.",
   "Dybala":"💥 TRE ASSIST in Roma-Fiorentina 4-0, voto 8. Titolare sulla trequarti accanto a Mora, sostituito al 79' a partita chiusa. I 3,64 passaggi chiave a partita dell'anno scorso non erano un caso: è il rifornitore di Malen.",
   "Mora":"UFFICIALE alla Roma dal Porto, quota 19. TITOLARE all'esordio sulla trequarti accanto a Dybala (uscito al 54' per Soulè). A 19 anni è il investimento di Gasperini sulla creatività: prezzo alto per uno senza storico in Serie A, ma il posto ce l'ha.",
@@ -571,7 +571,7 @@ const CAMPO_NOTE = {
   "Cichella":"✅ CORREZIONE: titolare in mediana alla 1ª. Lo avevo declassato a riserva quando sono arrivati Grillitsch e Schmid: sbagliato.",
   "Grillitsch":"⚠️ NON titolare all'esordio: in mediana Alvini ha scelto Calò, Fini e Cichella.",
   "Masini":"⚠️ NON titolare all'esordio del Frosinone.",
-  "Pinamonti":"❌ RESTATO al Sassuolo (il mercato non si è mosso) ma INFORTUNATO: fuori insieme a mezza squadra neroverde.",
+  "Pinamonti":"✅ Restato al Sassuolo e USCITO dal bollettino: al 25 agosto non risulta più fermo da nessuna fonte. Ma alla 1ª il centravanti era Bowie e lui non ha preso voto: il posto ora va riconquistato sul campo, non in infermeria.",
   "Laurientè":"✅ RESTATO al Sassuolo, e alla 1ª le pagelle lo indicano come 'un leader'. L'incertezza di mercato è finita.",
   "Leao":"✅ RESTATO al Milan. ⚠️ Ma ha problemi fisici ed è in dubbio per la 2ª: dopo l'estate travagliata la sua stagione rischia di partire in ritardo.",
 };
@@ -652,7 +652,7 @@ const MERCATO_UNC = {
   "Milinkovic-Savic V.":0, "Vigorito":0, "Esposito Se.":0, "Parisi":0, "Konè I.":0,
     /* ancora davvero in bilico a una settimana dalla chiusura */
   "Di Gregorio":3,   // Vicario titolare alla 1ª, lui è dato in partenza verso il Bournemouth
-  "Pinamonti":1      // resta al Sassuolo ma è infortunato: il rischio ora è fisico, non di mercato
+  "Pinamonti":0      // resta al Sassuolo e non è più nel bollettino: né rischio di mercato né fisico, solo gerarchia
 
 };
 
@@ -791,100 +791,86 @@ const XI_ADJ = {
   "R":  t => Math.min(t, 42)
 };
 
-/* ================= INFORTUNATI (ricerca 5 agosto: fantacalcio.it/sosfanta/sky) =================
-   [giornate saltate stimate, nota]. 4+ giornate → inj=3; 2-3 → inj>=2; 0-1 → solo nota. */
-const INJURY = {
-  "Parisi":[10,"❌ Rottura del crociato (maggio 2026), operato a Villa Stuart: rientro atteso a fine 2026. Non prenderlo."],
-  "Konè I.":[14,"❌ Grave infortunio al Mondiale: fuori circa mezza stagione. Non prenderlo."],
-  "Adorante":[6,"Operato alla schiena: rientro non prima di settembre/ottobre."],
-  "Traorè Hj.":[3,"Ancora in riabilitazione dal lungo infortunio del Marsiglia: non disponibile prima di fine agosto/settembre."],
-  "Chakvetadze":[2,"Infortunato, in attesa del via libera per il rientro."],
-  "Sverko":[8,"Operato all'anca: rientro a fine ottobre."],
-  "Buongiorno":[8,"⚠️ Operato al menisco il 21 luglio: le fonti divergono molto (ottobre / metà novembre / dicembre). A Castel di Sangro nessuna accelerazione: rischio alto di perdere mezzo girone."],
-  "Idrissi R.":[7,"Rottura del crociato: rientro tra settembre e fine ottobre."],
-  "Hien":[5,"Operato al tendine della coscia: rientro a inizio ottobre."],
-  "Zanoli":[5,"Lesione del crociato: rientro a ottobre, in dubbio fino alla 5ª."],
-  "Neres":[4,"⚠️ Peggiorato: non ha ancora toccato il pallone e non si è mai allenato in gruppo. Rientro definito 'ancora lontano', tempi non fissati."],
-  "Candè":[4,"Rottura del crociato: rientro tra metà settembre e ottobre."],
-  "Nicolussi Caviglia":[3,"Lesione di medio grado alla coscia (25 luglio): rientro tra inizio e fine settembre."],
-  "Thuram K.":[3,"⚠️ Sindrome femoro-rotulea non risolta: si è presentato col tutore al ginocchio ed è più indietro degli altri acciaccati. Tempi non definiti."],
-  "Holm":[2,"Lesione al soleo: programma di 3-4 settimane, in dubbio fino alla 3ª."],
-  "Pulisic":[2,"Microfrattura al perone con edema osseo: filtra pessimismo per la 1ª, rientro tra fine agosto e inizio settembre."],
-  "Gimenez":[2,"Distorsione di 2° grado alla caviglia (~8 settimane): senza precampionato, in campo verosimilmente da settembre."],
-  "Beukema":[2,"Riacutizzazione della tendinopatia achillea: punta alla 2ª giornata, la 1ª è a forte rischio."],
-  "Berardi":[1,"Sovraccarico alla caviglia, in riatletizzazione: atteso comunque a disposizione per la 1ª."],
-  "Ekhator":[1,"Lesione al bicipite femorale: da valutare per la 1ª giornata."],
-  "Isaksen":[2,"⚠️ Operato di pubalgia a inizio luglio: rientro in gruppo dal 10 agosto ma in campo tra fine agosto e settembre. Salta la 1ª e probabilmente la 2ª."],
-  "Cataldi":[1,"Operato di pubalgia: rientro in gruppo dal 10 agosto, in campo tra fine agosto e settembre."],
-  "Walukiewicz":[0,"Acciaccato: in dubbio per la 1ª giornata."],
-  "Tavares N.":[0,"Infiammazione al ginocchio superata: rientro in gruppo a breve."],
-  "Pellegrini Lu.":[0,"Problema alla caviglia: recupero in corso, dubbio per la 1ª."],
-  "McTominay":[0,"Fastidio alla caviglia in allenamento (4 agosto), out precauzionale in amichevole: recupero pressoché completo, atteso per la 1ª."],
-  "Bisseck":[0,"Forte contusione alla testa nel derby amichevole: escluso il peggio, nessuno stop previsto."],
-  "Gila":[0,"Risentimento al retto femorale senza lesioni: rientrato in anticipo dall'Australia, in gruppo dalla prossima settimana e disponibile per la 1ª."],
-  "Messias":[0,"Recuperato dal problema all'adduttore: a disposizione di De Rossi."],
-  "Malen":[0,"L'assenza era per un attacco influenzale: tornato in gruppo, nessun allarme per la 1ª."],
-  /* --- giro pre-asta 12 agosto: queste righe SOVRASCRIVONO quelle sopra --- */
-  "Marianucci":[6,"❌ Lesione di ALTO GRADO del collaterale mediale del ginocchio sinistro: stop lungo, salta tutto l'avvio. È il motivo per cui il Napoli ha accelerato per Badiashile."],
-  "Sulemana I.":[5,"❌ Lesione del legamento collaterale mediale: rientro atteso a ottobre."],
-  "Konè I.":[18,"❌ Frattura di tibia e perone: rientro indicato a gennaio. Fuori tutto il girone d'andata."],
-  "Kabasele":[2,"⚠️ SQUALIFICATO per 2 giornate: salta l'avvio del campionato."],
-  "Mkhitaryan":[1,"⚠️ Squalificato per la 1ª giornata."],
-  "Britschgi":[1,"⚠️ Squalificato per la 1ª giornata."],
-  "Patric":[1,"Infiammazione: in dubbio per la 1ª giornata."],
-  "Dybala":[1,"La contusione al ginocchio col Newport non è grave e si allena regolarmente: c'è per la 1ª. Resta però il giocatore operato al menisco a marzo 2026 — minutaggio da gestire tutto l'anno."],
-  "Beukema":[2,"⚠️ Riacutizzazione della tendinopatia achillea: punta alla 2ª, la 1ª è a forte rischio. E intanto il Napoli chiude per Badiashile."],
+/* ================= INFORTUNATI — BOLLETTINO DEL 25 AGOSTO 2026, verso la 2ª giornata =====
+   [giornate saltate stimate, nota]. 4+ giornate → inj=3; 2-3 → inj=2; 0-1 → solo nota.
 
-  /* ===== BOLLETTINO DEL 25 AGOSTO, dopo la 1ª giornata =====
-     Fonte: fantacalcio.it/infortunati + fantacalcio.it/squalificati. Queste righe
-     SOVRASCRIVONO tutte quelle sopra: da qui in avanti conta la stagione in corso,
-     non le stime di agosto. */
-  "Yildiz":[10,"❌ FRATTURA AL PIEDE SINISTRO rimediata a Frosinone alla 1ª: si opera, stop stimato fra due e tre mesi col recupero. Rischia di saltare una decina di giornate (Parma, Milan, Sassuolo, Atalanta, Cagliari, Lazio, Lecce, Genoa, Napoli, Fiorentina). Fuori dai giochi fino a novembre."],
-  "Marusic":[2,"❌ Fuori per la 2ª col Genoa: problema muscolare. Uno dei quattro esterni/difensori della Lazio in infermeria."],
-  "Dele-Bashiru":[2,"❌ Fuori per la 2ª: problema muscolare."],
-  "Cataldi":[2,"❌ Fuori per la 2ª: reso noto insieme agli altri acciaccati della Lazio."],
-  "Patric":[2,"❌ Fuori per la 2ª: la Lazio ne perde quattro fra difesa e centrocampo."],
-  "Isaksen":[3,"❌ Ancora out dopo l'operazione di pubalgia: non ha ancora esordito."],
-  "Leao":[1,"⚠️ Problemi fisici: in dubbio per Milan-Venezia della 2ª. Dopo l'estate travagliata la sua stagione rischia di cominciare in ritardo."],
-  "Gimenez":[2,"❌ Distorsione alla caviglia: salta il Venezia."],
-  "Berardi":[2,"❌ Infortunato: il Sassuolo lo perde insieme a mezza squadra (Pinamonti, Candè, Boloca, Pieragnolo, Walukiewicz)."],
-  "Pinamonti":[2,"❌ RESTATO al Sassuolo — il mercato non si è mosso — ma è infortunato e out."],
-  "Boloca":[2,"❌ Infortunato."],
-  "Pieragnolo":[2,"❌ Infortunato."],
-  "Walukiewicz":[2,"❌ Infortunato."],
-  "Candè":[6,"❌ Infortunio lungo."],
-  "Konè I.":[16,"❌ Frattura di tibia e perone: rientro indicato a dicembre."],
-  "Zaniolo":[2,"❌ Problema muscolare: salta il Monza alla 2ª."],
-  "Chakvetadze":[2,"❌ Frattura al piede: rientro a inizio settembre."],
-  "Zanoli":[8,"❌ Recupero dal crociato: disponibile a ottobre."],
-  "Rensch":[1,"⚠️ Stiramento ai flessori: in dubbio per Lecce-Roma della 2ª."],
-  "Addai":[4,"❌ ROTTURA DEL TENDINE D'ACHILLE: rientro stimato a metà settembre nella migliore delle ipotesi."],
-  "Mazzocchi":[1,"⚠️ Sovraccarico al ginocchio: in dubbio per Napoli-Como."],
-  "Buongiorno":[12,"❌ Operato al menisco: obiettivo metà novembre."],
-  "Marianucci":[8,"❌ Lesione di alto grado al legamento del ginocchio: minimo due mesi."],
-  "Nicolussi Caviglia":[2,"❌ Lesione alla coscia: disponibile a inizio settembre."],
-  "Gatti":[1,"⚠️ Problemi fisici: in dubbio per Juventus-Parma."],
-  "Ekhator":[1,"⚠️ Stiramento agli ischiocrurali: in dubbio per Juventus-Parma."],
-  "Casale":[1,"⚠️ Affaticamento muscolare: in dubbio per Atalanta-Bologna."],
-  "Berisha M.":[2,"❌ Infortunio al tendine della coscia: non disponibile questa settimana."],
-  "Ahanor":[1,"⚠️ Stiramento agli adduttori: possibile rientro a fine agosto."],
-  "Sulemana I.":[6,"❌ Lesione al legamento del ginocchio: fuori fino a inizio ottobre."],
-  "Hien":[6,"❌ Operato: rientro a inizio ottobre."],
-  "Kristensen T.":[1,"⚠️ UFFICIALE all'Atalanta (prestito con diritto dall'Udinese) ma problema alla caviglia: in dubbio per il Bologna. Nel listone risulta ancora all'Udinese."],
-  "Idrissi R.":[8,"❌ Recupero dal crociato: disponibile a fine ottobre."],
-  "Parisi":[10,"❌ Crociato: obiettivo novembre."],
-  "Sverko":[8,"❌ Operato all'anca: rientro a fine ottobre."],
-  "Adorante":[6,"❌ Operato alla schiena: tentativo di rientro a ottobre."],
-  "Pessina":[10,"❌ Lussazione al ginocchio: obiettivo novembre."],
-  "Ciurria":[2,"❌ Problema muscolare."],
-  "Colombo":[2,"❌ Problema muscolare."],
-  /* squalifiche per la 2ª giornata (giudice sportivo) */
-  "Kabasele":[1,"⚠️ SQUALIFICATO per la 2ª giornata: è l'unico squalificato di tutta la Serie A."],
-  /* rientrati: chi era in lista ad agosto e ora è a posto */
-  "Mkhitaryan":[0,"Squalifica scontata alla 1ª: ora disponibile, ma resta fuori dagli undici tipo dell'Inter."],
-  "Britschgi":[0,"Squalifica scontata alla 1ª: ora disponibile."],
-  "Pulisic":[0,"Recuperato dalla microfrattura: ha giocato la 1ª."],
-  "Beukema":[1,"⚠️ Non al meglio ma in campo: la tendinopatia achillea resta da gestire."]
+   Fonti incrociate: Sky Sport (elenco squadra per squadra degli indisponibili per la 2ª),
+   FantaMaster (dettaglio sui dubbi) e Fantacalcio-Online (date di rientro dichiarate).
+
+   L'elenco di Sky è COMPLETO squadra per squadra, quindi vale anche per esclusione: chi non
+   c'è è disponibile. È così che si sono chiuse tre voci vecchie che nessuno avrebbe pensato
+   di andare a togliere — Pulisic, Pellegrini Lu. e Dybala non risultano più fermi da nessuna
+   parte, e le loro note d'agosto stavano ancora lì a parlare di dubbi per la 1ª giornata.
+
+   Le giornate si contano DA QUELLA IN ARRIVO. Una data di rientro dichiarata vale più di una
+   stima a parole: dove c'è, è quella che decide il numero. */
+const INJURY = {
+  /* --- Atalanta --- */
+  "Hien":[7,"Lesione muscolare: rientro atteso a ottobre."],
+  "Sulemana I.":[8,"Lesione al collaterale del ginocchio: rientro a metà ottobre."],
+  "Ahanor":[2,"Distrazione agli adduttori: tempi di rientro non ancora fissati."],
+  "Kristensen T.":[0,"Problema fisico in via di risoluzione: possibile recupero già per la 2ª."],
+  /* --- Cagliari --- */
+  "Idrissi R.":[11,"Lesione del crociato anteriore: rientro a novembre."],
+  "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
+  /* --- Como --- */
+  "Addai":[7,"❌ Operato per la rottura del tendine d'Achille sinistro: rientro dichiarato l'11 ottobre."],
+  /* --- Fiorentina --- */
+  "Parisi":[12,"❌ Lesione del legamento crociato anteriore: rientro a fine novembre. Non prenderlo."],
+  /* --- Genoa --- */
+  "Havel":[0,"Problema muscolare in via di risoluzione: possibile recupero per la 2ª."],
+  "Venturino":[3,"In recupero dall'operazione al tendine rotuleo: rientro a metà settembre."],
+  "Traorè Hj.":[0,"Ritardo di condizione ormai colmato: possibile recupero per la 2ª."],
+  "Ostigard":[0,"Fastidio muscolare: dovrebbe essere disponibile per la 2ª."],
+  /* --- Juventus --- */
+  "Yildiz":[9,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
+  "Ekhator":[1,"Lesione al bicipite femorale: in dubbio per la 2ª."],
+  "Gatti":[1,"Stiramento muscolare: in dubbio per la 2ª."],
+  /* --- Lazio --- */
+  "Marusic":[1,"Problema alla coscia rimediato a Bologna: in valutazione per la 2ª."],
+  "Dele-Bashiru":[1,"Problema muscolare: in dubbio per la 2ª."],
+  "Cataldi":[1,"Ancora in fase di recupero atletico: in dubbio per la 2ª."],
+  /* --- Lecce --- */
+  "Gallo":[1,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
+  /* --- Milan --- */
+  "Leao":[1,"⚠️ Risentimento muscolare: da valutare per la 2ª. Dopo un'estate travagliata la sua stagione rischia di partire in ritardo."],
+  "Gimenez":[1,"Distorsione alla caviglia: in dubbio per la 2ª."],
+  /* --- Monza --- */
+  "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
+  /* --- Napoli --- */
+  "Buongiorno":[10,"❌ Operato al menisco: rientro fra fine ottobre e inizio novembre."],
+  "Marianucci":[8,"❌ Lesione di alto grado al collaterale mediale del ginocchio: rientro a metà ottobre."],
+  "Marin R.":[0,"Problema fisico leggero: possibile recupero per la 2ª."],
+  /* Neres non compare in nessun bollettino del 25, ma nemmeno c'è una conferma positiva che
+     sia rientrato: viene da un'operazione alla caviglia (Londra, gennaio 2026) e dal 5 agosto
+     risultava "ancora lontano". Sparire da un elenco di indisponibili non è la stessa cosa
+     che essere arruolabile, quindi resta un dubbio dichiarato invece di un azzeramento. */
+  "Neres":[1,"⚠️ Non risulta più negli indisponibili del 25 agosto, ma manca una conferma che sia tornato in gruppo: viene dall'operazione alla caviglia di gennaio e a inizio agosto i tempi erano ancora indefiniti. Da verificare prima di puntarci."],
+  /* --- Parma --- */
+  "Nicolussi Caviglia":[3,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
+  /* --- Roma --- */
+  "Pellegrini Lo.":[1,"Ricaduta dell'infortunio muscolare al retto femorale destro: rientro dichiarato il 31 agosto."],
+  "Rensch":[1,"Stiramento del flessore: in dubbio per la 2ª."],
+  "Vaz":[3,"Infortunio muscolare: rientro dopo la sosta delle nazionali."],
+  /* Dybala non è fermo — non compare in nessun bollettino di oggi. Resta però la condizione
+     di fondo, che non è una notizia di giornata ma un dato con cui convivere tutto l'anno. */
+  "Dybala":[0,"Giocatore operato al menisco a marzo 2026: il minutaggio va gestito tutto l'anno, il turnover è una certezza più che un rischio."],
+  /* --- Sassuolo --- */
+  "Konè I.":[18,"❌ Frattura di tibia e perone: rientro previsto a gennaio 2027. Non prenderlo."],
+  "Candè":[3,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
+  "Berardi":[1,"Infortunio alla caviglia: da valutare per la 2ª."],
+  /* --- Torino --- */
+  "Zapata D.":[1,"Ancora in fase di recupero fisico: in dubbio per la 2ª."],
+  "Comuzzo":[1,"Affaticamento muscolare leggero: in dubbio per la 2ª."],
+  /* --- Udinese --- */
+  "Kabasele":[1,"⚠️ Squalificato per la 2ª giornata (giudice sportivo, squalifica ereditata)."],
+  "Davis K.":[0,"Affaticamento muscolare: possibile recupero per la 2ª."],
+  "Zaniolo":[6,"⚠️ Stiramento alla coscia destra rimediato alla 1ª. Le fonti divergono: FantaMaster parla di un mese, Sky di rientro a fine ottobre. Nel dubbio, mezzo girone d'andata a rischio."],
+  "Chakvetadze":[2,"Frattura del piede: rientro a inizio settembre."],
+  "Zanoli":[3,"In riabilitazione dal crociato: rientro dopo la sosta delle nazionali."],
+  /* --- Venezia --- */
+  "Sverko":[9,"❌ Problemi alle anche: rientro a fine ottobre."],
+  "Adorante":[9,"❌ Operato alla schiena: rientro a fine ottobre."]
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
