@@ -312,7 +312,9 @@ const norm = s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").
 const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r[5], pres:r[6], gol:r[7], ass:r[8],
   rig:r[9], tit:r[10], up:r[11], inj:r[12], age:r[13], unc:r[14], newT:r[15], note:r[16], extId:r[17]||"", fvm:+r[18]||0, xgd:+r[19]||0, fm2:+r[20]||0,
   /* stagione IN CORSO: presenze, gol, assist, fantamedia e media voto di quest'anno */
-  pvOra:+r[21]||0, golOra:+r[22]||0, assOra:+r[23]||0, fmOra:+r[24]||0, mvOra:+r[25]||0 }));
+  pvOra:+r[21]||0, golOra:+r[22]||0, assOra:+r[23]||0, fmOra:+r[24]||0, mvOra:+r[25]||0,
+  /* stop: quante giornate gli fa saltare il bollettino di oggi (0 = nessuna voce viva) */
+  stop:+r[26]||0 }));
 /* quante giornate si sono giocate: il massimo delle presenze in giro */
 const GIORNATE_GIOCATE = KBI.reduce((m,k)=>Math.max(m,k.pvOra||0), 0);   // KBI, non KB: KB e l array grezzo
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
@@ -362,6 +364,11 @@ function normState(st){                 // ripara uno state caricato da vecchi s
   if(!st.rivalMod || typeof st.rivalMod !== "object") st.rivalMod = {};
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
   st.giornata = Math.max(1, Math.min(38, +st.giornata || 1));
+  /* Preparare la formazione di una giornata GIÀ GIOCATA non serve a niente, e succede da
+     solo: il valore parte da 1 e nessuno pensa a spostarlo, così a settembre il tab
+     Formazione mostrerebbe ancora gli avversari della 1ª. Al caricamento si porta avanti
+     alla prossima da giocare; poi la tendina resta libera per tutta la sessione. */
+  if(st.giornata <= GIORNATE_GIOCATE) st.giornata = Math.min(38, GIORNATE_GIOCATE + 1);
   st.managers = Array.isArray(st.managers) ? st.managers : [];
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
@@ -2425,8 +2432,27 @@ function vFormazione(){
     const d = difficoltaTurno(p.role, p.team, g);
     return d ? { val: d.val, avv: d.avv, casa: d.casa } : { val: 3 };
   };
+  /* ---- disponibilità: la sa già il database ----
+     Prima veniva SOLO da `state.avail`, la tendina che l'utente compila a mano: quindi chi
+     non la compilava schierava tranquillamente un infortunato. La FM attesa toglie 0.20 a
+     chi è fermo da un mese, che non basta neanche lontanamente a farlo scendere dai titolari.
+     Ora il bollettino decide da solo — `inj` si aggiorna a ogni giro e comprende anche le
+     squalifiche — e la scelta a mano resta più forte, perché chi guarda le probabili la sera
+     prima ne sa più del database. */
+  const dispAuto = k => {
+    if(!k) return "ok";
+    /* Quante giornate mancano da qui a quella che stai preparando: 1 = la prossima. Chi il
+       bollettino ferma per almeno quel numero non c'è. Un giocatore fermo 1 giornata è OUT
+       per la prossima ma torna disponibile se stai guardando più avanti. */
+    const via = Math.max(1, (state.giornata||1) - GIORNATE_GIOCATE);
+    if(k.stop >= via) return "out";
+    /* Voce nel bollettino senza uno stop dichiarato: è un acciacco, non un forfait. */
+    if(k.stop === 0 && (k.note||"").startsWith("⚕️")) return "dubbio";
+    return k.inj>=3 ? "out" : k.inj===2 ? "dubbio" : "ok";
+  };
+  const dispDi = p => (state.avail||{})[p.id] || dispAuto(kbFor(p));
   const score = p=>{
-    const av = (state.avail||{})[p.id]||"ok";
+    const av = dispDi(p);
     if(av==="out") return -99;
     const k = kbFor(p), a = advice(k);
     const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
@@ -2435,7 +2461,12 @@ function vFormazione(){
   const sections = ROLES.map(r=>{
     const list = my.filter(p=>p.role===r).map(p=>({p, sc:score(p)})).sort((a,b)=>b.sc-a.sc);
     const rows = list.map((x,i)=>{
-      const av = (state.avail||{})[x.p.id]||"ok";
+      const kx = kbFor(x.p);
+      const av = dispDi(x.p);
+      /* Se l'esclusione arriva dal bollettino e non dall'utente, va detto DOVE l'ha letta:
+         un giocatore che sparisce dai titolari senza spiegazione sembra un errore dell'app. */
+      const daBollettino = !(state.avail||{})[x.p.id] && dispAuto(kx) !== "ok";
+      const perche = daBollettino && kx && kx.note ? kx.note.split(/(?<=\.)\s/)[0] : "";
       const tit = i<need[r] && x.sc>-50;
       return `
       <div class="xirow ${tit?"tit":""}">
@@ -2443,6 +2474,7 @@ function vFormazione(){
           return d.avv ? ` · ${d.casa?"in casa con":"a"} <b style="color:${DIFF_COLOR(d.val)}">${esc(d.avv)}</b>` : ` · avv. ${"●".repeat(Math.round(d.val))}`;})()}</span></span>
         <select data-avail="${x.p.id}" title="Disponibilità">${[["ok","✓ gioca"],["dubbio","? dubbio"],["out","✗ out"]].map(([v,l])=>`<option value="${v}" ${av===v?"selected":""}>${l}</option>`).join("")}</select>
         <span class="sc">${x.sc<=-50?"—":x.sc.toFixed(1)}</span>
+        ${daBollettino?`<span class="badge f1" title="${esc(perche)}">⚕️ dal bollettino</span>`:""}
         ${tit?'<span class="badge mine">TITOLARE</span>':av==="out"?'<span class="badge gone">out</span>':`<span class="badge">panchina ${i-need[r]+1}</span>`}
       </div>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} — servono ${need[r]}</h3><div class="xi">${rows||'<div class="empty">Nessuno in rosa.</div>'}</div>`;
@@ -2450,7 +2482,7 @@ function vFormazione(){
   return `
   <div class="card">
     <h2>Formazione consigliata${CAL?` — ${g}ª giornata`:""}</h2>
-    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per la <b>difficoltà del turno presa dal calendario</b> e per la disponibilità (✓/?/✗). Segna "out" infortunati e squalificati: escono dai titolari. Verifica sempre le probabili formazioni.</p>
+    <p class="sub">Punteggio = tuo voto (se inserito) oppure FM attesa del motore, corretto per la <b>difficoltà del turno presa dal calendario</b> e per la disponibilità. <b>Infortunati e squalificati escono da soli</b>, letti dal bollettino del database (⚕️): la tendina serve solo a correggerlo, e la tua scelta vince sempre. Verifica comunque le probabili formazioni la sera prima.</p>
     <div class="toolbar">
       ${CAL?`<label>Giornata <select id="giornataSel">${Array.from({length:38},(_,i)=>i+1).map(n=>`<option value="${n}" ${g===n?"selected":""}>${n}ª</option>`).join("")}</select></label>`:""}
       <label>Modulo <select id="modSel">${Object.keys(MODULES).map(m=>`<option value="${m}" ${state.lineup.module===m?"selected":""}>${m}${ruleMod()!=="no"&&MODULES[m].D<MOD_MIN_DIF?" ⚠️":""}</option>`).join("")}</select></label>

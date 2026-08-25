@@ -792,7 +792,11 @@ const XI_ADJ = {
 };
 
 /* ================= INFORTUNATI — BOLLETTINO DEL 25 AGOSTO 2026, verso la 2ª giornata =====
-   [giornate saltate stimate, nota]. 4+ giornate → inj=3; 2-3 → inj=2; 0-1 → solo nota.
+   [giornate che salta DI SICURO, nota]. 4+ → inj=3; 2-3 → inj=2; 0-1 → solo nota.
+
+   Il numero e una CERTEZZA, non un rischio: una squalifica vale 1, un "da valutare" vale 0.
+   Il tab Formazione ci si appoggia per escludere -- se un dubbio valesse 1, Leao finirebbe
+   in panchina come se fosse fermo, mentre merita solo il malus da incerto.
 
    Fonti incrociate: Sky Sport (elenco squadra per squadra degli indisponibili per la 2ª),
    FantaMaster (dettaglio sui dubbi) e Fantacalcio-Online (date di rientro dichiarate).
@@ -824,17 +828,17 @@ const INJURY = {
   "Ostigard":[0,"Fastidio muscolare: dovrebbe essere disponibile per la 2ª."],
   /* --- Juventus --- */
   "Yildiz":[9,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
-  "Ekhator":[1,"Lesione al bicipite femorale: in dubbio per la 2ª."],
-  "Gatti":[1,"Stiramento muscolare: in dubbio per la 2ª."],
+  "Ekhator":[0,"Lesione al bicipite femorale: in dubbio per la 2ª."],
+  "Gatti":[0,"Stiramento muscolare: in dubbio per la 2ª."],
   /* --- Lazio --- */
-  "Marusic":[1,"Problema alla coscia rimediato a Bologna: in valutazione per la 2ª."],
-  "Dele-Bashiru":[1,"Problema muscolare: in dubbio per la 2ª."],
-  "Cataldi":[1,"Ancora in fase di recupero atletico: in dubbio per la 2ª."],
+  "Marusic":[0,"Problema alla coscia rimediato a Bologna: in valutazione per la 2ª."],
+  "Dele-Bashiru":[0,"Problema muscolare: in dubbio per la 2ª."],
+  "Cataldi":[0,"Ancora in fase di recupero atletico: in dubbio per la 2ª."],
   /* --- Lecce --- */
-  "Gallo":[1,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
+  "Gallo":[0,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
   /* --- Milan --- */
-  "Leao":[1,"⚠️ Risentimento muscolare: da valutare per la 2ª. Dopo un'estate travagliata la sua stagione rischia di partire in ritardo."],
-  "Gimenez":[1,"Distorsione alla caviglia: in dubbio per la 2ª."],
+  "Leao":[0,"⚠️ Risentimento muscolare: da valutare per la 2ª. Dopo un'estate travagliata la sua stagione rischia di partire in ritardo."],
+  "Gimenez":[0,"Distorsione alla caviglia: in dubbio per la 2ª."],
   /* --- Monza --- */
   "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
   /* --- Napoli --- */
@@ -850,7 +854,7 @@ const INJURY = {
   "Nicolussi Caviglia":[3,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
   /* --- Roma --- */
   "Pellegrini Lo.":[1,"Ricaduta dell'infortunio muscolare al retto femorale destro: rientro dichiarato il 31 agosto."],
-  "Rensch":[1,"Stiramento del flessore: in dubbio per la 2ª."],
+  "Rensch":[0,"Stiramento del flessore: in dubbio per la 2ª."],
   "Vaz":[3,"Infortunio muscolare: rientro dopo la sosta delle nazionali."],
   /* Dybala non è fermo — non compare in nessun bollettino di oggi. Resta però la condizione
      di fondo, che non è una notizia di giornata ma un dato con cui convivere tutto l'anno. */
@@ -858,10 +862,10 @@ const INJURY = {
   /* --- Sassuolo --- */
   "Konè I.":[18,"❌ Frattura di tibia e perone: rientro previsto a gennaio 2027. Non prenderlo."],
   "Candè":[3,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
-  "Berardi":[1,"Infortunio alla caviglia: da valutare per la 2ª."],
+  "Berardi":[0,"Infortunio alla caviglia: da valutare per la 2ª."],
   /* --- Torino --- */
-  "Zapata D.":[1,"Ancora in fase di recupero fisico: in dubbio per la 2ª."],
-  "Comuzzo":[1,"Affaticamento muscolare leggero: in dubbio per la 2ª."],
+  "Zapata D.":[0,"Ancora in fase di recupero fisico: in dubbio per la 2ª."],
+  "Comuzzo":[0,"Affaticamento muscolare leggero: in dubbio per la 2ª."],
   /* --- Udinese --- */
   "Kabasele":[1,"⚠️ Squalificato per la 2ª giornata (giudice sportivo, squalifica ereditata)."],
   "Davis K.":[0,"Affaticamento muscolare: possibile recupero per la 2ª."],
@@ -1094,6 +1098,10 @@ for (const role of ["P","D","C","A"]) {
        oggi, oggi ha ragione: altrimenti un infortunio del 2025-26 già guarito continuerebbe
        a escluderlo dai consigliati (stesso motivo per cui i rigoristi non si ereditano). */
     let inj  = o ? o.inj : 0;
+    /* Quante giornate gli fa saltare il BOLLETTINO DI OGGI. Serve per la formazione: `inj`
+       e una scala di rischio 0-3 e non distingue "salta la prossima" da "storicamente
+       fragile" — con quella sola, Kabasele squalificato per la 2a risultava schierabile. */
+    const stop = INJURY[p.n] ? INJURY[p.n][0] : 0;
     let injNote = "";
     const ora = ST_ORA.get(p.id);                       // stagione in corso: serve già qui
     if (INJURY[p.n]) {
@@ -1235,7 +1243,7 @@ for (const role of ["P","D","C","A"]) {
       const daCampo = Math.max(0, Math.min(100, pvOra / GIORNATE * 100));
       tit = Math.round(tit * (1 - PESO_CAMPO) + daCampo * PESO_CAMPO);
     }
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra}]`;
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra},${stop}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }

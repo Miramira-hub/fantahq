@@ -23,6 +23,7 @@ fantahq/
 │   ├── app.mjs                    # carica l'app fuori dal browser: UN motore solo, non copie
 │   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
 │   ├── prova-download.mjs         # i rami del salvataggio file (link classico vs capacità Artifact)
+│   ├── prova-formazione.mjs       # la formazione esclude davvero infortunati e squalificati
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti
 │   ├── xlsx-to-json.mjs           # converte un .xlsx estratto in JSON
 │   └── build-artifact.mjs         # genera la versione single-file per l'Artifact
@@ -176,7 +177,7 @@ Tutto dentro `tools/build-kb.mjs`:
 | Note di mercato | `MERCATO_NOTE` | il testo d'asta: da qui in poi viene filtrato e messo in coda dietro `· Ad agosto:` |
 | Trattative aperte | `MERCATO_UNC` | 2 = futuro in bilico → "da monitorare"; azzerare a mercato chiuso |
 | Probabili XI 2026-27 | `XI_STATUS` | T/B+/B-/R per giocatore; corregge la titolarità dai minuti vecchi |
-| Infortunati attuali | `INJURY` | [giornate saltate, nota]; 4+ → inj=3, 2-3 → inj=2 |
+| Infortunati e squalificati | `INJURY` | [giornate che salta **di sicuro**, nota]; 4+ → inj=3, 2-3 → inj=2. Il numero è una certezza: una squalifica vale 1, un "da valutare" vale 0. Il tab Formazione ci si appoggia per escludere |
 | Minuti esteri nuovi | `EXTRA_US` | stesse colonne di understat; xG=gol dove non verificato (nessun segnale finto) |
 | Rigoristi | `RIG` | 2 = primo, 1 = alternativa. **Non c'è eredità dallo storico**: chi non è in mappa non tira rigori, quindi la mappa va tenuta completa per tutte e 20 le squadre |
 | Gerarchie portieri | `GK_RANK` | serve come spareggio: quota e FVM spesso non distinguono |
@@ -261,5 +262,5 @@ copre — verifica che le schermate si disegnino, non che un file venga consegna
 - `node --check data/kb.js` e caricamento reale (il generatore già valida l'output)
 - Titolarità: nessun consigliato con poche presenze o da riserva
 - Prezzi: la somma dei prezzi dei giocatori assegnati deve avvicinarsi a `budget × squadre`
-- `node tools/prova-schermate.mjs` e `node tools/prova-download.mjs` verdi
+- `node tools/prova-schermate.mjs`, `prova-download.mjs` e `prova-formazione.mjs` verdi
 - Aprire l'app e girare tutti i tab senza errori in console
