@@ -578,6 +578,11 @@ const MERCATO_NOTE = {
    È QUI che si scrive il giro settimanale: una riga per giocatore, il fatto della giornata.
    Le voci vecchie si sovrascrivono, non si accumulano. */
 const CAMPO_NOTE = {
+  "Ahanor":"❌ CEDUTO al Chelsea (48M) e girato al Crystal Palace per la stagione: FUORI dalla Serie A. Non prenderlo.",
+  "Kabasele":"Le due assenze sono spiegate: squalifica ereditata, scontata. Dalla 3ª è di nuovo disponibile.",
+  "Mina":"⚠️ 0 presenze in 2 giornate e NESSUNA spiegazione nelle fonti (né infortunio né squalifica): il capitano che non gioca è un segnale che il prezzo non racconta. Chiarire prima di pagarlo.",
+  "Kaiki":"⚠️ Mai in campo nelle prime due giornate: la previsione d'agosto (titolare a sinistra su Valle) è stata rovesciata dal campo — gioca Valle. Solo da ultimo slot.",
+  "Valle":"Ha vinto sul campo il ballottaggio con Kaiki: in campo in entrambe le giornate sulla sinistra del Como.",
   /* ===== 2ª GIORNATA (28-30 agosto, 8 gare; Atalanta-Bologna e Lecce-Roma stasera) ===== */
   "Ramos G.":"Primo gol in campionato nella 2ª (Milan-Venezia 2-0). Con Leao e Nkunku ceduti all'estero, l'attacco del Milan è suo.",
   "Raimondo":"💥 DOPPIETTA al Franchi nella 2ª: Fiorentina-Frosinone 0-3. È lui a guidare l'attacco della neopromossa.",
@@ -647,7 +652,8 @@ const CAMPO_NOTE = {
    situazioni davvero aperte. Da azzerare a mercato chiuso. */
 const MERCATO_UNC = {
   "Kean": 2,        // accordo col Como (35M+5) ma NON ancora ufficiale: dove gioca si sa domani
-  "Fofana Y.": 3    // cessione al Lione in finalizzazione: sta uscendo dalla Serie A
+  "Fofana Y.": 3,   // cessione al Lione in finalizzazione: sta uscendo dalla Serie A
+  "Ahanor": 3       // ceduto al Chelsea (48M) e girato al Crystal Palace: fuori dalla Serie A
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -670,7 +676,7 @@ const XI_STATUS = {
      Carnesecchi; Zappacosta, Scalvini, Kossounou, Bernasconi; Pasalic, Gaetano, Ederson;
      Zalewski, Raspadori; Scamacca. Krstovic entrato nella ripresa e decisivo. */
   "Carnesecchi":"T","Sportiello":"R","Scalvini":"T","Hien":"R","Zappacosta":"T",
-  "Ahanor":"B-","Bellanova":"B-","Bernasconi":"T","Kolasinac":"B-","Kossounou":"T",
+  "Ahanor":"R","Bellanova":"B-","Bernasconi":"T","Kolasinac":"B-","Kossounou":"T",
   "Ederson D.S.":"T","Samardzic":"B-","Pasalic":"T","Gaetano":"T","Zalewski":"B+","De Roon":"B-",
   "Sulemana I.":"R","Scamacca":"T","Krstovic":"B+","De Ketelaere":"B+","Raspadori":"T",
   "Sulemana K.":"R","Vismara":"R",
@@ -686,7 +692,7 @@ const XI_STATUS = {
   "Esposito Se.":"R","Mutandwa":"B+","Borrelli":"B-","Mendy P.":"T","Trepy":"R",
   "Maldini":"B+","Kevin Carlos":"B+","Aurelio":"B-",   // Cagliari: attacco rifatto dopo l'addio di Esposito
   /* Como (4-2-3-1 Fabregas) */
-  "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"B+","Valle":"B-","Kempf":"B-",   // Kaiki favorito su Valle a sinistra; Chalobah davanti a Kempf
+  "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"R","Valle":"B+","Kempf":"B-",   // il campo ha rovesciato agosto: Valle 2 presenze su 2, Kaiki zero
   "Smolcic I.":"R","Van Der Brempt":"B-","Goldaniga":"R","Paz N.":"T",
   "Baturina":"T","Da Cunha":"T","Rodriguez Je.":"B+","Perrone":"T","Caqueret":"B-","Liberali":"R",
   "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+",
@@ -808,10 +814,10 @@ const XI_ADJ = {
    Le giornate si contano DA QUELLA IN ARRIVO. Una data di rientro dichiarata vale più di una
    stima a parole: dove c'è, è quella che decide il numero. */
 const INJURY = {
+  "Walukiewicz":[1,"Infortunato (con Boloca e Konè): ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
   /* --- Atalanta --- */
   "Hien":[4,"Lesione al semitendinoso: rientro dichiarato l'11 ottobre."],
   "Sulemana I.":[8,"Lesione al collaterale del ginocchio: rientro a metà ottobre."],
-  "Ahanor":[2,"Distrazione agli adduttori: tempi di rientro non ancora fissati."],
   "Kristensen T.":[0,"Problema fisico in via di risoluzione: possibile recupero già per la 2ª."],
   /* --- Cagliari --- */
   "Idrissi R.":[11,"Lesione del crociato anteriore: rientro a novembre."],
@@ -1028,6 +1034,18 @@ function ripulisci(txt) {
    Le Quotazioni si scaricano al mattino, le ufficialità arrivano nel pomeriggio: chi si è
    mosso DOPO l'export risulta ancora nella squadra vecchia. Qui si corregge la squadra
    (la quota resta quella del file: è l'unica che esiste). Solo UFFICIALI, mai accordi. */
+/* Chi è entrato nel listone (o ha cambiato squadra) SOLO il 31 agosto: l'unico gruppo che
+   davvero non poteva giocare le prime due giornate con la squadra attuale. L'esenzione dalla
+   correzione dal campo vale per loro e basta: un Kaiki, al Como da inizio agosto e mai in
+   campo in due giornate, la correzione se la merita tutta — 0 presenze È il segnale. */
+const ARRIVATI_COL_LISTONE_31 = new Set([
+  "Perri","Grabara","Mrozek","Theate","Balerdi","Tchato","Kambwala","Macchioni","Lulli",
+  "Maye","Drobnic","Dembelè A.","Kessiè","Gonzalez N.","Foe Ondoa","Mout","Ciervo",
+  "Bobcek","Birligea","Ngonge","Fatah",
+  "Van Der Brempt","Njie","De Roon","Fabbian","Ricci S.","Folorunsho","Ilic",
+  "Esposito Se.","Pinamonti","Mazzocchi","Ziolkowski"
+]);
+
 const TRASFERIMENTI_POST_LISTONE = {
   "Mazzocchi": "Venezia",     // dal Napoli, prestito con obbligo salvezza — ufficiale
   "Ziolkowski": "Monza"       // dalla Roma, prestito con diritto — ufficiale
@@ -1250,7 +1268,7 @@ for (const role of ["P","D","C","A"]) {
        Appena prende voto rientra nella correzione come tutti. Imprecisione accettata e
        dichiarata: newT copre anche chi è arrivato PRIMA della 1ª (Kevin Carlos) — per quei
        casi resta il ⚠️ della sezione trappole, che qui non viene toccata. */
-    if (GIORNATE && inj < 3 && !(newT && !pvOra)) {
+    if (GIORNATE && inj < 3 && !(ARRIVATI_COL_LISTONE_31.has(p.n) && !pvOra)) {
       const gSq = Math.max(1, giornateDi(p.t));
       const daCampo = Math.max(0, Math.min(100, pvOra / gSq * 100));
       const pesoSq = Math.min(0.80, gSq / 12);
