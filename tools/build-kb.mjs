@@ -206,7 +206,7 @@ const GK_RANK = {
   "Frosinone":["Palmisani","Desplanches","Lolic"],
   "Genoa":["Bijlow","Stolz","Sommariva"],
   "Inter":["Martinez Jo.","Provedel","Di Gennaro"],
-  "Juventus":["Di Gregorio","Perin","Pinsoglio"],
+  "Juventus":["Vicario","Grabara","Pinsoglio"],
   "Lazio":["Mandas","Motta","Renzetti"],
   "Lecce":["Falcone","Samooja"],
   "Milan":["Maignan","Terracciano","Torriani"],
@@ -215,8 +215,8 @@ const GK_RANK = {
   "Parma":["Corvi","Daffara","Suzuki"],   // Suzuki in chiusura al PSG: Corvi titolare in amichevole
   "Roma":["Svilar","Gollini","De Marzi"],
   "Sassuolo":["Muric","Turati","Satalino","Russo A."],
-  "Torino":["Paleari","Mascardi","Siviero"],   // il vero titolare sarà Perri (dal Leeds), non nel listone
-  "Udinese":["Okoye","Padelli","Piana"],
+  "Torino":["Perri","Paleari","Mascardi","Siviero"],   // Perri UFFICIALE e nel listone dal 31/8
+  "Udinese":["Okoye","Mrozek","Padelli","Piana"],
   "Venezia":["Stankovic F.","Grandi","Pozzi"]
 };
 const gkRank = p => { const l = GK_RANK[p.t] || []; const i = l.findIndex(n => norm(n) === norm(p.n)); return i < 0 ? 99 : i; };
@@ -246,7 +246,7 @@ const rankTit = (p) => {
 const RIG = {
   "Calhanoglu":2, "Martinez L.":1, "Zielinski":1,                       // Inter: unanime
   "Kolo Muani":1, "Locatelli":1, "Yildiz":1,                            // Juve: gerarchia APERTA (Yildiz non più designato)
-  "Pulisic":1, "Ramos G.":1, "Nkunku":1,                                // Milan: aperta (Ramos primo per 1 fonte, Pulisic per 2)
+  "Pulisic":1, "Ramos G.":1,                                // Milan: aperta (Ramos primo per 1 fonte, Pulisic per 2)
   "Malen":2, "Dybala":1, "Soulè":1, "Castro S.":1,                      // Roma: Malen ha scavalcato Dybala
   "Scamacca":2, "De Ketelaere":1, "Samardzic":1,                        // Atalanta
   "Orsolini":2, "Dovbyk":1, "Bernardeschi":1,                           // Bologna: Dovbyk insidia (27/32 in carriera)
@@ -255,7 +255,7 @@ const RIG = {
   "Zaccagni":2, "Cataldi":1, "Taylor K.":1,                             // Lazio: unanime
   "De Bruyne":2, "Hojlund":1,                                           // Napoli: designato dopo l'addio di Lukaku
   "Bernabè":2, "Valeri":1,                                              // Parma: Bernabè designato + punizioni e corner (Pellegrino ceduto alla Fiorentina, dove dal dischetto va Gudmundsson)
-  "Berardi":2, "Pinamonti":1, "Laurientè":1,                            // Sassuolo: unanime
+  "Berardi":2, "Laurientè":1,                            // Sassuolo: unanime
   "Vlasic":2, "Kulenovic":1, "Zapata D.":1, "Simeone":1,                // Torino: unanime
   "Davis K.":2, "Solet":1, "Zaniolo":1, "Ekkelenkamp":1,                // Udinese: unanime
   "Colombo":2, "Messias":1, "Vitinha O.":1,                             // Genoa
@@ -291,7 +291,6 @@ const NOTE = {
   "Alajbegovic":"Giovane bosniaco pagato caro dal Leverkusen: talento vero ma nessun minuto in Serie A, spazio da conquistare. Scommessa, non certezza.",
   "Stones":"Ufficiale all'Inter dal Manchester City: qualità assoluta nella difesa meno battuta del campionato, ma storico di infortuni e nessun dato in A.",
   "Ratkov":"Nuovo attaccante della Lazio: quota media, titolarità da verificare con Gattuso.",
-  "Nkunku":"Tra i rigoristi del Milan (17/20 in carriera dal dischetto): se conquista spazio con Amorim, i bonus arrivano.",
   "Akanji":"Dal Manchester City all'Inter: difesa più solida del campionato, clean sheet probabili.",
   "Stones":"Dal Manchester City all'Inter a parametro zero: qualità assoluta, da valutare la tenuta fisica.",
   "Camarda":"Passato al Milan: talento 19enne, ma davanti ha Ramos e Nkunku — titolarità da conquistare.",
@@ -301,7 +300,6 @@ const NOTE = {
   "Zaccagni":"Primo rigorista della Lazio, capitano: bonus garantiti dal dischetto.",
   "Scamacca":"Primo rigorista dell'Atalanta di Sarri; 4° per FM 25-26 ma storia clinica pesante.",
   "Krstovic":"npxG/90 0.63: generatore di occasioni efficiente.",
-  "Leao":"Quota crollata (18): il mercato lo dà in uscita, ma se resta a questo prezzo è un affare. Verifica prima dell'asta.",
   "Zaniolo":"All'Udinese con quota alta: rilancio da verificare sul campo.",
   "Atta":"Passato alla Fiorentina con quota raddoppiata (8→17): fisico e inserimenti, il mercato ci crede.",
   "Gila":"Al Milan: 3° difensore per FM 25-26 (7.26), con Amorim però meno clean sheet della Lazio."
@@ -325,10 +323,7 @@ const MERCATO_NOTE = {
   "Joao Mario":"In prestito alla Fiorentina dalla Juventus: quota minima, riserva.",
   "Adzic":"In prestito al Sassuolo dalla Juventus: nelle probabili è favorito per la terza maglia di centrocampo.",
   "Doekhi":"Titolare fisso all'Union Berlino (34 su 34, 5 gol quasi tutti di testa/piazzati): colpo a zero, titolare nelle probabili della Lazio.",
-  "Leao":"Il Milan ha RIFIUTATO il Galatasaray (30M+5, ne chiede 50) e il Fenerbahçe non è arrivato a 40: il giocatore non ha mai aperto alla Turchia. Al 6 agosto RESTA. Recuperato fisicamente, ma nel derby è partito dalla panchina. A quota 18 il rapporto qualità/prezzo è tra i migliori del listone.",
   "Kolo Muani":"⚠️ Stagione 25-26 pessima: 1 gol in 30 presenze al Tottenham (xG 2.69). Alla Juve da prima punta di Spalletti, in A aveva fatto bene, ma a quota 26 il rischio è tutto tuo.",
-  "Nkunku":"Titolare nelle probabili sulla trequarti, MA il Milan lo ha messo sul mercato (~40M) dopo un 25-26 fuori dai meccanismi: futuro incerto, verifica prima dell'asta.",
-  "Di Gregorio":"⚠️ Situazione a due facce: gioca lui le amichevoli (titolare in Juve-Chelsea del 5 ago) e una fonte lo dà confermato, ma il mercato racconta altro — la Juve punta Suzuki in prestito dal PSG, con Vicario e Atubolu come alternative. Se arriva il nuovo, lui parte.",
   "Corvi":"Con Suzuki in partenza verso il PSG è il candidato titolare del Parma: titolare nell'amichevole con l'Arezzo. A quota 1 è il tipo di scommessa che costa nulla.",
   "Esposito Se.":"Ceduto dal Cagliari (al suo posto arriva Maldini): non sarà in Serie A, non prenderlo.",
   "Maldini":"✅ Ora nel listone col CAGLIARI (prestito 1M + riscatto a 8): lascia l'Atalanta dove non giocava e lì si gioca il posto in attacco. A quota 5 è una delle scommesse migliori del listone.",
@@ -397,7 +392,6 @@ const MERCATO_NOTE = {
   "Baturina":"💎 Promosso titolare sulla trequarti del Como e secondo rigorista: quota 19 ma con un ruolo da protagonista.",
   "Perrone":"Titolare in mediana nel Como di Fabregas, insidiato da Caqueret e Milla ma davanti a entrambi.",
   "Paz N.":"✅ RESTA al Como: accordo col Real Madrid del 29 giugno, la recompra slitta al 2027-28. Batte le punizioni.",
-  "Morata":"Riscattato dal Milan: resta al Como come alternativa a Douvikas, non come titolare.",
   "Bartesaghi":"Promosso titolare come quinto di sinistra nel 3-4-2-1 di Amorim: 20 anni, quota 8 per un posto da titolare del Milan.",
   "Gabbia":"Titolare nel terzetto Gila-Gabbia-Pavlovic secondo le probabili di agosto.",
   "Modric":"40 anni: ancora in ballottaggio con Jashari per la mediana, il minutaggio andrà gestito.",
@@ -464,15 +458,12 @@ const MERCATO_NOTE = {
   "Cancellieri":"✅ Nessuna offerta concreta e, con Isaksen fermo dalla pubalgia, la Lazio ha congelato la cessione: resta, e con Isaksen out ha spazio nelle prime giornate.",
   "Pinamonti":"⚠️ C'è il SÌ DEL GIOCATORE alla Lazio: il Sassuolo chiede ~15M, manca l'intesa tra i club e la Lazio deve prima cedere (mercato bloccato dalle uscite). Se si sblocca parte e a Sassuolo tocca a Bowie; se resta è il titolare. Al 12 agosto è la situazione più incerta del listone.",
   "Laurientè":"⚠️ Il Sassuolo chiede sempre 25M e NON è arrivata nessuna offerta convincente (Fenerbahce, Besiktas, ora anche l'Ipswich): al 12 agosto è più probabile che resti, ma il club lo ha messo in vetrina. Titolare e sui piazzati da sinistra se rimane.",
-  "Leao":"✅ La permanenza è ormai lo scenario più probabile: Galatasaray e Fenerbahce non sono arrivati ai 50-60M chiesti dal Milan, il portoghese non ha mai aperto alla Turchia e oggi ha parlato pubblicamente di concentrazione sul campo. A quota 18 resta il miglior rapporto qualità/prezzo del listone — ricorda però che nel derby è partito dalla panchina.",
-  "Nkunku":"⚠️ Zahavi cerca offerte da almeno 40M ma nessuna trattativa è concreta: al 12 agosto è ancora al Milan e nelle probabili è titolare sulla trequarti. Rischio reale ma non imminente.",
   "Tomori":"⚠️ In uscita: Coventry, Newcastle e Liverpool su di lui, il Milan si siede davanti a 15-20M. Giovedì 13 c'è il summit Cardinale-Amorim che decide le cessioni. A quota 7 il rischio è concreto.",
   "Fofana Y.":"⚠️ Fuori dal progetto e cercato da Crystal Palace, Marsiglia e Besiktas (valutazione 20-25M): da evitare.",
   "Loftus-Cheek":"⚠️ Contratto in scadenza 2027 e tentato dal ritorno in Premier: sulla lista dei cedibili del Milan.",
   "Ricci S.":"⚠️ Il Milan cede uno tra lui e Musah: situazione da chiarire al summit del 13 agosto.",
   "Musah":"⚠️ Il Milan cede uno tra lui e Ricci: situazione da chiarire al summit del 13 agosto.",
   "Estupinan":"⚠️ Il Milan gli sta cercando una sistemazione: fuori dai piani di Amorim.",
-  "Di Gregorio":"❌ Spalletti lo ha scaricato pubblicamente ('continuiamo ad avere la stessa idea') dopo le papere delle amichevoli, e la Juve aspetta solo il via libera del PSG per il prestito di Suzuki. A quota 9 è il portiere da NON prendere.",
   "Corvi":"Con Suzuki ceduto al PSG (operazione chiusa) è il portiere titolare del Parma: a quota 1 è il tipo di scommessa che costa nulla.",
   "Dybala":"Titolare sulla trequarti con punizioni e corner, secondo rigorista dietro Malen. ⚠️ Ma RODRIGO MORA sta arrivando dal Porto: un trequartista con le sue stesse caratteristiche, preso proprio per quel ruolo. Con 32 anni e quel passato, la gestione del minutaggio è certa.",
   "Pellegrini Lo.":"Capitano della Roma con rinnovo di un anno, ma ⚠️ nelle formazioni tipo di Gasperini parte dietro, e con l'arrivo di Rodrigo Mora sulla trequarti il suo spazio si riduce ancora: a quota 10 non conviene.",
@@ -532,6 +523,34 @@ const MERCATO_NOTE = {
   "Calò":"⚠️ ATTENZIONE, la sua situazione è cambiata oggi: è il rigorista designato del Frosinone, ma con Grillitsch e Schmid ufficiali il centrocampo giallazzurro diventa affollato (Calò, Hasa, Koutsoupias, Masini più i due austriaci per tre maglie). I rigori restano il motivo per prenderlo, il posto non è più scontato.",
   "Masini":"Regista arrivato dal Genoa a titolo definitivo (~5M, quadriennale) e dato titolare dalle fonti dedicate. ⚠️ Ma con Grillitsch ufficiale oggi — un regista di 31 anni con carriera in Bundesliga ed Eredivisie — quel posto è ora in ballottaggio vero.",
   "Hasa":"Titolare in mediana nelle formazioni tipo del Frosinone. ⚠️ Con Grillitsch e Schmid ufficiali il reparto è passato a sei giocatori per tre maglie: verifica prima di puntarci.",
+  /* ===== ULTIMO GIORNO DI MERCATO, 31 agosto (il mercato chiude domani) ===== */
+  "Pinamonti":"Ceduto alla LAZIO nell'ultimo giorno di mercato: gerarchie d'attacco tutte da scrivere con Dia e Ratkov. Il sì del giocatore c'era da agosto, ora è ufficiale.",
+  "Esposito Se.":"✅ TORNA in Serie A: preso dal SASSUOLO nell'ultimo giorno di mercato (era stato ceduto dal Cagliari). Gerarchie da verificare dietro Bowie e Laurientè.",
+  "Kessiè":"UFFICIALE all'Atalanta: mezzala di peso, esperienza da Milan e carriera in Premier/Arabia. Si gioca il posto con Ederson e Pasalic — a quota 12 il nome vale più del posto garantito.",
+  "Gonzalez N.":"UFFICIALE alla Juventus (lo scambio con Frattesi non si è mai fatto: è arrivato lo stesso). Gol al debutto: vedi il fatto della giornata.",
+  "Theate":"UFFICIALE al Bologna: centrale titolare in Belgio/Francia, arriva per guidare la difesa. A quota 8 profilo solido.",
+  "Balerdi":"UFFICIALE alla Roma dal Marsiglia: centrale con esperienza, nel sistema Gasperini dove i difensori fanno bonus. A quota 6 interessante.",
+  "De Roon":"⚠️ Passato alla ROMA a 35 anni: esperienza in mediana ma Cristante e Konè davanti. Ruolo di rotazione.",
+  "Perri":"✅ ORA NEL LISTONE (quota 9): il titolare del Torino, come previsto. Le mani su cui puntare per la porta granata.",
+  "Paleari":"Con Perri ufficiale e nel listone è il DODICESIMO del Torino: non più da prendere se non come riserva a 1.",
+  "Ngonge":"Al Monza in prestito: qualità da Serie A per la neopromossa, si gioca il posto con Cutrone e Mota.",
+  "Bobcek":"Attaccante preso dal Frosinone: quota 9 e FVM alto dicono che il club ci crede, ma Raimondo (doppietta alla 2ª) è in forma.",
+  "Fatah":"Esterno offensivo al Lecce: prospetto, spazio da conquistare.",
+  "Lulli":"✅ ORA NEL LISTONE a quota 1: il giovane che Gasperini ha schierato titolare a destra nella 1ª. A un credito è la scommessa più economica della Roma.",
+  "Folorunsho":"Al Monza dal Napoli: fisico e inserimenti, probabile titolare in mediana per la neopromossa.",
+  "Fabbian":"Al Parma: mezzala d'inserimento, si gioca una maglia con Keita e Bernabè accanto.",
+  "Ilic":"Al Lecce dal Torino: regista tecnico, probabile titolare nella mediana salentina.",
+  "Van Der Brempt":"Al Sassuolo dal Como: fascia destra, ruolo da conquistare.",
+  "Njie":"Alla Fiorentina dal Torino: giovane esterno, rotazione.",
+  "Ricci S.":"Al Como dal Milan: mediana affollata con Perrone e Caqueret, rotazione.",
+  "Kambwala":"Al Como: centrale giovane, dietro Ramon e Chalobah.",
+  "Camarda":"Con Leao e Nkunku CEDUTI all'estero è la prima alternativa a Ramos: il minutaggio in attacco c'è, a 5 crediti.",
+  "Pulisic":"⚠️ Non ha ancora preso voto e il Milan ha ceduto Leao e Nkunku: quando rientra, i piazzati e la trequarti sono suoi. A quota 24 serve fiducia sul recupero.",
+  "Grabara":"Vice di Vicario alla Juventus: solo da ultimo slot.",
+  "Mrozek":"Terzo portiere dell'Udinese: non prenderlo.",
+  "Birligea":"Seconda punta del Frosinone: dietro Raimondo e Bobcek.",
+  "Tchato":"Terzino del Frosinone: rotazione.",
+  "Mout":"Centrocampista del Monza: FVM alto per la quota, da monitorare.",
 };
 
 /* ================= NOTE DELLA STAGIONE IN CORSO =================
@@ -541,6 +560,25 @@ const MERCATO_NOTE = {
    È QUI che si scrive il giro settimanale: una riga per giocatore, il fatto della giornata.
    Le voci vecchie si sovrascrivono, non si accumulano. */
 const CAMPO_NOTE = {
+  /* ===== 2ª GIORNATA (28-30 agosto, 8 gare; Atalanta-Bologna e Lecce-Roma stasera) ===== */
+  "Ramos G.":"Primo gol in campionato nella 2ª (Milan-Venezia 2-0). Con Leao e Nkunku ceduti all'estero, l'attacco del Milan è suo.",
+  "Raimondo":"💥 DOPPIETTA al Franchi nella 2ª: Fiorentina-Frosinone 0-3. È lui a guidare l'attacco della neopromossa.",
+  "Bracaglia":"In gol al Franchi nella 2ª, nel clamoroso 0-3 del Frosinone.",
+  "Ekkelenkamp":"Gol nella 2ª dopo l'assist nella 1ª: con Zaniolo fuori fino a ottobre la trequarti dell'Udinese è sua.",
+  "Kamara H.":"Secondo gol in due giornate: un difensore che segna a questo ritmo si paga da solo.",
+  "Piotrowski":"In gol nella 2ª (Monza-Udinese 2-3).",
+  "Colpani":"In gol nella 2ª: primo squillo nel Monza.",
+  "Varela G.":"Secondo gol in due giornate: chiede spazio da titolare nel Monza.",
+  "Volpato":"In gol nella 2ª contro il Torino: il posto di Konè se lo sta prendendo lui.",
+  "Berardi":"✅ Tornato dalla caviglia e SUBITO IN GOL nella 2ª (decisivo nel 2-1 al Torino): nessuno strascico.",
+  "Comuzzo":"In gol nella 2ª a Sassuolo (unico squillo del Torino).",
+  "Gonzalez N.":"Gol al DEBUTTO in Juve-Parma 2-0: arrivato dal mercato e subito titolare e decisivo.",
+  "Koopmeiners":"✅ RIBALTONE: era fuori dall'XI e dato cedibile, nella 2ª è rientrato e ha SEGNATO (Juve-Parma 2-0). A quota 5 il rischio è quasi zero.",
+  "Baturina":"In gol al Maradona nella 2ª: il Como ha espugnato Napoli 2-1.",
+  "Douvikas":"Gol-vittoria al Maradona nella 2ª: il Como di Fabregas fa sul serio, e lui è il terminale.",
+  "Hojlund":"In gol nella 2ª (unico del Napoli nella sconfitta col Como).",
+  "Calhanoglu":"In gol al 9' a Cagliari: ha deciso lui la 2ª dell'Inter.",
+  "Frattesi":"Secondo gol in due giornate: alla Lazio gioca E segna, esattamente il motivo del trasferimento.",
   "Bowie":"💎 Centravanti titolare nella formazione VERA della 1ª, arrivato dal Verona per ~10M. ⚠️ Ma il motivo è cambiato: Pinamonti è uscito dal bollettino del 25 agosto, quindi il posto non è più libero per infortunio — se lo tiene solo continuando a giocarselo. Alla 2ª il Sassuolo riceve il Torino, uno dei turni più morbidi.",
   "Malen":"💥 TRIPLETTA all'esordio in Roma-Fiorentina 4-0, voto 8,5-9: 'inarrestabile'. Il listone lo ha già premiato portandolo da 34 a 36. È il rigorista e il terminale di Gasperini, servito da Dybala.",
   "Dybala":"💥 TRE ASSIST in Roma-Fiorentina 4-0, voto 8. Titolare sulla trequarti accanto a Mora, sostituito al 79' a partita chiusa. I 3,64 passaggi chiave a partita dell'anno scorso non erano un caso: è il rifornitore di Malen.",
@@ -548,7 +586,6 @@ const CAMPO_NOTE = {
   "Soulè":"⚠️ DECLASSATO dalla 1ª giornata: è entrato al 54' al posto di Mora, non ha iniziato. Il posto sulla trequarti se lo giocano in tre con Dybala e Mora.",
   "Molina N.":"⚠️ NON titolare all'esordio: a destra Gasperini ha scelto il giovane Lulli. L'acquisto dall'Atletico non ha ancora il posto.",
   "Vicario":"✅ IL PORTIERE DELLA JUVENTUS: preso dal Tottenham e titolare subito a Frosinone, con Di Gregorio dato in partenza verso il Bournemouth. Quota 16: la questione portiere bianconero è chiusa, ed è lui.",
-  "Di Gregorio":"❌ FUORI DAI GIOCHI: Vicario titolare alla 1ª e lui è in partenza verso il Bournemouth. Non prenderlo.",
   "Celik":"✅ CORREZIONE (avevo sbagliato): titolare all'esordio come TERZINO SINISTRO al posto di Cambiaso, non come dodicesimo di Kalulu. Spalletti lo usa davvero.",
   "Douglas Luiz":"✅ CORREZIONE: titolare in mediana accanto a Locatelli nella 1ª giornata. Non era 'fuori dall'XI' come indicavano le fonti d'agosto.",
   /* Yildiz: l'infortunio lo racconta già INJURY, qui basta l'effetto sul valore */
@@ -573,87 +610,13 @@ const CAMPO_NOTE = {
   "Masini":"⚠️ NON titolare all'esordio del Frosinone.",
   "Pinamonti":"✅ Restato al Sassuolo e USCITO dal bollettino: al 25 agosto non risulta più fermo da nessuna fonte. Ma alla 1ª il centravanti era Bowie e lui non ha preso voto: il posto ora va riconquistato sul campo, non in infermeria.",
   "Laurientè":"✅ RESTATO al Sassuolo, e alla 1ª le pagelle lo indicano come 'un leader'. L'incertezza di mercato è finita.",
-  "Leao":"✅ RESTATO al Milan. ⚠️ Ma ha problemi fisici ed è in dubbio per la 2ª: dopo l'estate travagliata la sua stagione rischia di partire in ritardo.",
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
+/* Mercato CHIUSO (1° settembre): niente più trattative aperte. La mappa resta per il
+   mercato di riparazione di gennaio — si riapre lì, non prima. */
 const MERCATO_UNC = {
-  "Frattesi":2,      // scambio con Nico Gonzalez solo "allo studio": non fatto
-  "Leao":2,          // Milan ha rifiutato il Galatasaray, ma il mercato resta aperto
-  "Di Gregorio":2,   // gioca lui le amichevoli, ma la Juve tratta Suzuki
-  "Nkunku":2,        // il Milan ascolta offerte (chiede 35-40M)        // PSG vicino alla chiusura, poi prestito alla Juventus
-  "Esposito Se.":3,  // ceduto dal Cagliari
-  "Milinkovic-Savic V.":2, // in uscita dal Napoli (accostato all'Hull City)
-  "Pinamonti":2,     // cedibile dopo l'arrivo di Bowie        // rapporto col Napoli in deterioramento
-  "Vigorito":3,      // svincolato dal Como
-  "Lucumì":2,        // la Juventus insiste (offerti Miretti e Cabal)
-  "Romagnoli":2,     // trattativa Al-Sadd congelata ma non chiusa
-  "Cancellieri":2,   // sul mercato (Torino, Parma, Fiorentina)
-  "Gimenez":2,       // il Milan chiede 25-30M, Porto in pressing
-  "Zalewski":2,      // fuori dalle probabili, possibile prestito
-  "Koopmeiners":2,   // dichiarato cedibile dalla Juventus
-  "David":2,         // dichiarato cedibile dalla Juventus
-  "Zhegrova":2,      // dichiarato cedibile dalla Juventus
-  "Douglas Luiz":2,  // rientrato dal prestito, in uscita
-  /* --- audit 7 agosto, tutte e 20 le squadre --- */
-  "Piccoli":3,       // cessione al Bologna in chiusura
-  "Parisi":3,        // crociato: fuori fino a fine 2026
-  "Konè I.":3,       // grave infortunio al Mondiale: mezza stagione
-  "Laurientè":2,     // in uscita, il Sassuolo chiede 25M (Fenerbahce, Besiktas, Premier)
-  "Ghedjemis":2,     // il Monaco ha offerto 7M+2, rilancio atteso
-  "Koutsoupias":2,   // obiettivo del Torino
-  "Fabbian":2,       // in uscita, Lazio in pressing
-  "Folorunsho":2,    // in uscita: Bologna, Monza, Torino
-  "Lang":2,          // esubero del Napoli
-  "Lucca":2,         // esubero del Napoli
-  "Mazzocchi":2,     // messo sul mercato dal Napoli
-  "Zambo Anguissa":2,// rinnovo in stallo, possibile cessione
-  "Adams C.":2,      // indiziato numero uno alla cessione al Torino
-  "Ilic":2,          // fuori dal progetto, cessione prioritaria
-  "Aboukhlal":2,     // fuori dal progetto
-  "Anjorin":2,       // sulla lista dei cedibili
-  "Ilkhan":2,        // niente rinnovo, ritorno in Turchia possibile
-  "Biraghi":2,       // ai margini, possibile cessione
-  "Pavard":2,        // fuori dal progetto Inter
-  "Gollini":2,       // trattativa con la Cremonese
-  "Pongracic":2,     // cedibile davanti a offerte importanti
-  "Thorstvedt":2,    // possibile partenza, nessuna trattativa avanzata
-  /* --- giro pre-asta 12 agosto: queste righe SOVRASCRIVONO quelle sopra --- */        // fatta col Fenerbahce: fuori dalla Serie A
-  "Lucumì":3,        // accordo totale col giocatore-Juventus, si tratta col Bologna
-  "Kristensen T.":3, // in chiusura all'Atalanta: nel listone è ancora all'Udinese
-  "Luis Henrique":2, // accordo Inter-Roma sui 30M, manca il sì del giocatore
-  "Frattesi":2,      // prestito alla Lazio: contatti avanzati tra i club
-  "Pinamonti":2,     // c'è il sì del giocatore alla Lazio, manca l'intesa tra i club
-  "Tomori":2,        // Coventry, Newcastle e Liverpool: il Milan apre a 15-20M
-  "Fofana Y.":2,     // Crystal Palace, Marsiglia, Besiktas: valutazione 20-25M
-  "Loftus-Cheek":2,  // sulla lista dei cedibili del Milan
-  "Ricci S.":2,      // il Milan cede uno tra lui e Musah
-  "Musah":2,         // il Milan cede uno tra lui e Ricci
-  "Estupinan":2,     // il Milan gli cerca una sistemazione
-  "Pellegrino M.":3, // alla Fiorentina: nel listone risulta ancora al Parma
-  "Piccoli":3,       // al Bologna: nel listone risulta ancora alla Fiorentina
-  "Leao":1,          // nessuno arriva ai 50-60M chiesti dal Milan: la permanenza è lo scenario probabile
-  "Ghedjemis":0,     // richiesta salita a 20M, rifiutati Monaco/Celtic/Rangers: resta
-  "Cancellieri":0,   // congelata: con Isaksen infortunato la Lazio non lo cede
-  "Douglas Luiz":0,  // Spalletti: "molto probabilmente resta"
-  "Laurientè":1,     // nessuna offerta convincente, ma resta in vetrina
-  /* ===== 25 AGOSTO, dopo la 1ª giornata =====
-     Il mercato chiude il 1° settembre e il listone nuovo ha già registrato i trasferimenti:
-     chi ha cambiato squadra ORA è nella squadra giusta, quindi l'incertezza va tolta —
-     lasciarla lo penalizzerebbe due volte. Restano segnati solo i casi ancora aperti. */
-  "Lucumì":0, "Kristensen T.":0, "Frattesi":0, "Pellegrino M.":0, "Piccoli":0, "Fadera":0,
-  "Nkunku":0, "Laurientè":0, "Leao":0, "Gimenez":0, "Tomori":0, "Fofana Y.":0,
-  "Loftus-Cheek":0, "Ricci S.":0, "Musah":0, "Estupinan":0, "Cancellieri":0, "Ghedjemis":0,
-  "Douglas Luiz":0, "Koopmeiners":0, "David":0, "Zhegrova":0, "Romagnoli":0, "Pavard":0,
-  "Zambo Anguissa":0, "Mazzocchi":0, "Lang":0, "Lucca":0, "Folorunsho":0, "Fabbian":0,
-  "Koutsoupias":0, "Adams C.":0, "Ilic":0, "Aboukhlal":0, "Anjorin":0, "Ilkhan":0,
-  "Biraghi":0, "Gollini":0, "Pongracic":0, "Thorstvedt":0, "Luis Henrique":0,
-  "Milinkovic-Savic V.":0, "Vigorito":0, "Esposito Se.":0, "Parisi":0, "Konè I.":0,
-    /* ancora davvero in bilico a una settimana dalla chiusura */
-  "Di Gregorio":3,   // Vicario titolare alla 1ª, lui è dato in partenza verso il Bournemouth
-  "Pinamonti":0      // resta al Sassuolo e non è più nel bollettino: né rischio di mercato né fisico, solo gerarchia
-
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -661,6 +624,16 @@ const MERCATO_UNC = {
    B- = ballottaggio sfavorito · R = riserva chiara. Applicata DOPO il calcolo della
    titolarità dai minuti: le gerarchie nuove contano più della stagione scorsa. */
 const XI_STATUS = {
+  /* --- nuovi del listone del 31 agosto e fatti della 2ª (8 gare giocate; Atalanta-Bologna
+     e Lecce-Roma si giocano stasera, dopo l'asta: per quelle squadre vale ancora la 1ª) --- */
+  "Perri":"T","Grabara":"R","Mrozek":"R",
+  "Gonzalez N.":"T",                                    // gol al debutto in Juve-Parma
+  "Kessiè":"B+","De Roon":"B-","Theate":"B+","Balerdi":"B+","Lulli":"B+",
+  "Ngonge":"B+","Folorunsho":"B+","Mout":"B-","Foe Ondoa":"R","Maye":"R",
+  "Bobcek":"B+","Birligea":"B-","Tchato":"B-",
+  "Esposito Se.":"B-","Van Der Brempt":"B-","Macchioni":"R",
+  "Kambwala":"B-","Ricci S.":"B-","Njie":"B-","Fabbian":"B+","Drobnic":"R",
+  "Ilic":"B+","Fatah":"B-","Dembelè A.":"R","Ciervo":"R",
   /* Atalanta (4-3-3 Sarri) */
   /* riscritta sulla formazione VERA di Atalanta-Sassuolo 2-1 (1a giornata):
      Carnesecchi; Zappacosta, Scalvini, Kossounou, Bernasconi; Pasalic, Gaetano, Ederson;
@@ -677,16 +650,15 @@ const XI_STATUS = {
   "Ferguson":"T","Pobega":"B+","Amondarain":"R","Moro N.":"B+","Dominguez B.":"R",
   "El Azzouzi O.":"R","Dovbyk":"T",
   /* Cagliari (4-4-2 Pisacane) */
-  "Caprile":"T","Sherri":"R","Mina":"T","Obert":"T","Kofler":"B-","Zè Pedro":"B+",
-  "Zappa":"B-","Rodriguez Ju.":"B+","Idrissi R.":"B-","Fazzini":"T","Adopo":"T",
-  "Winks":"T","Romano":"B+","Felici":"B-","Prati":"B-","Deiola":"B-","Liteta":"R",
+  "Caprile":"T","Sherri":"R","Mina":"T","Obert":"T","Kofler":"B-","Zè Pedro":"B+","Rodriguez Ju.":"B+","Idrissi R.":"B-","Fazzini":"T","Adopo":"T",
+  "Winks":"T","Romano":"B+","Felici":"B-","Deiola":"B-","Liteta":"R",
   "Esposito Se.":"R","Mutandwa":"B+","Borrelli":"B-","Mendy P.":"T","Trepy":"R",
   "Maldini":"B+","Kevin Carlos":"B+","Aurelio":"B-",   // Cagliari: attacco rifatto dopo l'addio di Esposito
   /* Como (4-2-3-1 Fabregas) */
   "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"B+","Valle":"B-","Kempf":"B-",   // Kaiki favorito su Valle a sinistra; Chalobah davanti a Kempf
   "Smolcic I.":"R","Van Der Brempt":"B-","Goldaniga":"R","Paz N.":"T",
   "Baturina":"T","Da Cunha":"T","Rodriguez Je.":"B+","Perrone":"T","Caqueret":"B-","Liberali":"R",
-  "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+","Morata":"B-",
+  "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+",
   "Kuhn":"R","Azon":"R","Couto":"B+","Chalobah T.":"B+",
   /* Fiorentina (4-3-2-1 Grosso) */
   "De Gea":"T","Christensen O.":"R","Lezzerini":"R","Dodò":"B+","Dragusin":"T","Jimenez A.":"B+",
@@ -695,16 +667,14 @@ const XI_STATUS = {
   "Fabbian":"R","Brescianini":"R","Kean":"B+","Piccoli":"B-","Mastantuono":"T",   // Kean 51-49 su Pellegrino; Piccoli venduto al Bologna
   /* Frosinone (4-2-3-1 Alvini) */
   "Palmisani":"B+","Desplanches":"B-","Lolic":"R","Monterisi":"T","Bracaglia":"T","Oyono A.":"T",
-  "Calvani":"B+","Akpoguma":"B-","Cittadini":"T","Amey":"R","Oyono J.":"R",
-  "Corrado":"R","Calò":"T","Zerbin":"B-","Cichella":"T","Koutsoupias":"B-","Gelli F.":"B-",
+  "Calvani":"B+","Akpoguma":"B-","Cittadini":"T","Amey":"R","Calò":"T","Zerbin":"B-","Cichella":"T","Koutsoupias":"B-","Gelli F.":"B-",
   "Hasa":"B-","El Azzouzi A.":"B-","Kone B.":"R","Ghedjemis":"T","Raimondo":"T","Kvernadze":"B+",
   /* Schmid (8.5M dal Werder) e Grillitsch (a zero) ufficiali il 12 agosto: il centrocampo
      passa a sei giocatori per tre maglie, quindi tutti gli altri scendono di un gradino. */
   "Schmid":"T","Grillitsch":"B-","Masini":"B-",
   /* Genoa (3-4-2-1 De Rossi) */
   "Bijlow":"T","Sommariva":"R","Stolz":"R","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T",
-  "Marcandalli":"T","Martin":"B-","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-",
-  "Matturro":"R","Baldanzi":"B+","Frendrup":"T","Ellertsson":"B-","Meichtry":"B-",
+  "Marcandalli":"T","Martin":"B-","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-","Baldanzi":"B+","Frendrup":"T","Ellertsson":"B-","Meichtry":"B-",
   "Traorè Hj.":"B-","Amorim":"B-","Messias":"R","Masini":"B-","Venturino":"R","Colombo":"T",
   "Vitinha O.":"B+","Havel":"B-","Sow":"T",
   /* Inter (3-5-2 Chivu) */
@@ -713,11 +683,10 @@ const XI_STATUS = {
   "Zielinski":"B+","Diouf":"B-","Sucic P.":"B-","Frattesi":"T","Mkhitaryan":"B-",
   "Luis Henrique":"B-","Stankovic A.":"R", "Martinez L.":"T","Thuram":"T","Esposito F.P.":"B-",   // Spence titolare a destra: Diouf e Luis Henrique alternative
   "Bonny":"B-",
-  /* Juventus (4-2-3-1 Spalletti) */
-  "Di Gregorio":"R","Perin":"R","Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"B+",   // Spalletti lo ha scaricato: aspetta Suzuki
+  /* Juventus (4-2-3-1 Spalletti) */"Pinsoglio":"R","Bremer":"T","Kalulu":"T","Cambiaso":"B+",   // Spalletti lo ha scaricato: aspetta Suzuki
   "Celik":"T","Kelly L.":"T","Gatti":"B-","Rugani":"R","Cabal":"R","McKennie":"T",   // Kelly titolare in tutte le fonti; Celik insidia Kalulu a destra
   "Alajbegovic":"B-","Conceicao":"T","Thuram K.":"B+","Locatelli":"T","Zhegrova":"R",
-  "Koopmeiners":"R","Douglas Luiz":"T","Miretti":"R","Kolo Muani":"T","Yildiz":"T","David":"R",
+  "Koopmeiners":"B+","Douglas Luiz":"T","Kolo Muani":"T","Yildiz":"T","David":"R",
   "Boga":"R","Ekhator":"R",
   /* Lazio (4-3-3 Gattuso) */
   "Mandas":"T","Motta":"R","Renzetti":"R","Doekhi":"T","Romagnoli":"B-","Tavares N.":"B+",   // Gattuso ha confermato Mandas titolare, Motta vice
@@ -736,9 +705,9 @@ const XI_STATUS = {
   "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
-  "Ramos G.":"T","Leao":"B+","Nkunku":"B+","Gimenez":"R","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
+  "Ramos G.":"T","Gimenez":"R","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
   /* Monza (3-4-2-1 Juric) */
-  "Thiam":"T","Pizzignacco":"R","Strajnar":"R","Mangas":"T","Delli Carri":"B+","Lucchesi":"B-",   // ballottaggio con Delli Carri, non promosso
+  "Thiam":"T","Strajnar":"R","Mangas":"T","Delli Carri":"B+","Lucchesi":"B-",   // ballottaggio con Delli Carri, non promosso
   "Birindelli":"T","Kouadio":"B+","Carboni A.":"B+","Antov":"R","Bakoune":"R","Colpani":"T",
   "Pessina":"T","Akinsanmiro":"B+","Colombo L.":"B-","Ciurria":"B-","Cutrone":"T","Mota":"B+",
   "Varela G.":"B-","Robinson J.":"R",
@@ -763,10 +732,9 @@ const XI_STATUS = {
   "Muric":"T","Russo A.":"R","Turati":"B-","Idzes":"T","Walukiewicz":"T","Doig":"T",
   "Candè":"B-","Missori":"B+","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
   "Matic":"T","Adzic":"B-","Bakola":"B-","Boloca":"B-","Lipani":"B-","Iannoni":"R","Berardi":"T",   // Lipani in ballottaggio, non titolare
-  "Laurientè":"T","Pinamonti":"R","Bowie":"T","Satalino":"R","Dominguez B.":"R",
+  "Laurientè":"T","Pinamonti":"B+","Bowie":"T","Satalino":"R","Dominguez B.":"R",
   /* Torino (3-4-2-1 Abate) — il titolare in porta sarà Perri, non presente nel listone */
-  "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T",
-  "Pedersen":"T","Comert":"B-","Biraghi":"R","Vlasic":"T","Casadei":"T","Oristanio":"T",
+  "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T","Comert":"B-","Biraghi":"R","Vlasic":"T","Casadei":"T","Oristanio":"T",
   "Cacciamani":"T","Gineitis":"B-","Fitz-Jim":"B+","Ilkhan":"R","Njie":"R","Aboukhlal":"R",
   "Ilic":"R","Anjorin":"R","Simeone":"T","Adams C.":"B-","Zapata D.":"B-","Kulenovic":"B-",
   /* Udinese (3-4-2-1 Runjaic) */
@@ -810,7 +778,7 @@ const XI_ADJ = {
    stima a parole: dove c'è, è quella che decide il numero. */
 const INJURY = {
   /* --- Atalanta --- */
-  "Hien":[7,"Lesione muscolare: rientro atteso a ottobre."],
+  "Hien":[4,"Lesione al semitendinoso: rientro dichiarato l'11 ottobre."],
   "Sulemana I.":[8,"Lesione al collaterale del ginocchio: rientro a metà ottobre."],
   "Ahanor":[2,"Distrazione agli adduttori: tempi di rientro non ancora fissati."],
   "Kristensen T.":[0,"Problema fisico in via di risoluzione: possibile recupero già per la 2ª."],
@@ -818,16 +786,16 @@ const INJURY = {
   "Idrissi R.":[11,"Lesione del crociato anteriore: rientro a novembre."],
   "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
   /* --- Como --- */
-  "Addai":[7,"❌ Operato per la rottura del tendine d'Achille sinistro: rientro dichiarato l'11 ottobre."],
+  "Addai":[4,"❌ Operato per la rottura del tendine d'Achille sinistro: rientro dichiarato l'11 ottobre."],
   /* --- Fiorentina --- */
-  "Parisi":[12,"❌ Lesione del legamento crociato anteriore: rientro a fine novembre. Non prenderlo."],
+  "Parisi":[8,"❌ Lesione del legamento crociato anteriore: rientro a fine novembre. Non prenderlo."],
   /* --- Genoa --- */
   "Havel":[0,"Problema muscolare in via di risoluzione: possibile recupero per la 2ª."],
   "Venturino":[3,"In recupero dall'operazione al tendine rotuleo: rientro a metà settembre."],
   "Traorè Hj.":[0,"Ritardo di condizione ormai colmato: possibile recupero per la 2ª."],
   "Ostigard":[0,"Fastidio muscolare: dovrebbe essere disponibile per la 2ª."],
   /* --- Juventus --- */
-  "Yildiz":[9,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
+  "Yildiz":[11,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
   "Ekhator":[0,"Lesione al bicipite femorale: in dubbio per la 2ª."],
   "Gatti":[0,"Stiramento muscolare: in dubbio per la 2ª."],
   /* --- Lazio --- */
@@ -837,13 +805,12 @@ const INJURY = {
   /* --- Lecce --- */
   "Gallo":[0,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
   /* --- Milan --- */
-  "Leao":[0,"⚠️ Risentimento muscolare: da valutare per la 2ª. Dopo un'estate travagliata la sua stagione rischia di partire in ritardo."],
   "Gimenez":[0,"Distorsione alla caviglia: in dubbio per la 2ª."],
   /* --- Monza --- */
   "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
   /* --- Napoli --- */
-  "Buongiorno":[10,"❌ Operato al menisco: rientro fra fine ottobre e inizio novembre."],
-  "Marianucci":[8,"❌ Lesione di alto grado al collaterale mediale del ginocchio: rientro a metà ottobre."],
+  "Buongiorno":[3,"Operato al menisco: rientro ANTICIPATO, dichiarato il 30 settembre. Non è più mezzo girone: sono tre giornate."],
+  "Marianucci":[4,"❌ Lesione di alto grado al collaterale mediale del ginocchio: rientro a metà ottobre."],
   "Marin R.":[0,"Problema fisico leggero: possibile recupero per la 2ª."],
   /* Neres non compare in nessun bollettino del 25, ma nemmeno c'è una conferma positiva che
      sia rientrato: viene da un'operazione alla caviglia (Londra, gennaio 2026) e dal 5 agosto
@@ -851,9 +818,8 @@ const INJURY = {
      che essere arruolabile, quindi resta un dubbio dichiarato invece di un azzeramento. */
   "Neres":[1,"⚠️ Non risulta più negli indisponibili del 25 agosto, ma manca una conferma che sia tornato in gruppo: viene dall'operazione alla caviglia di gennaio e a inizio agosto i tempi erano ancora indefiniti. Da verificare prima di puntarci."],
   /* --- Parma --- */
-  "Nicolussi Caviglia":[3,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
+  "Nicolussi Caviglia":[1,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
   /* --- Roma --- */
-  "Pellegrini Lo.":[1,"Ricaduta dell'infortunio muscolare al retto femorale destro: rientro dichiarato il 31 agosto."],
   "Rensch":[0,"Stiramento del flessore: in dubbio per la 2ª."],
   "Vaz":[3,"Infortunio muscolare: rientro dopo la sosta delle nazionali."],
   /* Dybala non è fermo — non compare in nessun bollettino di oggi. Resta però la condizione
@@ -861,16 +827,12 @@ const INJURY = {
   "Dybala":[0,"Giocatore operato al menisco a marzo 2026: il minutaggio va gestito tutto l'anno, il turnover è una certezza più che un rischio."],
   /* --- Sassuolo --- */
   "Konè I.":[18,"❌ Frattura di tibia e perone: rientro previsto a gennaio 2027. Non prenderlo."],
-  "Candè":[3,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
-  "Berardi":[0,"Infortunio alla caviglia: da valutare per la 2ª."],
+  "Candè":[1,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
   /* --- Torino --- */
   "Zapata D.":[0,"Ancora in fase di recupero fisico: in dubbio per la 2ª."],
-  "Comuzzo":[0,"Affaticamento muscolare leggero: in dubbio per la 2ª."],
   /* --- Udinese --- */
-  "Kabasele":[1,"⚠️ Squalificato per la 2ª giornata (giudice sportivo, squalifica ereditata)."],
   "Davis K.":[0,"Affaticamento muscolare: possibile recupero per la 2ª."],
-  "Zaniolo":[6,"⚠️ Stiramento alla coscia destra rimediato alla 1ª. Le fonti divergono: FantaMaster parla di un mese, Sky di rientro a fine ottobre. Nel dubbio, mezzo girone d'andata a rischio."],
-  "Chakvetadze":[2,"Frattura del piede: rientro a inizio settembre."],
+  "Zaniolo":[3,"Stiramento alla coscia: rientro dichiarato il 1° ottobre — salta fino alla 5ª."],
   "Zanoli":[3,"In riabilitazione dal crociato: rientro dopo la sosta delle nazionali."],
   /* --- Venezia --- */
   "Sverko":[9,"❌ Problemi alle anche: rientro a fine ottobre."],
@@ -939,7 +901,7 @@ const tutteGior = g => g === 1 ? "nella 1ª giornata" : `in tutte e ${g} le gior
    `inj`, che vale anche 2 per fragilità ereditata dallo storico: De Bruyne ha 35 anni e un
    passato di infortuni, quindi eredita inj=2 pur essendo sanissimo — e con `inj` al posto di
    `stop` gli spariva la riga "confermato dal campo" dopo che aveva segnato all'esordio. */
-function campoNote(nome, ora, stop) {
+function campoNote(nome, ora, stop, nuovo) {
   if (!GIORNATE) return "";
   const g = GIORNATE, pv = ora ? ora.pv : 0;
   const fermoOra = stop !== null && stop >= 2;      // assenza vera, in corso
@@ -965,7 +927,12 @@ function campoNote(nome, ora, stop) {
   }
   /* L'allarme si tace se c'è un bollettino aperto: l'assenza è già spiegata, ripeterla come
      "gerarchia da verificare" darebbe la colpa al tecnico invece che all'infermeria. */
-  else if (pv === 0 && !inBollettino && (xi === "T" || xi === "B+"))
+  /* L'avviso tace anche quando c'è un fatto di giornata scritto a mano (CAMPO_NOTE): le
+     statistiche arrivano a giornata conclusa, i fatti prima — e "non ha ancora preso voto"
+     seguito da "ha segnato nella 2ª" è la contraddizione che queste note devono evitare. */
+  /* E tace per i NUOVI ARRIVI: "dato titolare ad agosto ma non ha preso voto" detto di uno
+     arrivato ieri non è un avviso, è un errore di persona. */
+  else if (pv === 0 && !inBollettino && !CAMPO_NOTE[nome] && !nuovo && (xi === "T" || xi === "B+"))
     parti.push(`⚠️ Dato ${xi === "T" ? "titolare" : "in ballottaggio"} ad agosto ma non ha ancora preso voto ${inGior(g)}: il campo per ora non lo conferma.`);
   else if (pv > 0 && pv < g && !fermoOra)
     parti.push(`🔄 ${pv} presenze su ${g}: rotazione, non un titolare fisso.`);
@@ -1212,7 +1179,7 @@ for (const role of ["P","D","C","A"]) {
        e infine — retrocesso — quel che sopravvive delle note d'asta di agosto.
        Prima il testo d'agosto stava in testa e si leggeva come stato attuale: era la ragione
        per cui l'app diceva "titolare nelle probabili" di gente già scesa in campo. */
-    const campo = campoNote(p.n, ora, INJURY[p.n] ? INJURY[p.n][0] : null);
+    const campo = campoNote(p.n, ora, INJURY[p.n] ? INJURY[p.n][0] : null, !!newT);
     /* CAMPO_NOTE è il giro settimanale: racconta le giornate giocate, quindi non è
        "roba d'asta" e non passa dal filtro né dalla retrocessione. */
     const fatti = CAMPO_NOTE[p.n] || "";
@@ -1324,7 +1291,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("25 agosto 2026 — dopo la 1ª giornata: listone, formazioni reali, infortuni e mercato")},
+  date: ${JSON.stringify("31 agosto 2026 — giro pre-asta: listone del 31, fatti della 2ª giornata (8 gare su 10), bollettino infortuni e mercato in chiusura")},
   official: true,
   calendario: ${JSON.stringify(CALENDARIO)},
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},

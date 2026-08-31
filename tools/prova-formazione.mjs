@@ -12,11 +12,14 @@ const casi = [];
 const ok = (n,c) => casi.push([n,c]);
 const G2 = G + 1;   // la prossima da giocare
 
-ok("Kabasele squalificato per la 2ª → out",  dispAuto(k("Kabasele"), G2) === "out");
+/* il bollettino evolve e la prova evolve con lui: queste asserzioni fotografano il 31/8 */
+ok("Kabasele, squalifica scontata → ok",      dispAuto(k("Kabasele"), G2) === "ok");
 ok("Yildiz 9 giornate → out",                dispAuto(k("Yildiz"), G2) === "out");
 ok("Zaniolo 6 giornate → out",               dispAuto(k("Zaniolo"), G2) === "out");
-ok("Leao in dubbio per la 2ª → dubbio, non out", dispAuto(k("Leao"), G2) === "dubbio");
-ok("Berardi caviglia, da valutare → dubbio",  dispAuto(k("Berardi"), G2) === "dubbio");
+ok("Leao ceduto all'estero → fuori dal db",  k("Leao") === undefined);
+ok("Berardi tornato (gol alla 2ª) → ok",      dispAuto(k("Berardi"), G2) === "ok");
+ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) === "out");
+ok("Buongiorno alla 6ª → dubbio, non ok: rientra da un'operazione", dispAuto(k("Buongiorno"), G+5) === "dubbio");
 ok("Kristensen acciacco senza stop → dubbio",dispAuto(k("Kristensen T."), G2) === "dubbio");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Conceicao sano → ok",                    dispAuto(k("Conceicao"), G2) === "ok");
