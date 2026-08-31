@@ -545,7 +545,7 @@ const MERCATO_NOTE = {
   "Pinamonti":"Ceduto alla LAZIO nell'ultimo giorno di mercato, e le fonti lo danno PUNTA TITOLARE designata davanti a Dia e Ratkov: i suoi gol non dovrebbero calare, il contesto è migliore del Sassuolo.",
   "Esposito Se.":"✅ TORNA in Serie A: preso dal SASSUOLO nell'ultimo giorno di mercato (era stato ceduto dal Cagliari). Gerarchie da verificare dietro Bowie e Laurientè.",
   "Kessiè":"UFFICIALE all'Atalanta: mezzala di peso, e le fonti (FantaMaster) lo candidano ai RIGORI. Se li prende, la quota 12 diventa bassa: dal dischetto in carriera è quasi infallibile. Si gioca il posto con Ederson e Gaetano.",
-  "Gonzalez N.":"UFFICIALE alla Juventus (lo scambio con Frattesi non si è mai fatto: è arrivato lo stesso). Gol al debutto: vedi il fatto della giornata.",
+  "Gonzalez N.":"UFFICIALE alla Juventus (lo scambio con Frattesi non si è mai fatto: è arrivato lo stesso). Subito in gol da subentrato: vedi il fatto della giornata.",
   "Theate":"UFFICIALE al Bologna: centrale titolare in Belgio/Francia, arriva per guidare la difesa. A quota 8 profilo solido.",
   "Balerdi":"UFFICIALE alla Roma dal Marsiglia: centrale con esperienza, nel sistema Gasperini dove i difensori fanno bonus. A quota 6 interessante.",
   "De Roon":"⚠️ Passato alla ROMA a 35 anni: esperienza in mediana ma Cristante e Konè davanti. Ruolo di rotazione.",
@@ -590,7 +590,7 @@ const CAMPO_NOTE = {
   "Volpato":"In gol nella 2ª contro il Torino: il posto di Konè se lo sta prendendo lui.",
   "Berardi":"✅ Tornato dalla caviglia e SUBITO IN GOL nella 2ª (decisivo nel 2-1 al Torino): nessuno strascico.",
   "Comuzzo":"In gol nella 2ª a Sassuolo (unico squillo del Torino).",
-  "Gonzalez N.":"Gol al DEBUTTO in Juve-Parma 2-0: arrivato dal mercato e subito titolare e decisivo.",
+  "Gonzalez N.":"Gol al DEBUTTO in Juve-Parma 2-0, ma da SUBENTRATO: entrato e decisivo. Il posto da titolare se lo deve ancora prendere.",
   "Koopmeiners":"✅ RIBALTONE: era fuori dall'XI e dato cedibile, nella 2ª è rientrato e ha SEGNATO (Juve-Parma 2-0). A quota 5 il rischio è quasi zero.",
   "Baturina":"In gol al Maradona nella 2ª: il Como ha espugnato Napoli 2-1.",
   "Douvikas":"Gol-vittoria al Maradona nella 2ª: il Como di Fabregas fa sul serio, e lui è il terminale.",
@@ -645,7 +645,7 @@ const XI_STATUS = {
   /* --- nuovi del listone del 31 agosto e fatti della 2ª (8 gare giocate; Atalanta-Bologna
      e Lecce-Roma si giocano stasera, dopo l'asta: per quelle squadre vale ancora la 1ª) --- */
   "Perri":"T","Grabara":"R","Mrozek":"R",
-  "Gonzalez N.":"T",                                    // gol al debutto in Juve-Parma
+  "Gonzalez N.":"B+",                                   // gol al debutto ma da SUBENTRATO: il posto se lo gioca con Conceicao e Zhegrova
   "Kessiè":"B+","De Roon":"B-","Theate":"B+","Balerdi":"B+","Lulli":"B+",
   "Ngonge":"B+","Folorunsho":"B+","Mout":"B-","Foe Ondoa":"R","Maye":"R",
   "Bobcek":"B+","Birligea":"B-","Tchato":"B-",
@@ -950,7 +950,7 @@ function campoNote(nome, ora, stop, nuovo, gSquadra) {
   else if (pv === 0 && !inBollettino && !CAMPO_NOTE[nome] && !nuovo && (xi === "T" || xi === "B+"))
     parti.push(`⚠️ Dato ${xi === "T" ? "titolare" : "in ballottaggio"} ad agosto ma non ha ancora preso voto ${inGior(g)}: il campo per ora non lo conferma.`);
   else if (pv > 0 && pv < g && !fermoOra)
-    parti.push(`🔄 ${pv} presenze su ${g}: rotazione, non un titolare fisso.`);
+    parti.push(`🔄 ${pv} presenz${pv===1?"a":"e"} su ${g}: rotazione, non un titolare fisso.`);
 
   /* --- produzione: solo fatti, e con il campione dichiarato --- */
   if (ora && pv > 0) {
