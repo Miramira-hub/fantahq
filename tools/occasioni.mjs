@@ -39,9 +39,9 @@ import { caricaApp } from "./app.mjs";
 
 const ARGS = process.argv.slice(2);
 const TUTTI = ARGS.includes("--tutti");
-const QMAX = +ARGS.find(a => /^d+$/.test(a)) || 12;
+const QMAX = +ARGS.find(a => /^\d+$/.test(a)) || 12;
 const app = caricaApp();
-const { KBI: P, expFM, advice, ROLE_MEAN, GIORNATE_GIOCATE: G } = app;
+const { KBI: P, expFM, advice, ROLE_MEAN, GIORNATE_GIOCATE: G, giornateDi } = app;
 
 if (!G) {
   console.log("Nessuna giornata giocata in data/statistiche-2026-27.json: senza campo non ci sono occasioni da scovare.");
@@ -58,7 +58,7 @@ const TIER_IT = { must:"DA PRENDERE", target:"obiettivo", bet:"scommessa", safe:
    T alza a 88+, B+ resta fra 74 e 84, B- scende sotto 60, R sotto 42. Si legge da lì. */
 const TITOLARE = k => k.tit >= 88;
 const PANCHINA = k => k.tit < 70;
-const SEMPRE   = k => k.pvOra === G;      // ha preso voto in tutte le giornate finora
+const SEMPRE   = k => k.pvOra === giornateDi(k.t);   // tutte le giornate DELLA SUA squadra: coi posticipi i conteggi divergono
 const SANO     = k => k.inj < 2;
 const FERMO    = k => k.inj >= 3;         // 4+ giornate di stop: il posto si libera davvero
 

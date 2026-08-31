@@ -22,7 +22,7 @@ export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 /* Tutto quello che l'app espone e che gli strumenti possono usare. Aggiungere qui una
    funzione è il modo giusto per renderla disponibile: copiarla altrove non lo è. */
 const ESPOSTE = ["DATA", "KBI", "KB", "expFM", "advice", "affOf", "chipsOf", "ROLE_MEAN", "ROLES",
-                 "ROLE_NAMES", "TEAMS", "MODULES", "GIORNATE_GIOCATE", "CAL",
+                 "ROLE_NAMES", "TEAMS", "MODULES", "GIORNATE_GIOCATE", "giornateDi", "CAL",
                  "difficoltaTurno", "DIFF_LABEL",
                  /* il motore della formazione, ora fuori dalla vista */
                  "dispAuto", "dispDi", "diffDi", "scoreFormazione", "kbFor",

@@ -317,6 +317,12 @@ const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r
   stop:+r[26]||0 }));
 /* quante giornate si sono giocate: il massimo delle presenze in giro */
 const GIORNATE_GIOCATE = KBI.reduce((m,k)=>Math.max(m,k.pvOra||0), 0);   // KBI, non KB: KB e l array grezzo
+/* giornate giocate PER SQUADRA: coi posticipi e i rinvii le squadre non sono mai allineate,
+   e confrontare le presenze di un giocatore col conteggio globale punirebbe chi ha una gara
+   in meno per colpa del calendario. Il massimo dentro la rosa e il denominatore giusto. */
+const GIOR_SQUADRA = new Map();
+for(const k of KBI){ const g=GIOR_SQUADRA.get(k.t)||0; if((k.pvOra||0)>g) GIOR_SQUADRA.set(k.t,k.pvOra); }
+const giornateDi = t => GIOR_SQUADRA.get(t) ?? GIORNATE_GIOCATE;
 const KBMAP = new Map(KBI.map(k=>[norm(k.n)+"|"+k.r, k]));
 
 /* token significativi di un nome (scarta le iniziali tipo "N." / "V." / "Lo") */
@@ -638,7 +644,7 @@ function chipsOf(k){
      Col solo "ha preso voto ogni giornata" alla 1ª giornata il tag toccava 277 giocatori su
      516 — un filtro che seleziona metà del listone non seleziona niente. */
   if(GIORNATE_GIOCATE>0){
-    if(k.pvOra===GIORNATE_GIOCATE && k.tit>=88 && k.inj<2) c.push(["Confermato dal campo","good"]);
+    if(k.pvOra===giornateDi(k.t) && k.tit>=88 && k.inj<2) c.push(["Confermato dal campo","good"]);
     else if(k.pvOra===0 && k.tit>=70 && k.inj<2) c.push(["Non ancora visto","bad"]);
   }
   /* un rigorista designato che costa poco è il singolo profilo più sottovalutato all'asta */

@@ -75,6 +75,7 @@ function findOld(p){
    C 6.21, A 6.60. Le soglie del motore sono state ricalibrate di conseguenza. */
 const statRows = y => JSON.parse(fs.readFileSync(`${REPO}/data/statistiche-${y}.json`, "utf8")).slice(2);
 const mkStat = y => new Map(statRows(y).map(r => [r[0], {
+  sq:String(r[4]||""),
   pv:+r[5]||0, mv:+r[6]||0, fm:+r[7]||0, gf:+r[8]||0, gs:+r[9]||0,
   rp:+r[10]||0, rc:+r[11]||0, rplus:+r[12]||0, rminus:+r[13]||0,
   ass:+r[14]||0, amm:+r[15]||0, esp:+r[16]||0
@@ -103,6 +104,20 @@ if (GIORNATE) {
    tutto. Cresce piano e si ferma all'80%: un po' di stima serve sempre, perché le
    gerarchie cambiano anche dopo venti giornate. */
 const PESO_CAMPO = GIORNATE ? Math.min(0.80, GIORNATE / 12) : 0;
+
+/* ---- giornate giocate PER SQUADRA ----
+   A metà giornata (i posticipi del lunedì, i rinvii per maltempo o coppe) le squadre non
+   hanno giocato lo stesso numero di partite. Il conteggio globale punirebbe chi ha una gara
+   in meno: un titolare della squadra col posticipo risulterebbe 1 presenza su 2, cioè in
+   rotazione, per il solo fatto che la sua partita non s'è ancora giocata.
+   Il massimo delle presenze dentro la ROSA di ciascuna squadra dice quante gare ha davvero
+   giocato quella squadra: è il denominatore giusto, e si mantiene da solo tutto l'anno. */
+const GIOR_SQUADRA = new Map();
+for (const v of ST_ORA.values()) {
+  const g = GIOR_SQUADRA.get(v.sq) || 0;
+  if (v.pv > g) GIOR_SQUADRA.set(v.sq, v.pv);
+}
+const giornateDi = t => GIOR_SQUADRA.get(t) ?? GIORNATE;
 
 /* Calendario ufficiale 2026-27: entra nel KB così l'app (e la versione single-file
    dell'Artifact) sa chi incontra chi in ogni giornata. Generato e VALIDATO da
@@ -524,6 +539,9 @@ const MERCATO_NOTE = {
   "Masini":"Regista arrivato dal Genoa a titolo definitivo (~5M, quadriennale) e dato titolare dalle fonti dedicate. ⚠️ Ma con Grillitsch ufficiale oggi — un regista di 31 anni con carriera in Bundesliga ed Eredivisie — quel posto è ora in ballottaggio vero.",
   "Hasa":"Titolare in mediana nelle formazioni tipo del Frosinone. ⚠️ Con Grillitsch e Schmid ufficiali il reparto è passato a sei giocatori per tre maglie: verifica prima di puntarci.",
   /* ===== ULTIMO GIORNO DI MERCATO, 31 agosto (il mercato chiude domani) ===== */
+  "Dovbyk":"⚠️ Nelle probabili di STASERA (Atalanta-Bologna, si gioca durante l'asta) il centravanti è PICCOLI, non lui: se stasera conferma la panchina, la quota 16 è cara. Verifica il risultato prima di rilanciare.",
+  "Piccoli":"Nelle probabili di STASERA è lui il centravanti del Bologna, davanti a Dovbyk (q16 contro la sua q8): se parte titolare davvero, è un'occasione seria. Verifica la formazione durante l'asta.",
+  "Molina N.":"Nelle probabili di STASERA (Lecce-Roma) è TITOLARE a destra: il posto che ad agosto non aveva sta arrivando. Attenzione: si gioca durante l'asta, verifica.",
   "Pinamonti":"Ceduto alla LAZIO nell'ultimo giorno di mercato: gerarchie d'attacco tutte da scrivere con Dia e Ratkov. Il sì del giocatore c'era da agosto, ora è ufficiale.",
   "Esposito Se.":"✅ TORNA in Serie A: preso dal SASSUOLO nell'ultimo giorno di mercato (era stato ceduto dal Cagliari). Gerarchie da verificare dietro Bowie e Laurientè.",
   "Kessiè":"UFFICIALE all'Atalanta: mezzala di peso, esperienza da Milan e carriera in Premier/Arabia. Si gioca il posto con Ederson e Pasalic — a quota 12 il nome vale più del posto garantito.",
@@ -901,9 +919,9 @@ const tutteGior = g => g === 1 ? "nella 1ª giornata" : `in tutte e ${g} le gior
    `inj`, che vale anche 2 per fragilità ereditata dallo storico: De Bruyne ha 35 anni e un
    passato di infortuni, quindi eredita inj=2 pur essendo sanissimo — e con `inj` al posto di
    `stop` gli spariva la riga "confermato dal campo" dopo che aveva segnato all'esordio. */
-function campoNote(nome, ora, stop, nuovo) {
+function campoNote(nome, ora, stop, nuovo, gSquadra) {
   if (!GIORNATE) return "";
-  const g = GIORNATE, pv = ora ? ora.pv : 0;
+  const g = gSquadra || GIORNATE, pv = ora ? ora.pv : 0;
   const fermoOra = stop !== null && stop >= 2;      // assenza vera, in corso
   const inBollettino = stop !== null;               // anche solo un acciacco segnalato oggi
   const xi = XI_STATUS[nome] || "";
@@ -1179,7 +1197,7 @@ for (const role of ["P","D","C","A"]) {
        e infine — retrocesso — quel che sopravvive delle note d'asta di agosto.
        Prima il testo d'agosto stava in testa e si leggeva come stato attuale: era la ragione
        per cui l'app diceva "titolare nelle probabili" di gente già scesa in campo. */
-    const campo = campoNote(p.n, ora, INJURY[p.n] ? INJURY[p.n][0] : null, !!newT);
+    const campo = campoNote(p.n, ora, INJURY[p.n] ? INJURY[p.n][0] : null, !!newT, giornateDi(p.t));
     /* CAMPO_NOTE è il giro settimanale: racconta le giornate giocate, quindi non è
        "roba d'asta" e non passa dal filtro né dalla retrocessione. */
     const fatti = CAMPO_NOTE[p.n] || "";
@@ -1206,9 +1224,17 @@ for (const role of ["P","D","C","A"]) {
     const pvOra = ora ? ora.pv : 0;
     const golOra = ora ? ora.gf : 0, assOra = ora ? ora.ass : 0;
     const mvOra = (ora && ora.pv) ? ora.mv : 0, fmOra = (ora && ora.pv) ? ora.fm : 0;
-    if (GIORNATE && inj < 3) {
-      const daCampo = Math.max(0, Math.min(100, pvOra / GIORNATE * 100));
-      tit = Math.round(tit * (1 - PESO_CAMPO) + daCampo * PESO_CAMPO);
+    /* Un NUOVO ARRIVO senza presenze non viene corretto: alla 1ª non era in Serie A, e
+       contargli quelle giornate come assenze punirebbe una partita che non poteva giocare
+       (Perri e Nico Gonzalez, arrivati il 31, scendevano da 88 a 81 di titolarità).
+       Appena prende voto rientra nella correzione come tutti. Imprecisione accettata e
+       dichiarata: newT copre anche chi è arrivato PRIMA della 1ª (Kevin Carlos) — per quei
+       casi resta il ⚠️ della sezione trappole, che qui non viene toccata. */
+    if (GIORNATE && inj < 3 && !(newT && !pvOra)) {
+      const gSq = Math.max(1, giornateDi(p.t));
+      const daCampo = Math.max(0, Math.min(100, pvOra / gSq * 100));
+      const pesoSq = Math.min(0.80, gSq / 12);
+      tit = Math.round(tit * (1 - pesoSq) + daCampo * pesoSq);
     }
     const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra},${stop}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
