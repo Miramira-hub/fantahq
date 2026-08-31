@@ -542,9 +542,9 @@ const MERCATO_NOTE = {
   "Dovbyk":"⚠️ Nelle probabili di STASERA (Atalanta-Bologna, si gioca durante l'asta) il centravanti è PICCOLI, non lui: se stasera conferma la panchina, la quota 16 è cara. Verifica il risultato prima di rilanciare.",
   "Piccoli":"Nelle probabili di STASERA è lui il centravanti del Bologna, davanti a Dovbyk (q16 contro la sua q8): se parte titolare davvero, è un'occasione seria. Verifica la formazione durante l'asta.",
   "Molina N.":"Nelle probabili di STASERA (Lecce-Roma) è TITOLARE a destra: il posto che ad agosto non aveva sta arrivando. Attenzione: si gioca durante l'asta, verifica.",
-  "Pinamonti":"Ceduto alla LAZIO nell'ultimo giorno di mercato: gerarchie d'attacco tutte da scrivere con Dia e Ratkov. Il sì del giocatore c'era da agosto, ora è ufficiale.",
+  "Pinamonti":"Ceduto alla LAZIO nell'ultimo giorno di mercato, e le fonti lo danno PUNTA TITOLARE designata davanti a Dia e Ratkov: i suoi gol non dovrebbero calare, il contesto è migliore del Sassuolo.",
   "Esposito Se.":"✅ TORNA in Serie A: preso dal SASSUOLO nell'ultimo giorno di mercato (era stato ceduto dal Cagliari). Gerarchie da verificare dietro Bowie e Laurientè.",
-  "Kessiè":"UFFICIALE all'Atalanta: mezzala di peso, esperienza da Milan e carriera in Premier/Arabia. Si gioca il posto con Ederson e Pasalic — a quota 12 il nome vale più del posto garantito.",
+  "Kessiè":"UFFICIALE all'Atalanta: mezzala di peso, e le fonti (FantaMaster) lo candidano ai RIGORI. Se li prende, la quota 12 diventa bassa: dal dischetto in carriera è quasi infallibile. Si gioca il posto con Ederson e Gaetano.",
   "Gonzalez N.":"UFFICIALE alla Juventus (lo scambio con Frattesi non si è mai fatto: è arrivato lo stesso). Gol al debutto: vedi il fatto della giornata.",
   "Theate":"UFFICIALE al Bologna: centrale titolare in Belgio/Francia, arriva per guidare la difesa. A quota 8 profilo solido.",
   "Balerdi":"UFFICIALE alla Roma dal Marsiglia: centrale con esperienza, nel sistema Gasperini dove i difensori fanno bonus. A quota 6 interessante.",
@@ -808,28 +808,26 @@ const INJURY = {
   /* --- Fiorentina --- */
   "Parisi":[8,"❌ Lesione del legamento crociato anteriore: rientro a fine novembre. Non prenderlo."],
   /* --- Genoa --- */
-  "Havel":[0,"Problema muscolare in via di risoluzione: possibile recupero per la 2ª."],
+  "Havel":[1,"Non convocato in nessuna delle prime due giornate: recupero da verificare dopo la sosta."],
   "Venturino":[3,"In recupero dall'operazione al tendine rotuleo: rientro a metà settembre."],
-  "Traorè Hj.":[0,"Ritardo di condizione ormai colmato: possibile recupero per la 2ª."],
-  "Ostigard":[0,"Fastidio muscolare: dovrebbe essere disponibile per la 2ª."],
+  "Traorè Hj.":[1,"Mai in campo nelle prime due giornate: la condizione non è ancora da partita."],
   /* --- Juventus --- */
   "Yildiz":[11,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
-  "Ekhator":[0,"Lesione al bicipite femorale: in dubbio per la 2ª."],
-  "Gatti":[0,"Stiramento muscolare: in dubbio per la 2ª."],
+  "Ekhator":[1,"Lesione al bicipite femorale: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
+  "Gatti":[1,"Stiramento muscolare: ha saltato anche la 2ª, rientro da verificare dopo la sosta."],
   /* --- Lazio --- */
-  "Marusic":[0,"Problema alla coscia rimediato a Bologna: in valutazione per la 2ª."],
-  "Dele-Bashiru":[0,"Problema muscolare: in dubbio per la 2ª."],
-  "Cataldi":[0,"Ancora in fase di recupero atletico: in dubbio per la 2ª."],
+  "Marusic":[1,"Il problema alla coscia gli ha fatto saltare la 2ª: da verificare dopo la sosta."],
+  "Dele-Bashiru":[1,"Il problema muscolare gli ha fatto saltare la 2ª: da verificare dopo la sosta."],
+  "Cataldi":[1,"Ha saltato le prime due giornate: recupero atletico ancora in corso."],
   /* --- Lecce --- */
   "Gallo":[0,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
   /* --- Milan --- */
-  "Gimenez":[0,"Distorsione alla caviglia: in dubbio per la 2ª."],
+  "Gimenez":[1,"Distorsione alla caviglia: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
   /* --- Monza --- */
   "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
   /* --- Napoli --- */
   "Buongiorno":[3,"Operato al menisco: rientro ANTICIPATO, dichiarato il 30 settembre. Non è più mezzo girone: sono tre giornate."],
   "Marianucci":[4,"❌ Lesione di alto grado al collaterale mediale del ginocchio: rientro a metà ottobre."],
-  "Marin R.":[0,"Problema fisico leggero: possibile recupero per la 2ª."],
   /* Neres non compare in nessun bollettino del 25, ma nemmeno c'è una conferma positiva che
      sia rientrato: viene da un'operazione alla caviglia (Londra, gennaio 2026) e dal 5 agosto
      risultava "ancora lontano". Sparire da un elenco di indisponibili non è la stessa cosa
@@ -847,9 +845,8 @@ const INJURY = {
   "Konè I.":[18,"❌ Frattura di tibia e perone: rientro previsto a gennaio 2027. Non prenderlo."],
   "Candè":[1,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
   /* --- Torino --- */
-  "Zapata D.":[0,"Ancora in fase di recupero fisico: in dubbio per la 2ª."],
+  "Zapata D.":[1,"Ha saltato le prime due giornate: il rientro è ancora graduale."],
   /* --- Udinese --- */
-  "Davis K.":[0,"Affaticamento muscolare: possibile recupero per la 2ª."],
   "Zaniolo":[3,"Stiramento alla coscia: rientro dichiarato il 1° ottobre — salta fino alla 5ª."],
   "Zanoli":[3,"In riabilitazione dal crociato: rientro dopo la sosta delle nazionali."],
   /* --- Venezia --- */
@@ -1280,7 +1277,14 @@ if (GIORNATE) {
     const coda = nota.includes("· Ad agosto:") ? nota.split("· Ad agosto:")[1] : "";
     const inf  = nota.startsWith("⚕️ ") ? nota.slice(0, nota.indexOf("🟢") + 1 || 200) : "";
     const daControllare = coda + " " + inf;
-    const re = SUPERATO.find(r => r.test(daControllare));
+    /* le attese si confrontano con le giornate della SQUADRA del giocatore: per chi ha il
+       posticipo stasera "in dubbio per la 2ª" è ancora il futuro, non il passato */
+    const squadra = (riga.match(/^\["[PDCA]","(?:[^"\\]|\\.)*","((?:[^"\\]|\\.)*)"/) || [])[1] || "";
+    const gSq = giornateDi(squadra) || GIORNATE;
+    const atteseSq = new RegExp("(?:per la|fino alla|entro la|in tempo per la)\\s*(?:" + Array.from({length: gSq}, (_, x) => x + 1).join("|") + ")ª", "i");
+    /* si riconosce la voce-calendario dal contenuto, non dalla posizione: gli indici mentono
+       appena qualcuno riordina la lista (è già successo) */
+    const re = SUPERATO.map(r => r.source && r.source.startsWith("(?:per la") ? atteseSq : r).find(r => r.test(daControllare));
     if (re) sospette.push(`${(riga.match(/"([^"]+)","[^"]+",\d/) || [,"?"])[1]}: ${(daControllare.match(re) || [""])[0]}`);
   }
   /* Due cause diverse, stessa azione: guardare quel giocatore. O manca un pattern al filtro,

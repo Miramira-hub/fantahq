@@ -142,11 +142,21 @@ if (promossi.length > N_MAX) console.log(`  … e altri ${promossi.length - N_MA
    la 2ª, e Berardi, fermo alla caviglia. Il campo `inj` da solo non basta: vale 1 sia per un
    dubbio di oggi sia per la fragilità ereditata dallo storico. */
 const inBollettino = k => (k.note || "").startsWith("⚕️");
-const trappole = P.filter(k => k.pvOra === 0 && k.tit >= 70 && SANO(k) && !inBollettino(k)).sort((a,b) => b.qta - a.qta);
+/* Un nuovo arrivo non può essere una trappola: non era qui quando le giornate si giocavano.
+   Per lui il prezzo compra una GERARCHIA dichiarata, non un campo verificato — che è un
+   rischio diverso, e merita una sezione sua invece di un'accusa sbagliata. */
+const trappole = P.filter(k => !k.newT && k.pvOra === 0 && k.tit >= 70 && SANO(k) && !inBollettino(k)).sort((a,b) => b.qta - a.qta);
+const nuoviSenzaCampo = P.filter(k => k.newT && k.pvOra === 0 && k.tit >= 74 && SANO(k)).sort((a,b) => b.qta - a.qta);
 sezione(
   "④ TRAPPOLE — dati titolari ad agosto, non ancora a referto",
   `nessun voto in ${G} ${G === 1 ? "giornata" : "giornate"}, titolarità attesa ≥ 70%, e nessuna voce nel bollettino di oggi a spiegarlo (infortuni e squalifiche comprese). Ordinate per quanto costano.`,
   trappole
+);
+
+sezione(
+  "⑤ NUOVI ARRIVI SENZA CAMPO — il prezzo compra la gerarchia, non una certezza",
+  `mai a referto in Serie A quest'anno perché appena arrivati: qui decide quanto ti fidi delle probabili, non dei numeri.`,
+  nuoviSenzaCampo
 );
 
 console.log(`\n────────────────────────────────────────────────────────────`);
