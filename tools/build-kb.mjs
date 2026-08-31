@@ -628,13 +628,26 @@ const CAMPO_NOTE = {
   "Masini":"⚠️ NON titolare all'esordio del Frosinone.",
   "Pinamonti":"✅ Restato al Sassuolo e USCITO dal bollettino: al 25 agosto non risulta più fermo da nessuna fonte. Ma alla 1ª il centravanti era Bowie e lui non ha preso voto: il posto ora va riconquistato sul campo, non in infermeria.",
   "Laurientè":"✅ RESTATO al Sassuolo, e alla 1ª le pagelle lo indicano come 'un leader'. L'incertezza di mercato è finita.",
+  /* ===== ULTIME ORE DI MERCATO, sera del 31 (chiude domani alle 20) ===== */
+  "Kean":"🚨 ACCORDO FATTO col COMO (35M+5): manca solo l'ufficialità, attesa entro domani sera. Se lo compri, comprati un attaccante del Como in ballottaggio con Douvikas — NON la punta della Fiorentina, e NON più il rigorista n.2 di Gudmundsson. A quota 25 è un rischio che deve scontare parecchio.",
+  "Pellegrino M.":"Con Kean verso il Como e BETO in visite mediche per la Fiorentina, il reparto cambia faccia: il ballottaggio non è più con Kean ma col nuovo arrivato. Titolare oggi, da monitorare domani.",
+  "Douvikas":"2 gol in 2 giornate e il gol-vittoria al Maradona. ⚠️ Ma il Como ha chiuso l'accordo per KEAN (35M+5): se arriva davvero, il posto da unica punta va conteso col colpo più caro dell'estate lariana.",
+  "Mazzocchi":"UFFICIALE al Venezia dal Napoli (prestito con obbligo in caso di salvezza): da riserva del Napoli a possibile titolare della fascia in laguna. A quota 1 diventa interessante.",
+  "Ziolkowski":"UFFICIALE al Monza dalla Roma (prestito con diritto): a Roma non giocava, al Monza si gioca un posto vero. Quota 1.",
+  "Fofana Y.":"❌ Cessione al LIONE in finalizzazione: sta USCENDO dalla Serie A. Non prenderlo.",
+  "Saelemaekers":"⚠️ Il Milan ha Hutchinson (Chelsea) in visite mediche: un esterno offensivo in più che può insidiarlo. Resta titolare oggi, ma la concorrenza sale.",
+  "Locatelli":"La Juventus ha l'accordo per Pape Sarr dal Tottenham: un centrocampista fisico in più. Lui resta il regista titolare, ma le rotazioni si allargano.",
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
    3 = praticamente in uscita. Da azzerare quando il mercato si chiude. */
 /* Mercato CHIUSO (1° settembre): niente più trattative aperte. La mappa resta per il
    mercato di riparazione di gennaio — si riapre lì, non prima. */
+/* Il mercato chiude domani (1° settembre, ore 20): le ultime ore hanno ancora
+   situazioni davvero aperte. Da azzerare a mercato chiuso. */
 const MERCATO_UNC = {
+  "Kean": 2,        // accordo col Como (35M+5) ma NON ancora ufficiale: dove gioca si sa domani
+  "Fofana Y.": 3    // cessione al Lione in finalizzazione: sta uscendo dalla Serie A
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -720,7 +733,7 @@ const XI_STATUS = {
   /* Milan (3-4-2-1 Amorim) */
   "Maignan":"T","Terracciano":"R","Torriani":"R","Pavlovic":"T","Gila":"T","Bartesaghi":"T",
   "Gabbia":"T","Tomori":"B-","De Winter":"B-","Estupinan":"B-","Diawara S.":"R",
-  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
+  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"R",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
   "Ramos G.":"T","Gimenez":"R","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
@@ -1011,6 +1024,15 @@ function ripulisci(txt) {
   return out.length < 15 ? "" : out;   // moncherini senza senso: meglio niente
 }
 
+/* ---- TRASFERIMENTI UFFICIALIZZATI DOPO L'EXPORT DEL LISTONE (31 agosto, live Sky) ----
+   Le Quotazioni si scaricano al mattino, le ufficialità arrivano nel pomeriggio: chi si è
+   mosso DOPO l'export risulta ancora nella squadra vecchia. Qui si corregge la squadra
+   (la quota resta quella del file: è l'unica che esiste). Solo UFFICIALI, mai accordi. */
+const TRASFERIMENTI_POST_LISTONE = {
+  "Mazzocchi": "Venezia",     // dal Napoli, prestito con obbligo salvezza — ufficiale
+  "Ziolkowski": "Monza"       // dalla Roma, prestito con diritto — ufficiale
+};
+
 /* ---- costruzione ---- */
 const esc = s => String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"');
 const ROLE_TITLE = { P:"PORTIERI", D:"DIFENSORI", C:"CENTROCAMPISTI", A:"ATTACCANTI" };
@@ -1019,6 +1041,7 @@ const lines = [];
 for (const role of ["P","D","C","A"]) {
   let first = true;
   for (const p of L.filter(x => x.r === role).sort((a,b) => b.q - a.q)) {
+    if (TRASFERIMENTI_POST_LISTONE[p.n]) p.t = TRASFERIMENTI_POST_LISTONE[p.n];
     const o = findOld(p);
     const u = findUS(p);                       // Understat: minuti e xG (per titolarità e xgd)
     if (u) withUS++;
