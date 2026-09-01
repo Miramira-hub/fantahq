@@ -301,7 +301,7 @@ const KB = DATA.kb;
 /* ================= stato ================= */
 let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
-let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0, releasing:0,
+let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0, releasing:0, movQ:"", movAll:false,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
            cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false, astaPag:0,
            splitCalc:"", openTeam:"" };   // ripartizione calcolata + squadra aperta in Forza squadre
@@ -1937,15 +1937,31 @@ function alertsHtml(){
   }).join("");
 }
 function movimentiHtml(limit){
-  const taken = state.players.filter(p=>p.status==="mine"||p.status==="gone")
-    .sort((a,b)=>(b.seq||0)-(a.seq||0)).slice(0, limit||14);
-  if(!taken.length) return `<div class="empty">Ancora nessun acquisto registrato.</div>`;
-  return taken.map(p=>`<div class="mov">
+  /* Il taglio fisso agli ultimi 14 rendeva IRRAGGIUNGIBILE un acquisto vecchio: durante
+     l'asta serve annullare un'assegnazione di quaranta chiamate prima, e serve vedere a
+     quanto un rivale ha preso un giocatore. La ricerca filtra per nome o proprietario,
+     "tutti" apre l'elenco intero scorrevole. La ✕ resta identica su ogni riga. */
+  const tutti = state.players.filter(p=>p.status==="mine"||p.status==="gone")
+    .sort((a,b)=>(b.seq||0)-(a.seq||0));
+  if(!tutti.length) return `<div class="empty">Ancora nessun acquisto registrato.</div>`;
+  const q = norm(ui.movQ||"");
+  const filtrati = q ? tutti.filter(p=>norm(p.name).includes(q)||norm(managerName(p.owner)||"").includes(q)) : tutti;
+  const aperto = !!q || ui.movAll;
+  const taken = aperto ? filtrati : filtrati.slice(0, limit||14);
+  const nascosti = filtrati.length - taken.length;
+  const righe = taken.map(p=>`<div class="mov">
     ${roleChip(p.role)}
     <span class="who2"><b>${esc(p.name)}</b> ${p.status==="mine"?'<span class="tagmine">→ TU</span>':`<span class="taggone">→ ${esc(managerName(p.owner))}</span>`}</span>
     <span class="pr">${p.paid||0}</span>
     <button data-freemov="${p.id}" title="Annulla questo acquisto">✕</button>
   </div>`).join("");
+  return `
+    <div class="toolbar" style="margin-bottom:6px">
+      <input type="search" id="movQ" placeholder="Cerca per giocatore o fantallenatore…" value="${esc(ui.movQ||"")}" style="flex:1;min-width:140px">
+      <button class="btn sm" id="movAll">${ui.movAll?"solo recenti":"tutti ("+tutti.length+")"}</button>
+    </div>
+    <div style="${aperto?"max-height:320px;overflow-y:auto":""}">${righe || '<div class="empty">Nessun movimento con questa ricerca.</div>'}</div>
+    ${nascosti>0?'<p class="help" style="margin:6px 0 0">…e altri '+nascosti+' più vecchi: cerca, o premi «tutti».</p>':""}`;
 }
 function rivalsHtml(){
   const rs = rivalStats();
@@ -2824,7 +2840,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-relok],#relNo,[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,[data-openteam],#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-relok],#relNo,#movAll,[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,[data-openteam],#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.astapag!==undefined){ ui.astaPag = Math.max(0, +t.dataset.astapag||0); render(); return; }
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; ui.astaPag = 0; render(); return; }
@@ -3051,6 +3067,7 @@ document.addEventListener("click", e=>{
     toast(`${p.name} svincolato: recuperati ${rec} crediti`); render(); return;
   }
   if(t.id==="relNo"){ ui.releasing=0; render(); return; }
+  if(t.id==="movAll"){ ui.movAll=!ui.movAll; render(); return; }
   if(t.id==="doImport"){
     const n = importListone($("#pasteArea").value);
     if(n){ toast(`Importati ${n} giocatori`); render(); } else toast("Nessuna riga riconosciuta: controlla il formato");
@@ -3100,6 +3117,7 @@ document.addEventListener("input", e=>{
   const el = e.target;
   if(el.id==="q"){ ui.search=el.value; ui.limit=200; redrawKeepFocus(el); return; }
   if(el.id==="astaQ"){ ui.astaSearch=el.value; ui.astaPag=0; redrawKeepFocus(el); return; }
+  if(el.id==="movQ"){ ui.movQ=el.value; redrawKeepFocus(el); return; }
   if(el.id==="tradeQ"){ ui.tradeSearch=el.value; redrawKeepFocus(el); return; }
   if(el.id==="cmpQ"){ ui.cmpSearch=el.value; redrawKeepFocus(el); return; }
   if(el.dataset.rate){ byId(+el.dataset.rate).rating=Math.min(10,Math.max(0,+el.value||0)); save(); renderHeader(); return; }
