@@ -213,7 +213,7 @@ const titFromMinutes = u => {
    Gollini e De Marzi hanno entrambi quota 1 e FVM 1, al Torino tutti e tre). Dove invece
    il FVM è chiaro comanda lui, perché è il dato ufficiale più aggiornato. */
 const GK_RANK = {
-  "Atalanta":["Carnesecchi","Sportiello","Vismara"],
+  "Atalanta":["Carnesecchi","Sportiello"],
   "Bologna":["Skorupski","Pessina Mas.","Happonen"],
   "Cagliari":["Caprile","Sherri","Ciocci"],
   "Como":["Butez","Tornqvist","Vigorito"],
@@ -225,9 +225,9 @@ const GK_RANK = {
   "Lazio":["Mandas","Motta","Renzetti"],
   "Lecce":["Falcone","Samooja"],
   "Milan":["Maignan","Terracciano","Torriani"],
-  "Monza":["Thiam","Pizzignacco","Strajnar"],
+  "Monza":["Thiam","Tornqvist","Strajnar"],
   "Napoli":["Meret","Milinkovic-Savic V.","Contini"],
-  "Parma":["Corvi","Daffara","Suzuki"],   // Suzuki in chiusura al PSG: Corvi titolare in amichevole
+  "Parma":["Corvi","Ghidotti","Daffara"],   // Suzuki in chiusura al PSG: Corvi titolare in amichevole
   "Roma":["Svilar","Gollini","De Marzi"],
   "Sassuolo":["Muric","Turati","Satalino","Russo A."],
   "Torino":["Perri","Paleari","Mascardi","Siviero"],   // Perri UFFICIALE e nel listone dal 31/8
@@ -266,7 +266,7 @@ const RIG = {
   "Scamacca":2, "De Ketelaere":1, "Samardzic":1,                        // Atalanta
   "Orsolini":2, "Dovbyk":1, "Bernardeschi":1,                           // Bologna: Dovbyk insidia (27/32 in carriera)
   "Da Cunha":2, "Paz N.":1, "Douvikas":1, "Baturina":1,                 // Como
-  "Gudmundsson A.":2, "Kean":1, "Mandragora":1,                         // Fiorentina: ballottaggio col Kean
+  "Mandragora":1,   /* rigorista viola DA DESIGNARE: Gudmundsson alla Lazio, Kean al Como */                         // Fiorentina: ballottaggio col Kean
   "Zaccagni":2, "Cataldi":1, "Taylor K.":1,                             // Lazio: unanime
   "De Bruyne":2, "Hojlund":1,                                           // Napoli: designato dopo l'addio di Lukaku
   "Bernabè":2, "Valeri":1,                                              // Parma: Bernabè designato + punizioni e corner (Pellegrino ceduto alla Fiorentina, dove dal dischetto va Gudmundsson)
@@ -410,7 +410,6 @@ const MERCATO_NOTE = {
   "Bartesaghi":"Promosso titolare come quinto di sinistra nel 3-4-2-1 di Amorim: 20 anni, quota 8 per un posto da titolare del Milan.",
   "Gabbia":"Titolare nel terzetto Gila-Gabbia-Pavlovic secondo le probabili di agosto.",
   "Modric":"40 anni: ancora in ballottaggio con Jashari per la mediana, il minutaggio andrà gestito.",
-  "Gimenez":"⚠️ In uscita dal Milan (Porto in pressing, il club chiede 25-30M): al 7 agosto è ancora rossonero ma il rischio è alto.",
   "Provstgaard":"💎 Promosso titolare accanto a Doekhi in tutte le formazioni tipo estive, scavalcando Romagnoli: quota 3 per un titolare della Lazio.",
   "Dele-Bashiru":"💎 Titolare da mezzala/trequartista in tutte le formazioni tipo di Gattuso: quota 5 sottovalutata.",
   "Romagnoli":"⚠️ Scavalcato da Provstgaard nelle formazioni tipo e con la trattativa Al-Sadd solo congelata: doppio rischio.",
@@ -578,7 +577,6 @@ const MERCATO_NOTE = {
    È QUI che si scrive il giro settimanale: una riga per giocatore, il fatto della giornata.
    Le voci vecchie si sovrascrivono, non si accumulano. */
 const CAMPO_NOTE = {
-  "Ahanor":"❌ CEDUTO al Chelsea (48M) e girato al Crystal Palace per la stagione: FUORI dalla Serie A. Non prenderlo.",
   "Kabasele":"Le due assenze sono spiegate: squalifica ereditata, scontata. Dalla 3ª è di nuovo disponibile.",
   "Mina":"⚠️ 0 presenze in 2 giornate e NESSUNA spiegazione nelle fonti (né infortunio né squalifica): il capitano che non gioca è un segnale che il prezzo non racconta. Chiarire prima di pagarlo.",
   "Kaiki":"⚠️ Mai in campo nelle prime due giornate: la previsione d'agosto (titolare a sinistra su Valle) è stata rovesciata dal campo — gioca Valle. Solo da ultimo slot.",
@@ -642,6 +640,23 @@ const CAMPO_NOTE = {
   "Fofana Y.":"❌ Cessione al LIONE in finalizzazione: sta USCENDO dalla Serie A. Non prenderlo.",
   "Saelemaekers":"⚠️ Il Milan ha Hutchinson (Chelsea) in visite mediche: un esterno offensivo in più che può insidiarlo. Resta titolare oggi, ma la concorrenza sale.",
   "Locatelli":"La Juventus ha l'accordo per Pape Sarr dal Tottenham: un centrocampista fisico in più. Lui resta il regista titolare, ma le rotazioni si allargano.",
+  /* ===== MERCATO CHIUSO, 1° settembre ore 20: il quadro definitivo ===== */
+  "Kean":"✅ ORA UFFICIALE al COMO (35M+5): nel listone è lariano. Ballottaggio vero con Douvikas (2 gol in 2) per una maglia sola: due bomber, un posto. Nessuno dei due va più pagato da titolare certo.",
+  "Douvikas":"2 gol in 2 giornate, gol-vittoria al Maradona. ⚠️ Ma ora KEAN è ufficiale: ballottaggio da 40M in casa. Il campo dice lui, il mercato dice Kean: prezzo di conseguenza.",
+  "Gudmundsson A.":"🚨 CEDUTO alla LAZIO in chiusura: NON è più il rigorista (a Formello tira Zaccagni) e la trequarti se la gioca con Dele-Bashiru. Il pacchetto che lo rendeva d'oro alla Fiorentina — rigori+punizioni — è rimasto a Firenze.",
+  "Mandragora":"Con Gudmundsson alla Lazio e Kean al Como è il candidato n.1 ai RIGORI della Fiorentina (già seconda scelta): se confermato, la quota 9 è bassissima. Verifica alla ripresa.",
+  "Rowe":"Ceduto all'ATALANTA in chiusura: Sarri lo ha voluto per il tridente, si gioca il posto con De Ketelaere e Zalewski. Era titolare fisso a Bologna: gerarchia da riverificare, talento intatto.",
+  "Mbangula":"Preso dal Bologna per SOSTITUIRE Rowe sulla corsia: esterno ex Juve, il posto c'è. A quota 8 è tra i nuovi più interessanti.",
+  "Woltemade":"Colpo Juve da FVM 160: torre da 1.98 in un attacco AFFOLLATISSIMO (Kolo Muani 25, David, Milik). Il talento è enorme, i minuti sono la domanda: a quota 23 paghi il nome, non un posto garantito.",
+  "Beto":"UFFICIALE alla Fiorentina: punta fisica, sfida Pellegrino per la maglia da titolare. Reparto rifondato in 48 ore: gerarchie tutte da leggere alla ripresa.",
+  "Gnonto":"Alla Fiorentina dal Leeds: esterno rapido, con Mastantuono e Atta la trequarti viola è piena. Quota 7 da rotazione.",
+  "Hutchinson":"UFFICIALE al Milan: xA/90 nel 94° percentile della Premier (FBref) — un creatore vero, non un goleador (1 gol su 2.76 attesi). Insidia Saelemaekers, e a quota 8 con bonus assist pieni è un colpo.",
+  "Sarr P.":"UFFICIALE alla Juventus dal Tottenham: fisico e corsa in mediana, rotazione con Locatelli e Thuram K. Quota 7 onesta.",
+  "Diego Carlos":"Al Parma dal Como: centrale d'esperienza, probabile titolare in una difesa giovane. Quota 8 sensata.",
+  "Fofana Y.":"✅ RESTA al Milan: la cessione al Lione NON si è chiusa. Torna una rotazione di mediana — non più da evitare, ma nemmeno un titolare.",
+  "Sulemana I.":"Ceduto al SassUOLO da infortunato (collaterale, rientro a metà ottobre): lo compri solo se hai pazienza.",
+  "Dovbyk":"⚠️ Piccoli gli è stato preferito nel posticipo e il Bologna NON lo ha ceduto: gerarchia da campo, e il campo finora dice Piccoli. A quota 15 il rischio staffetta è concreto."
+
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
@@ -650,10 +665,9 @@ const CAMPO_NOTE = {
    mercato di riparazione di gennaio — si riapre lì, non prima. */
 /* Il mercato chiude domani (1° settembre, ore 20): le ultime ore hanno ancora
    situazioni davvero aperte. Da azzerare a mercato chiuso. */
+/* MERCATO CHIUSO il 1° settembre alle 20: nessuna trattativa aperta.
+   Si riapre col mercato di riparazione a GENNAIO — fino ad allora resta vuota. */
 const MERCATO_UNC = {
-  "Kean": 2,        // accordo col Como (35M+5) ma NON ancora ufficiale: dove gioca si sa domani
-  "Fofana Y.": 3,   // cessione al Lione in finalizzazione: sta uscendo dalla Serie A
-  "Ahanor": 3       // ceduto al Chelsea (48M) e girato al Crystal Palace: fuori dalla Serie A
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -661,6 +675,12 @@ const MERCATO_UNC = {
    B- = ballottaggio sfavorito · R = riserva chiara. Applicata DOPO il calcolo della
    titolarità dai minuti: le gerarchie nuove contano più della stagione scorsa. */
 const XI_STATUS = {
+  /* --- listone di CHIUSURA, 1° settembre: gerarchie iniziali prudenti, il campo correggerà --- */
+  "Woltemade":"B+","Beto":"B+","Gnonto":"B+","Hutchinson":"B+","Sarr P.":"B+","Mbangula":"B+",
+  "Diego Carlos":"B+","Caleta-Car":"B+","Sugawara":"B+","Belghali":"B-","Patterson":"B-",
+  "Juan Jesus":"B-","Drameh":"B-","Goglichidze":"R","Monteiro J.":"B-","Braganca":"B-",
+  "Massolin":"R","Gagliardini":"B-","Jovanovic":"B-","Zeballos":"B-","Robinho Junior":"R",
+  "Ghidotti":"R","Tornqvist":"R",
   /* --- nuovi del listone del 31 agosto e fatti della 2ª (8 gare giocate; Atalanta-Bologna
      e Lecce-Roma si giocano stasera, dopo l'asta: per quelle squadre vale ancora la 1ª) --- */
   "Perri":"T","Grabara":"R","Mrozek":"R",
@@ -668,22 +688,21 @@ const XI_STATUS = {
   "Kessiè":"B+","De Roon":"B-","Theate":"B+","Balerdi":"B+","Lulli":"B+",
   "Ngonge":"B+","Folorunsho":"B+","Mout":"B-","Foe Ondoa":"R","Maye":"R",
   "Bobcek":"B+","Birligea":"B-","Tchato":"B-",
-  "Esposito Se.":"B-","Van Der Brempt":"B-","Macchioni":"R",
+  "Esposito Se.":"B-","Van Der Brempt":"B-",
   "Kambwala":"B-","Ricci S.":"B-","Njie":"B-","Fabbian":"B+","Drobnic":"R",
   "Ilic":"B+","Fatah":"B-","Dembelè A.":"R","Ciervo":"R",
   /* Atalanta (4-3-3 Sarri) */
   /* riscritta sulla formazione VERA di Atalanta-Sassuolo 2-1 (1a giornata):
      Carnesecchi; Zappacosta, Scalvini, Kossounou, Bernasconi; Pasalic, Gaetano, Ederson;
      Zalewski, Raspadori; Scamacca. Krstovic entrato nella ripresa e decisivo. */
-  "Carnesecchi":"T","Sportiello":"R","Scalvini":"T","Hien":"R","Zappacosta":"T",
-  "Ahanor":"R","Bellanova":"B-","Bernasconi":"T","Kolasinac":"B-","Kossounou":"T",
+  "Carnesecchi":"T","Sportiello":"R","Scalvini":"T","Hien":"R","Zappacosta":"T","Bellanova":"B-","Bernasconi":"T","Kolasinac":"B-","Kossounou":"T",
   "Ederson D.S.":"T","Samardzic":"B-","Pasalic":"T","Gaetano":"T","Zalewski":"B+","De Roon":"B-",
   "Sulemana I.":"R","Scamacca":"T","Krstovic":"B+","De Ketelaere":"B+","Raspadori":"T",
-  "Sulemana K.":"R","Vismara":"R",
+  "Sulemana K.":"R",
   /* Bologna (4-3-3 Tedesco) */
   "Skorupski":"T","Happonen":"R","Pessina Mas.":"R","Lucumì":"B+","Miranda J.":"T","Heggem":"T",
   "Zortea":"B+","Vitik":"B+","Holm":"B-","Casale":"R","Helland":"R","Alhassane":"R",   // Vitik promosso: Lucumì ha l'accordo con la Juve
-  "De Silvestri":"R","Orsolini":"T","Rowe":"T","Bernardeschi":"B-","Odgaard":"B+","Cambiaghi":"R",
+  "De Silvestri":"R","Orsolini":"T","Rowe":"B+","Bernardeschi":"B-","Odgaard":"B+","Cambiaghi":"R",
   "Ferguson":"T","Pobega":"B+","Amondarain":"R","Moro N.":"B+","Dominguez B.":"R",
   "El Azzouzi O.":"R","Dovbyk":"T",
   /* Cagliari (4-4-2 Pisacane) */
@@ -695,12 +714,11 @@ const XI_STATUS = {
   "Butez":"T","Tornqvist":"R","Vigorito":"R","Ramon":"T","Kaiki":"R","Valle":"B+","Kempf":"B-",   // il campo ha rovesciato agosto: Valle 2 presenze su 2, Kaiki zero
   "Smolcic I.":"R","Van Der Brempt":"B-","Goldaniga":"R","Paz N.":"T",
   "Baturina":"T","Da Cunha":"T","Rodriguez Je.":"B+","Perrone":"T","Caqueret":"B-","Liberali":"R",
-  "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+",
-  "Kuhn":"R","Azon":"R","Couto":"B+","Chalobah T.":"B+",
+  "Milla":"B-","Addai":"B-","Fadera":"R","Lahdo":"R","Douvikas":"T","Diao":"B+","Couto":"B+","Chalobah T.":"B+",
   /* Fiorentina (4-3-2-1 Grosso) */
   "De Gea":"T","Christensen O.":"R","Lezzerini":"R","Dodò":"B+","Dragusin":"T","Jimenez A.":"B+",
   "Valdepenas":"B+","Viery":"B+","Parisi":"R","Pongracic":"B-","Ranieri L.":"B-","Joao Mario":"B-",
-  "Atta":"T","Gudmundsson A.":"T","Mandragora":"B-","Fagioli":"B+","Ndour":"B+","Oulai":"B+",
+  "Atta":"T","Gudmundsson A.":"B+","Mandragora":"B-","Fagioli":"B+","Ndour":"B+","Oulai":"B+",
   "Fabbian":"R","Brescianini":"R","Kean":"B+","Piccoli":"B-","Mastantuono":"T",   // Kean 51-49 su Pellegrino; Piccoli venduto al Bologna
   /* Frosinone (4-2-3-1 Alvini) */
   "Palmisani":"B+","Desplanches":"B-","Lolic":"R","Monterisi":"T","Bracaglia":"T","Oyono A.":"T",
@@ -711,7 +729,7 @@ const XI_STATUS = {
   "Schmid":"T","Grillitsch":"B-","Masini":"B-",
   /* Genoa (3-4-2-1 De Rossi) */
   "Bijlow":"T","Sommariva":"R","Stolz":"R","Ostigard":"T","Vasquez":"T","Norton-Cuffy":"T",
-  "Marcandalli":"T","Martin":"B-","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-","Baldanzi":"B+","Frendrup":"T","Ellertsson":"B-","Meichtry":"B-",
+  "Marcandalli":"T","Mitaj":"B+","Otoa":"B-","Puczka":"R","Sabelli":"B-","Baldanzi":"B+","Frendrup":"T","Ellertsson":"B-","Meichtry":"B-",
   "Traorè Hj.":"B-","Amorim":"B-","Messias":"R","Masini":"B-","Venturino":"R","Colombo":"T",
   "Vitinha O.":"B+","Havel":"B-","Sow":"T",
   /* Inter (3-5-2 Chivu) */
@@ -739,12 +757,12 @@ const XI_STATUS = {
   /* Milan (3-4-2-1 Amorim) */
   "Maignan":"T","Terracciano":"R","Torriani":"R","Pavlovic":"T","Gila":"T","Bartesaghi":"T",
   "Gabbia":"T","Tomori":"B-","De Winter":"B-","Estupinan":"B-","Diawara S.":"R",
-  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"R",
+  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
-  "Ramos G.":"T","Gimenez":"R","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
+  "Ramos G.":"T","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
   /* Monza (3-4-2-1 Juric) */
-  "Thiam":"T","Strajnar":"R","Mangas":"T","Delli Carri":"B+","Lucchesi":"B-",   // ballottaggio con Delli Carri, non promosso
+  "Thiam":"T","Strajnar":"R","Mangas":"T","Lucchesi":"B-",   // ballottaggio con Delli Carri, non promosso
   "Birindelli":"T","Kouadio":"B+","Carboni A.":"B+","Antov":"R","Bakoune":"R","Colpani":"T",
   "Pessina":"T","Akinsanmiro":"B+","Colombo L.":"B-","Ciurria":"B-","Cutrone":"T","Mota":"B+",
   "Varela G.":"B-","Robinson J.":"R",
@@ -757,7 +775,7 @@ const XI_STATUS = {
   /* Parma (3-5-2 Cuesta) */
   "Daffara":"B-","Corvi":"T","Delprato":"T", "Valeri":"T",   // Suzuki chiuso al PSG: Corvi e il titolare
   "Valenti":"B-","Troilo":"T","Britschgi":"B-","Ndiaye":"B-","Carboni F.":"R","Bernabè":"T",
-  "Nicolussi Caviglia":"B+","Keita M.":"T","Almqvist":"B-","Sorensen O.":"B-",
+  "Nicolussi Caviglia":"B+","Keita M.":"T","Almqvist":"B-",
   "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"B+","Frigan":"B-",
   "Elphege":"B-","Tourè E.":"T",   // Pellegrino ceduto alla Fiorentina: Tourè e la punta titolare del Parma
   /* Roma (3-4-2-1 Gasperini) */
@@ -767,8 +785,8 @@ const XI_STATUS = {
   "Dybala":"T","Castro S.":"B-","Soulè":"B+","Vaz":"R","Pellegrini Lo.":"B-",
   /* Sassuolo (4-3-3 Aquilani) */
   "Muric":"T","Russo A.":"R","Turati":"B-","Idzes":"T","Walukiewicz":"T","Doig":"T",
-  "Candè":"B-","Missori":"B+","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
-  "Matic":"T","Adzic":"B-","Bakola":"B-","Boloca":"B-","Lipani":"B-","Iannoni":"R","Berardi":"T",   // Lipani in ballottaggio, non titolare
+  "Candè":"B-","Pieragnolo":"B-","Thorstvedt":"T","Konè I.":"R","Volpato":"R",
+  "Matic":"T","Adzic":"B-","Bakola":"B-","Boloca":"B-","Lipani":"B-","Berardi":"T",   // Lipani in ballottaggio, non titolare
   "Laurientè":"T","Pinamonti":"B+","Bowie":"T","Satalino":"R","Dominguez B.":"R",
   /* Torino (3-4-2-1 Abate) — il titolare in porta sarà Perri, non presente nel listone */
   "Mascardi":"R","Paleari":"R","Siviero":"R","Coco":"T","Ismajli":"T","Comuzzo":"T","Comert":"B-","Biraghi":"R","Vlasic":"T","Casadei":"T","Oristanio":"T",
@@ -777,7 +795,7 @@ const XI_STATUS = {
   /* Udinese (3-4-2-1 Runjaic) */
   "Okoye":"T","Padelli":"R","Piana":"R","Solet":"T","Vojvoda":"T","Kristensen T.":"B+",
   "Kamara H.":"T","Kabasele":"T","Bertola":"B-","Zanoli":"B-","Arizala":"R","Palma":"R",
-  "Ebosse":"R","Mlacic":"R","Abankwah":"R","Zaniolo":"T","Ekkelenkamp":"T","Unai Gomez":"B-",
+  "Ebosse":"R","Abankwah":"R","Zaniolo":"T","Ekkelenkamp":"T","Unai Gomez":"B-",
   "Karlstrom":"T","Piotrowski":"B+","Miller L.":"B+","Chakvetadze":"R",
   "Zarraga":"R","Davis K.":"T","Gueye":"B+","Bayo V.":"B-",
   /* Venezia (3-5-2 Stroppa) */
@@ -841,7 +859,6 @@ const INJURY = {
   /* --- Lecce --- */
   "Gallo":[0,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
   /* --- Milan --- */
-  "Gimenez":[1,"Distorsione alla caviglia: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
   /* --- Monza --- */
   "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
   /* --- Napoli --- */
@@ -1043,12 +1060,16 @@ const ARRIVATI_COL_LISTONE_31 = new Set([
   "Maye","Drobnic","Dembelè A.","Kessiè","Gonzalez N.","Foe Ondoa","Mout","Ciervo",
   "Bobcek","Birligea","Ngonge","Fatah",
   "Van Der Brempt","Njie","De Roon","Fabbian","Ricci S.","Folorunsho","Ilic",
-  "Esposito Se.","Pinamonti","Mazzocchi","Ziolkowski"
+  "Esposito Se.","Pinamonti","Mazzocchi","Ziolkowski",
+  /* --- e i nuovi del listone di CHIUSURA (1° settembre) --- */
+  "Ghidotti","Diego Carlos","Belghali","Caleta-Car","Sugawara","Patterson","Juan Jesus",
+  "Drameh","Goglichidze","Hutchinson","Mbangula","Monteiro J.","Sarr P.","Braganca",
+  "Massolin","Gagliardini","Jovanovic","Woltemade","Beto","Gnonto","Zeballos",
+  "Robinho Junior","Tornqvist","Gudmundsson A.","Rowe","Sulemana I.","Kean"
 ]);
 
 const TRASFERIMENTI_POST_LISTONE = {
-  "Mazzocchi": "Venezia",     // dal Napoli, prestito con obbligo salvezza — ufficiale
-  "Ziolkowski": "Monza"       // dalla Roma, prestito con diritto — ufficiale
+  /* vuota: il listone del 1° settembre ha già tutte le squadre giuste. Si riusa a gennaio. */
 };
 
 /* ---- costruzione ---- */
