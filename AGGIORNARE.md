@@ -23,6 +23,7 @@ fantahq/
 │   ├── app.mjs                    # carica l'app fuori dal browser: UN motore solo, non copie
 │   ├── occasioni.mjs              # i colpi che il campo ha rivelato e il prezzo non ha recepito
 │   ├── formazione.mjs             # l'XI consigliato da riga di comando, dal CSV della rosa
+│   ├── rosa-consigli.mjs          # svincolati veri e scambi convenienti, dal backup delle leghe
 │   ├── prova-download.mjs         # i rami del salvataggio file (link classico vs capacità Artifact)
 │   ├── prova-formazione.mjs       # la formazione esclude davvero infortunati e squalificati
 │   ├── scovatore.mjs              # misura cosa predice le occasioni da pochi crediti

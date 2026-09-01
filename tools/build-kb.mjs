@@ -638,7 +638,7 @@ const CAMPO_NOTE = {
   "Mazzocchi":"UFFICIALE al Venezia dal Napoli (prestito con obbligo in caso di salvezza): da riserva del Napoli a possibile titolare della fascia in laguna. A quota 1 diventa interessante.",
   "Ziolkowski":"UFFICIALE al Monza dalla Roma (prestito con diritto): a Roma non giocava, al Monza si gioca un posto vero. Quota 1.",
   "Fofana Y.":"❌ Cessione al LIONE in finalizzazione: sta USCENDO dalla Serie A. Non prenderlo.",
-  "Saelemaekers":"⚠️ Il Milan ha Hutchinson (Chelsea) in visite mediche: un esterno offensivo in più che può insidiarlo. Resta titolare oggi, ma la concorrenza sale.",
+  "Saelemaekers":"⚠️ Il Milan ha preso Hutchinson dal Nottingham Forest: un esterno offensivo in più che può insidiarlo. Resta titolare oggi, ma la concorrenza sale.",
   "Locatelli":"La Juventus ha l'accordo per Pape Sarr dal Tottenham: un centrocampista fisico in più. Lui resta il regista titolare, ma le rotazioni si allargano.",
   /* ===== MERCATO CHIUSO, 1° settembre ore 20: il quadro definitivo ===== */
   "Kean":"✅ ORA UFFICIALE al COMO (35M+5): nel listone è lariano. Ballottaggio vero con Douvikas (2 gol in 2) per una maglia sola: due bomber, un posto. Nessuno dei due va più pagato da titolare certo.",
