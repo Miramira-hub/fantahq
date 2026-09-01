@@ -21,7 +21,9 @@ ok("Berardi tornato (gol alla 2ª) → ok",      dispAuto(k("Berardi"), G2) === 
 ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) === "out");
 ok("Buongiorno alla 6ª → dubbio, non ok: rientra da un'operazione", dispAuto(k("Buongiorno"), G+5) === "dubbio");
 ok("Kristensen fuori nelle prime due → out alla 3ª", dispAuto(k("Kristensen T."), G2) === "out");
-ok("Kristensen → dubbio alla 4ª (torna, ma da assenza)", dispAuto(k("Kristensen T."), G+2) === "dubbio");
+/* un'assenza BREVE (stop 1) non lascia strascichi: passata, si torna ok. Il "dubbio da
+   rientro" e riservato agli stop seri (inj>=2, vedi Buongiorno alla 6ª). */
+ok("Kristensen → ok alla 4ª: assenza breve, nessuno strascico", dispAuto(k("Kristensen T."), G+2) === "ok");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Conceicao sano → ok",                    dispAuto(k("Conceicao"), G2) === "ok");
 /* chi salta solo la prossima torna disponibile se guardi più avanti */
