@@ -664,7 +664,9 @@ const CAMPO_NOTE = {
   "Vlasic":"Con Mandragora arrivato in granata i piazzati si dividono, ma i RIGORI restano suoi: la designazione non cambia.",
   "Beto":"UFFICIALE alla Fiorentina (18M dall'Everton): punta titolare designata di un reparto rifatto — Kean e Nzola via, dentro lui e Gnonto. ⚠️ La Fiorentina è rimasta SENZA rigorista designato: se il dischetto va a lui, il valore sale di una fascia.",
   "Woltemade":"Colpo Juve in PRESTITO dal Newcastle (5M): torre da 1.98. Con DAVID ceduto all'Atlético la concorrenza vera è il solo Kolo Muani (più Milik di rientro): i minuti ci sono più di quanto la quota 23 facesse temere ieri."
-
+,
+  /* ===== POST-DEADLINE: l'ultima parola sulla saga Fofana ===== */
+  "Fofana Y.":"🔁 RESTA AL MILAN: la cessione al Lione è SALTATA sul filo — accordo raggiunto ma il deposito non è mai arrivato (Di Marzio, poi confermato). Terza giravolta in tre giorni: fuori dal progetto ma in rosa fino a gennaio. Rotazione di mediana a quota 4: prezzo da ultimo slot, con la certezza che a gennaio riproveranno a cederlo."
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
@@ -677,7 +679,6 @@ const CAMPO_NOTE = {
    Si riapre col mercato di riparazione a GENNAIO — fino ad allora resta vuota. */
 const MERCATO_UNC = {  /* fuori dalla Serie A DOPO l'export del listone: il file li mostra ancora */
   "David": 3,       // ceduto all'Atlético Madrid (prestito con diritto a 25M)
-  "Fofana Y.": 3    // al Lione: la chiusura è arrivata nelle ultime ore
 
 };
 
@@ -768,7 +769,7 @@ const XI_STATUS = {
   /* Milan (3-4-2-1 Amorim) */
   "Maignan":"T","Terracciano":"R","Torriani":"R","Pavlovic":"T","Gila":"T","Bartesaghi":"T",
   "Gabbia":"T","Tomori":"B-","De Winter":"B-","Estupinan":"B-","Diawara S.":"R",
-  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"R",
+  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
   "Ramos G.":"T","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
