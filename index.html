@@ -301,7 +301,7 @@ const KB = DATA.kb;
 /* ================= stato ================= */
 let store = null;   // { v, current, order:[id], leagues:{ id:{name, state} } }
 let state = null;   // scorciatoia = store.leagues[store.current].state
-let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0,
+let ui = { tab:"consigli", search:"", role:"", team:"", tag:"", sort:"exp", onlyTarget:false, limit:200, openId:0, releasing:0,
            consRole:"", astaSearch:"", astaSel:null, tradeGive:[], tradeGet:[], tradeSearch:"", confirmReset:false,
            cmp:[], cmpSearch:"", fast:false, astaRole:"", astaSort:"qta", squadStrategy:null, confirmSample:false, astaPag:0,
            splitCalc:"", openTeam:"" };   // ripartizione calcolata + squadra aperta in Forza squadre
@@ -369,6 +369,10 @@ function normState(st){                 // ripara uno state caricato da vecchi s
   if(st.settings.deepBench === undefined) st.settings.deepBench = true;   // riserve vere, non riempitivi
   if(!st.rivalMod || typeof st.rivalMod !== "object") st.rivalMod = {};
   st.teamsDiff = st.teamsDiff || {}; st.avail = st.avail || {};
+  /* crediti pagati e NON recuperati con gli svincoli: ogni lega rimborsa a modo suo
+     (intero, metà, quota attuale), quindi il rimborso lo decide l'utente a ogni taglio
+     e qui si accumula la differenza. Può essere negativo: c'è chi rimborsa più del pagato. */
+  st.malusSvincoli = +st.malusSvincoli || 0;
   st.giornata = Math.max(1, Math.min(38, +st.giornata || 1));
   /* Preparare la formazione di una giornata GIÀ GIOCATA non serve a niente, e succede da
      solo: il valore parte da 1 e nessuno pensa a spostarlo, così a settembre il tab
@@ -704,7 +708,7 @@ function fasciaMap(){
   return m;
 }
 function fasciaBadge(f){ return `<span class="badge f${f<=2?f:""}">${f}ª</span>`; }
-function budgetSpent(){ return mine().reduce((s,p)=>s+(p.paid||0),0); }
+function budgetSpent(){ return mine().reduce((s,p)=>s+(p.paid||0),0) + (state.malusSvincoli||0); }
 function budgetLeft(){ return state.settings.budget - budgetSpent(); }
 function slotsLeft(r){ return state.settings.slots[r] - mine().filter(p=>p.role===r).length; }
 /* l'asta è iniziata se qualcuno è già stato assegnato, a te o agli altri */
@@ -1130,13 +1134,14 @@ function exportRoseCsv(all){
 }
 
 /* ================= sincronizzazione dispositivi ================= */
-const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0, g:st.giornata||1, rm:st.rivalMod||{},
+const encState = st=>({ o:st.official?1:0, s:st.settings, d:st.teamsDiff, a:st.avail||{}, l:st.lineup, m:st.managers||[], q:st.seq||0, g:st.giornata||1, rm:st.rivalMod||{}, ms:st.malusSvincoli||0,
   p: st.players.map(p=>[p.role,p.name,p.team,p.qta,p.fvm,p.rating,p.target?1:0,p.maxBid,(p.status==="mine"?1:p.status==="gone"?2:0),p.paid,p.owner||"",p.seq||0,p.extId||"",p.note||""]) });
 function decState(o){
   const st = freshState();
   st.official = !!o.o; st.settings = o.s||st.settings; st.teamsDiff = o.d||{}; st.avail = o.a||{}; st.lineup = o.l||st.lineup;
   st.managers = Array.isArray(o.m)?o.m:[]; st.seq = o.q||0;
   st.giornata = Math.max(1,Math.min(38,+o.g||1)); st.rivalMod = (o.rm && typeof o.rm==="object") ? o.rm : {};
+  st.malusSvincoli = +o.ms || 0;
   st.players = (o.p||[]).map((a,i)=>{
     const p = mkPlayer(i+1, a[1], a[2], a[0], a[3], a[4]);
     p.rating=a[5]||0; p.target=!!a[6]; p.maxBid=a[7]||0; p.status=a[8]===1?"mine":a[8]===2?"gone":"free"; p.paid=a[9]||0;
@@ -2377,7 +2382,11 @@ function vRosa(){
         k&&GIORNATE_GIOCATE ? `${k.pvOra}/${GIORNATE_GIOCATE}${k.pvOra?" · "+fmt1(k.fmOra):""}` : "—"}</td>
       <td class="r num">${k&&k.pvOra?`${k.golOra}+${k.assOra}`:"—"}</td>
       <td class="r num">${p.qta}</td><td class="r num" style="color:var(--gold);font-weight:700">${p.paid}</td>
-      <td><button class="btn sm warn" data-release="${p.id}">Svincola</button></td></tr>`;}).join("");
+      <td>${ui.releasing===p.id
+        ? `recuperi <input type="number" id="relVal" value="${p.paid||0}" min="0" style="width:64px"> cr
+           <button class="btn sm pri" id="relOk" data-relok="${p.id}">Conferma</button>
+           <button class="btn sm" id="relNo">Annulla</button>`
+        : `<button class="btn sm warn" data-release="${p.id}">Svincola</button>`}</td></tr>`;}).join("");
     return `<h3 class="sec">${ROLE_NAMES[r]} · ${list.length}/${s.slots[r]}</h3>
       <div class="twrap"><table>
       <thead><tr><th>R</th><th>Giocatore</th><th>Consiglio</th><th class="r">FM att.</th><th class="r" title="Quanto spesso lo avrai davvero in campo: titolarità meno infortuni e incertezza di mercato. È il numero che decide chi schierare.">Affid.</th><th class="r" title="${GIORNATE_GIOCATE ? `Partite giocate su ${GIORNATE_GIOCATE}, e la fantamedia realizzata quest'anno.` : "Si riempie con la prima giornata."}">Pres. · FM</th>
@@ -2815,7 +2824,7 @@ function render(){
 }
 
 document.addEventListener("click", e=>{
-  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,[data-openteam],#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
+  const t = e.target.closest("[data-tab],[data-frole],[data-ftag],[data-tagf],[data-crole],[data-preset],[data-setmod],[data-sel],[data-target],[data-release],[data-relok],#relNo,[data-open],#ftarget,#more,#doImport,#expJson,#loadSample,#syncKB,#resetAll,#resetEverything,#buyMine,#buyGone,#buyCancel,#undo,#genSync,#applySync,[data-openteam],#genTargets,#calcSplit,#calcSplitRes,#themeBtn,#newLeagueBtn,#addLeague2,#delLeague,[data-cmpadd],[data-cmpdel],#cmpClear,#fastToggle,[data-freemov],[data-step],#csvMine,#csvAll,[data-arole],[data-astapag],#claimBtn,[data-sqstrat],#deepBench,#recalcCaps,#copyTargets");
   if(!t) return;
   if(t.dataset.astapag!==undefined){ ui.astaPag = Math.max(0, +t.dataset.astapag||0); render(); return; }
   if(t.dataset.arole!==undefined){ ui.astaRole = t.dataset.arole; ui.astaPag = 0; render(); return; }
@@ -3030,7 +3039,18 @@ document.addEventListener("click", e=>{
     if(p){ p.status="free"; p.paid=0; p.owner=null; save(); toast(`${p.name} riportato all'asta`); }
     render(); return;
   }
-  if(t.dataset.release){ const p=byId(+t.dataset.release); p.status="free"; p.paid=0; save(); toast(`${p.name} svincolato`); render(); return; }
+  if(t.dataset.release){ ui.releasing=+t.dataset.release; render(); return; }
+  if(t.dataset.relok){
+    const p=byId(+t.dataset.relok);
+    const campo=document.getElementById("relVal");
+    /* il rimborso lo decide il regolamento della lega, quindi lo decide l'utente:
+       la differenza col pagato resta contata come spesa (o come guadagno, se rimborsa di più) */
+    const rec=Math.max(0, Math.round(+((campo&&campo.value))||0));
+    state.malusSvincoli=(state.malusSvincoli||0)+((p.paid||0)-rec);
+    p.status="free"; p.paid=0; ui.releasing=0; save();
+    toast(`${p.name} svincolato: recuperati ${rec} crediti`); render(); return;
+  }
+  if(t.id==="relNo"){ ui.releasing=0; render(); return; }
   if(t.id==="doImport"){
     const n = importListone($("#pasteArea").value);
     if(n){ toast(`Importati ${n} giocatori`); render(); } else toast("Nessuna riga riconosciuta: controlla il formato");

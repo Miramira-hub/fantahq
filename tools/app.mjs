@@ -26,7 +26,7 @@ const ESPOSTE = ["DATA", "KBI", "KB", "expFM", "advice", "affOf", "chipsOf", "RO
                  "difficoltaTurno", "DIFF_LABEL",
                  /* il motore della formazione, ora fuori dalla vista */
                  "dispAuto", "dispDi", "diffDi", "scoreFormazione", "kbFor",
-                 "downloadFile", "freshState", "mkPlayer", "setGiornata"];
+                 "downloadFile", "freshState", "mkPlayer", "setGiornata", "encState", "decState", "normState", "budgetSpent"];
 
 export function caricaApp(opzioni = {}) {
   const html = fs.readFileSync(`${REPO}/index.html`, "utf8");
