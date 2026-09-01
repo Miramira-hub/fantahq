@@ -847,7 +847,7 @@ const INJURY = {
   /* --- Atalanta --- */
   "Hien":[4,"Lesione al semitendinoso: rientro dichiarato l'11 ottobre."],
   "Sulemana I.":[8,"Lesione al collaterale del ginocchio: rientro a metà ottobre."],
-  "Kristensen T.":[0,"Problema fisico in via di risoluzione: possibile recupero già per la 2ª."],
+  "Kristensen T.":[1,"Non ha ancora giocato: il problema fisico lo tiene fuori dalle prime due, rientro da verificare dopo la sosta."],
   /* --- Cagliari --- */
   "Idrissi R.":[11,"Lesione del crociato anteriore: rientro a novembre."],
   "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
@@ -868,7 +868,6 @@ const INJURY = {
   "Dele-Bashiru":[1,"Il problema muscolare gli ha fatto saltare la 2ª: da verificare dopo la sosta."],
   "Cataldi":[1,"Ha saltato le prime due giornate: recupero atletico ancora in corso."],
   /* --- Lecce --- */
-  "Gallo":[0,"Ferita da taglio allo zigomo: in dubbio per la 2ª."],
   /* --- Milan --- */
   /* --- Monza --- */
   "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],

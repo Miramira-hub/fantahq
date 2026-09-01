@@ -20,7 +20,8 @@ ok("Leao ceduto all'estero → fuori dal db",  k("Leao") === undefined);
 ok("Berardi tornato (gol alla 2ª) → ok",      dispAuto(k("Berardi"), G2) === "ok");
 ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) === "out");
 ok("Buongiorno alla 6ª → dubbio, non ok: rientra da un'operazione", dispAuto(k("Buongiorno"), G+5) === "dubbio");
-ok("Kristensen acciacco senza stop → dubbio",dispAuto(k("Kristensen T."), G2) === "dubbio");
+ok("Kristensen fuori nelle prime due → out alla 3ª", dispAuto(k("Kristensen T."), G2) === "out");
+ok("Kristensen → dubbio alla 4ª (torna, ma da assenza)", dispAuto(k("Kristensen T."), G+2) === "dubbio");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Conceicao sano → ok",                    dispAuto(k("Conceicao"), G2) === "ok");
 /* chi salta solo la prossima torna disponibile se guardi più avanti */
