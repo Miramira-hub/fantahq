@@ -266,7 +266,7 @@ const RIG = {
   "Scamacca":2, "De Ketelaere":1, "Samardzic":1,                        // Atalanta
   "Orsolini":2, "Dovbyk":1, "Bernardeschi":1,                           // Bologna: Dovbyk insidia (27/32 in carriera)
   "Da Cunha":2, "Paz N.":1, "Douvikas":1, "Baturina":1,                 // Como
-  "Mandragora":1,   /* rigorista viola DA DESIGNARE: Gudmundsson alla Lazio, Kean al Como */                         // Fiorentina: ballottaggio col Kean
+  /* Fiorentina SENZA rigorista designato: Gudmundsson alla Lazio, Kean al Como e Mandragora al Torino. Si saprà solo dal campo: nessun bonus-rigori viola è pagabile oggi. */                         // Fiorentina: ballottaggio col Kean
   "Zaccagni":2, "Cataldi":1, "Taylor K.":1,                             // Lazio: unanime
   "De Bruyne":2, "Hojlund":1,                                           // Napoli: designato dopo l'addio di Lukaku
   "Bernabè":2, "Valeri":1,                                              // Parma: Bernabè designato + punizioni e corner (Pellegrino ceduto alla Fiorentina, dove dal dischetto va Gudmundsson)
@@ -656,6 +656,14 @@ const CAMPO_NOTE = {
   "Fofana Y.":"✅ RESTA al Milan: la cessione al Lione NON si è chiusa. Torna una rotazione di mediana — non più da evitare, ma nemmeno un titolare.",
   "Sulemana I.":"Ceduto al SassUOLO da infortunato (collaterale, rientro a metà ottobre): lo compri solo se hai pazienza.",
   "Dovbyk":"⚠️ Piccoli gli è stato preferito nel posticipo e il Bologna NON lo ha ceduto: gerarchia da campo, e il campo finora dice Piccoli. A quota 15 il rischio staffetta è concreto."
+,
+  /* ===== CHIUSI DOPO L'EXPORT DEL LISTONE (segnalazione utente + live Sky) ===== */
+  "Mandragora":"🚨 CEDUTO al TORINO nelle ultime ore di mercato (5M, quadriennale): il file lo dà ancora viola, la squadra è corretta dal database. In granata è il regista davanti alla difesa: piazzati probabili, ma i rigori del Torino sono di Vlasic. La pista 'rigorista della Fiorentina' è MORTA.",
+  "David":"❌ CEDUTO all'ATLÉTICO MADRID nelle ultime ore (prestito con diritto): FUORI dalla Serie A anche se il file lo mostra ancora. Non prenderlo.",
+  "Fofana Y.":"❌ Al LIONE: la cessione si è chiusa davvero nelle ultime ore (2M + diritto a 12). FUORI dalla Serie A. La nota precedente diceva che restava: era vera al momento della scrittura, il mercato l'ha superata in serata.",
+  "Vlasic":"Con Mandragora arrivato in granata i piazzati si dividono, ma i RIGORI restano suoi: la designazione non cambia.",
+  "Beto":"UFFICIALE alla Fiorentina (18M dall'Everton): punta titolare designata di un reparto rifatto — Kean e Nzola via, dentro lui e Gnonto. ⚠️ La Fiorentina è rimasta SENZA rigorista designato: se il dischetto va a lui, il valore sale di una fascia.",
+  "Woltemade":"Colpo Juve in PRESTITO dal Newcastle (5M): torre da 1.98. Con DAVID ceduto all'Atlético la concorrenza vera è il solo Kolo Muani (più Milik di rientro): i minuti ci sono più di quanto la quota 23 facesse temere ieri."
 
 };
 
@@ -667,7 +675,10 @@ const CAMPO_NOTE = {
    situazioni davvero aperte. Da azzerare a mercato chiuso. */
 /* MERCATO CHIUSO il 1° settembre alle 20: nessuna trattativa aperta.
    Si riapre col mercato di riparazione a GENNAIO — fino ad allora resta vuota. */
-const MERCATO_UNC = {
+const MERCATO_UNC = {  /* fuori dalla Serie A DOPO l'export del listone: il file li mostra ancora */
+  "David": 3,       // ceduto all'Atlético Madrid (prestito con diritto a 25M)
+  "Fofana Y.": 3    // al Lione: la chiusura è arrivata nelle ultime ore
+
 };
 
 /* ================= XI PROBABILI 2026-27 (ricerca 5 agosto: fantamaster/sosfanta/
@@ -757,7 +768,7 @@ const XI_STATUS = {
   /* Milan (3-4-2-1 Amorim) */
   "Maignan":"T","Terracciano":"R","Torriani":"R","Pavlovic":"T","Gila":"T","Bartesaghi":"T",
   "Gabbia":"T","Tomori":"B-","De Winter":"B-","Estupinan":"B-","Diawara S.":"R",
-  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"B-",
+  "Pulisic":"T","Rabiot":"T","Modric":"B+","Saelemaekers":"T","Chukwueze":"R","Fofana Y.":"R",
   "Ricci S.":"R","Jashari":"B-","Loftus-Cheek":"R","Musah":"R",
   /* fonti discordi sulla punta: nel derby di Perth ha giocato Camarda, ma Ramos è il colpo da 70M */
   "Ramos G.":"T","Camarda":"B-",   // Amorim: Ramos titolare, Camarda primo cambio
@@ -872,7 +883,7 @@ const INJURY = {
   /* --- Parma --- */
   "Nicolussi Caviglia":[1,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
   /* --- Roma --- */
-  "Rensch":[0,"Stiramento del flessore: in dubbio per la 2ª."],
+  "Rensch":[1,"Stiramento del flessore: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
   "Vaz":[3,"Infortunio muscolare: rientro dopo la sosta delle nazionali."],
   /* Dybala non è fermo — non compare in nessun bollettino di oggi. Resta però la condizione
      di fondo, che non è una notizia di giornata ma un dato con cui convivere tutto l'anno. */
@@ -1069,7 +1080,9 @@ const ARRIVATI_COL_LISTONE_31 = new Set([
 ]);
 
 const TRASFERIMENTI_POST_LISTONE = {
-  /* vuota: il listone del 1° settembre ha già tutte le squadre giuste. Si riusa a gennaio. */
+  /* chiusi DOPO l'export del file del 1° settembre (live Sky deadline): il prossimo listone
+   li avrà, fino ad allora la squadra la corregge questa mappa. */
+  "Mandragora": "Torino"       // dalla Fiorentina, 5M, quadriennale — ufficiale
 };
 
 /* ---- costruzione ---- */
