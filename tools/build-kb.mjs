@@ -666,7 +666,41 @@ const CAMPO_NOTE = {
   "Woltemade":"Colpo Juve in PRESTITO dal Newcastle (5M): torre da 1.98. Con DAVID ceduto all'Atlético la concorrenza vera è il solo Kolo Muani (più Milik di rientro): i minuti ci sono più di quanto la quota 23 facesse temere ieri."
 ,
   /* ===== POST-DEADLINE: l'ultima parola sulla saga Fofana ===== */
-  "Fofana Y.":"🔁 RESTA AL MILAN: la cessione al Lione è SALTATA sul filo — accordo raggiunto ma il deposito non è mai arrivato (Di Marzio, poi confermato). Terza giravolta in tre giorni: fuori dal progetto ma in rosa fino a gennaio. Rotazione di mediana a quota 4: prezzo da ultimo slot, con la certezza che a gennaio riproveranno a cederlo."
+  "Fofana Y.":"🔁 RESTA AL MILAN: la cessione al Lione è SALTATA sul filo — accordo raggiunto ma il deposito non è mai arrivato (Di Marzio, poi confermato). Terza giravolta in tre giorni: fuori dal progetto ma in rosa fino a gennaio. Rotazione di mediana a quota 4: prezzo da ultimo slot, con la certezza che a gennaio riproveranno a cederlo.",
+  /* ===== 3ª GIORNATA (4-7 settembre): tutte e dieci giocate ===== */
+  "Frattesi":"🔥 TERZO GOL IN TRE GIORNATE (a Udine): alla Lazio è diventato quello che all'Inter non poteva essere. Finché segna così, si schiera a occhi chiusi.",
+  "Gudmundsson A.":"Gol al DEBUTTO con la Lazio nel 2-1 di Udine: niente rigori (restano a Zaccagni) ma il campo dice subito presente.",
+  "Pinamonti":"Titolare all'esordio con la Lazio a Udine, senza gol: il posto c'è, i bonus arriveranno.",
+  "Kean":"Esordio col Como da SUBENTRATO (al 66' per Douvikas) e subito ASSIST per Diao. La staffetta è reale: due bomber per una maglia, e per ora parte dietro.",
+  "Douvikas":"Titolare anche nella 3ª (Kean è entrato al suo posto al 66'): 2 gol in 3 giornate e la maglia ancora sua. Il ballottaggio col nuovo arrivato però è aperto.",
+  "Diao":"💥 DOPPIETTA a Marassi nel 4-1 del Como (il secondo su assist di Kean): l'esterno che il mercato non guardava sta trascinando la capolista.",
+  "Baturina":"Ancora in gol a Marassi: terzo centro consecutivo. Non è più una scommessa, è un titolare del Como capolista.",
+  "Paz N.":"In gol anche lui nel 4-1 di Marassi: il Como è primo e la sua trequarti è il motivo.",
+  "Osmajic":"In gol nella 3ª (unico del Genoa nel tracollo col Como).",
+  "Martinez L.":"💥 DOPPIETTA all'Inter-Napoli 3-2, col gol vittoria al 91': il capocannoniere in carica ha acceso il motore.",
+  "Thuram":"✅ SBLOCCATO: il gol del pareggio nel 3-2 al Napoli. Le prime due giornate senza voto sono alle spalle: è rientrato ed è decisivo.",
+  "Politano":"In gol a San Siro nella 3ª: il Napoli perde ma lui c'è.",
+  "Hojlund":"Secondo gol in tre giornate (a San Siro): il riferimento offensivo del Napoli è lui, con McTominay fuori un mese toccherà ancora di più a lui.",
+  "Raimondo":"🔥 ANCORA DOPPIETTA: 4 gol in 3 giornate. Il capocannoniere sorpresa del campionato gioca nel Frosinone e costa ancora poco sul mercato di riparazione.",
+  "Kvernadze":"In gol nel 3-2 del Frosinone al Venezia: l'attacco ciociaro gira.",
+  "Piccoli":"In gol nel 2-2 col Sassuolo: la staffetta col Dovbyk produce con entrambi, ma il posto da titolare resta conteso.",
+  "Dovbyk":"In gol anche lui nel 2-2 col Sassuolo (al 91'): la staffetta con Piccoli produce, il ballottaggio continua.",
+  "Adzic":"In gol col Bologna: il Sassuolo gli sta dando spazio vero.",
+  "Doig":"In gol nella 3ª: terzino che spinge, conferma il 2/2 di presenze.",
+  "Mandragora":"✅ GOL AL DEBUTTO col Torino (nel 2-1 alla Fiorentina, la SUA ex squadra): il trasferimento dell'ultimo giorno è già ripagato. Piazzati suoi, rigori a Vlasic.",
+  "Adams C.":"Secondo gol in tre giornate (decisivo a Firenze): sta vincendo il ballottaggio davanti.",
+  "Pellegrino M.":"In gol NONOSTANTE l'arrivo di Beto: il campo dice che la maglia da titolare, per ora, è la sua.",
+  "Beto":"Alla prima da viola non ha segnato, e Pellegrino sì: il ballottaggio in attacco è tutto aperto.",
+  "Soulè":"In gol nel 2-1 all'Atalanta: dalla panchina della 1ª al gol pesante — la rotazione della trequarti Roma premia chi entra.",
+  "Hermoso":"In gol nel 2-1 all'Atalanta: i difensori di Gasperini fanno bonus, lui sta tenendo il posto.",
+  "Ederson D.S.":"In gol a Roma (unico dell'Atalanta): il centrocampo bergamasco passa da lui. Occhio: Gaetano squalificato, alla 4ª tocca a lui e Kessiè.",
+  "Cissè A.":"SECONDO gol in tre giornate nel pareggio di Torino: a 5 crediti sta producendo come un titolare. Il Milan gli deve una maglia.",
+  "Gatti":"✅ Rientrato dall'infortunio e GOL al 92' che salva la Juve col Milan: c'è, ed è in forma.",
+  "Maldini":"✅ GOL-VITTORIA con Cagliari-Lecce 1-0: la scommessa da 5 crediti di agosto sta pagando.",
+  "Karlstrom":"In gol con la Lazio: la mediana dell'Udinese produce anche in zona offensiva.",
+  "Robinson J.":"In gol nell'1-1 di Parma a 19 anni: il prospetto del Monza è già nelle rotazioni vere.",
+  "Sagrado":"In gol nella 3ª col Venezia: da 2 crediti, nota per gli ultimi slot."
+
 };
 
 /* Trattative ancora APERTE: 2 = futuro in bilico (il motore lo classifica "da monitorare"),
@@ -826,79 +860,60 @@ const XI_ADJ = {
   "R":  t => Math.min(t, 42)
 };
 
-/* ================= INFORTUNATI — BOLLETTINO DEL 25 AGOSTO 2026, verso la 2ª giornata =====
+/* ================= INFORTUNATI E SQUALIFICATI — BOLLETTINO DELL'8 SETTEMBRE 2026 =====
    [giornate che salta DI SICURO, nota]. 4+ → inj=3; 2-3 → inj=2; 0-1 → solo nota.
-
-   Il numero e una CERTEZZA, non un rischio: una squalifica vale 1, un "da valutare" vale 0.
-   Il tab Formazione ci si appoggia per escludere -- se un dubbio valesse 1, Leao finirebbe
-   in panchina come se fosse fermo, mentre merita solo il malus da incerto.
-
-   Fonti incrociate: Sky Sport (elenco squadra per squadra degli indisponibili per la 2ª),
-   FantaMaster (dettaglio sui dubbi) e Fantacalcio-Online (date di rientro dichiarate).
-
-   L'elenco di Sky è COMPLETO squadra per squadra, quindi vale anche per esclusione: chi non
-   c'è è disponibile. È così che si sono chiuse tre voci vecchie che nessuno avrebbe pensato
-   di andare a togliere — Pulisic, Pellegrini Lu. e Dybala non risultano più fermi da nessuna
-   parte, e le loro note d'agosto stavano ancora lì a parlare di dubbi per la 1ª giornata.
-
-   Le giornate si contano DA QUELLA IN ARRIVO. Una data di rientro dichiarata vale più di una
-   stima a parole: dove c'è, è quella che decide il numero. */
+   Fonte principale: fantacalcio-online (entra in elenco solo chi ha una DATA di rientro
+   dichiarata), incrociata coi fatti della 3ª. Le giornate sono contate sul calendario vero.
+   Squalifiche del giudice sportivo (8/9): Gaetano una giornata. */
 const INJURY = {
-  "Walukiewicz":[1,"Infortunato (con Boloca e Konè): ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
-  /* --- Atalanta --- */
-  "Hien":[4,"Lesione al semitendinoso: rientro dichiarato l'11 ottobre."],
-  "Sulemana I.":[8,"Lesione al collaterale del ginocchio: rientro a metà ottobre."],
-  "Kristensen T.":[1,"Non ha ancora giocato: il problema fisico lo tiene fuori dalle prime due, rientro da verificare dopo la sosta."],
-  /* --- Cagliari --- */
-  "Idrissi R.":[11,"Lesione del crociato anteriore: rientro a novembre."],
-  "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
-  /* --- Como --- */
-  "Addai":[4,"❌ Operato per la rottura del tendine d'Achille sinistro: rientro dichiarato l'11 ottobre."],
-  /* --- Fiorentina --- */
-  "Parisi":[8,"❌ Lesione del legamento crociato anteriore: rientro a fine novembre. Non prenderlo."],
-  /* --- Genoa --- */
-  "Havel":[1,"Non convocato in nessuna delle prime due giornate: recupero da verificare dopo la sosta."],
-  "Venturino":[3,"In recupero dall'operazione al tendine rotuleo: rientro a metà settembre."],
-  "Traorè Hj.":[1,"Mai in campo nelle prime due giornate: la condizione non è ancora da partita."],
-  /* --- Juventus --- */
-  "Yildiz":[11,"❌ Sospetta frattura al piede sinistro rimediata a Frosinone: se si opera sono almeno due mesi. Fuori dai giochi fino a novembre."],
-  "Ekhator":[1,"Lesione al bicipite femorale: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
-  "Gatti":[1,"Stiramento muscolare: ha saltato anche la 2ª, rientro da verificare dopo la sosta."],
-  /* --- Lazio --- */
-  "Marusic":[1,"Il problema alla coscia gli ha fatto saltare la 2ª: da verificare dopo la sosta."],
-  "Dele-Bashiru":[1,"Il problema muscolare gli ha fatto saltare la 2ª: da verificare dopo la sosta."],
-  "Cataldi":[1,"Ha saltato le prime due giornate: recupero atletico ancora in corso."],
-  /* --- Lecce --- */
-  /* --- Milan --- */
-  /* --- Monza --- */
-  "Pessina":[11,"❌ Lesione alla rotula: rientro a novembre."],
-  /* --- Napoli --- */
-  "Buongiorno":[3,"Operato al menisco: rientro ANTICIPATO, dichiarato il 30 settembre. Non è più mezzo girone: sono tre giornate."],
-  "Marianucci":[4,"❌ Lesione di alto grado al collaterale mediale del ginocchio: rientro a metà ottobre."],
-  /* Neres non compare in nessun bollettino del 25, ma nemmeno c'è una conferma positiva che
-     sia rientrato: viene da un'operazione alla caviglia (Londra, gennaio 2026) e dal 5 agosto
-     risultava "ancora lontano". Sparire da un elenco di indisponibili non è la stessa cosa
-     che essere arruolabile, quindi resta un dubbio dichiarato invece di un azzeramento. */
-  "Neres":[1,"⚠️ Non risulta più negli indisponibili del 25 agosto, ma manca una conferma che sia tornato in gruppo: viene dall'operazione alla caviglia di gennaio e a inizio agosto i tempi erano ancora indefiniti. Da verificare prima di puntarci."],
-  /* --- Parma --- */
-  "Nicolussi Caviglia":[1,"Lesione muscolare di medio grado alla coscia: rientro a metà settembre."],
-  /* --- Roma --- */
-  "Rensch":[1,"Stiramento del flessore: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
-  "Vaz":[3,"Infortunio muscolare: rientro dopo la sosta delle nazionali."],
-  /* Dybala non è fermo — non compare in nessun bollettino di oggi. Resta però la condizione
-     di fondo, che non è una notizia di giornata ma un dato con cui convivere tutto l'anno. */
+  /* --- squalificati (giudice sportivo dell'8 settembre) --- */
+  "Gaetano":[1,"⚠️ SQUALIFICATO per la 4ª dal giudice sportivo."],
+  /* --- rientri imminenti (entro la 4ª): solo nota --- */
+  "Havel":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
+  "McKennie":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
+  "Zanoli":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
+  /* --- una giornata --- */
+  "Cataldi":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
+  "Marusic":[1,"Rientro dichiarato il 16 settembre: salta la 4ª."],
+  "Dele-Bashiru":[1,"Rientro dichiarato il 16 settembre: salta la 4ª."],
+  "Isaksen":[1,"Rientro dichiarato il 17 settembre: salta la 4ª."],
+  "Candè":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
+  "Chakvetadze":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
+  "Rovella":[1,"Problema al polpaccio destro: rientro dichiarato il 19 settembre, salta la 4ª e forse la 5ª."],
+  /* --- due giornate --- */
+  "Orsolini":[2,"⚠️ Rientro dichiarato il 22 settembre: salta 4ª e 5ª. Il rigorista del Bologna si ferma sul più bello."],
+  "Palma":[2,"Rientro dichiarato il 22 settembre: salta 4ª e 5ª."],
+  "El Azzouzi O.":[2,"Rientro dichiarato il 24 settembre: salta 4ª e 5ª."],
+  /* --- tre giornate --- */
+  "Buongiorno":[3,"Operato al menisco: rientro confermato al 30 settembre — salta fino alla 6ª."],
+  "Boloca":[3,"Rientro dichiarato il 30 settembre: salta fino alla 6ª."],
+  "Zaniolo":[3,"Stiramento: rientro confermato al 1° ottobre — salta fino alla 6ª."],
+  "Pieragnolo":[3,"Rientro dichiarato il 1° ottobre: salta fino alla 6ª."],
+  /* --- un mese (rientri all'11-12 ottobre: si rivedono dall'8ª) --- */
+  "Hien":[4,"Lesione al tendine: rientro l'11 ottobre, salta fino alla 7ª."],
+  "Sulemana K.":[4,"🆕 Infortunato: rientro dichiarato l'11 ottobre, salta fino alla 7ª."],
+  "Sulemana I.":[4,"Al Sassuolo ancora da infortunato: rientro il 12 ottobre, salta fino alla 7ª."],
+  "Idrissi R.":[4,"Crociato: rientro anticipato all'11 ottobre secondo la fonte, salta fino alla 7ª."],
+  "Addai":[4,"Tendine d'Achille: rientro l'11 ottobre, salta fino alla 7ª."],
+  "McTominay":[4,"🚨 ARITMIA benigna, serve un'ablazione: rientro dichiarato l'11 ottobre. Fuori fino alla 7ª — niente di grave, ma un mese senza il suo motore."],
+  "Marianucci":[4,"Collaterale: rientro l'11 ottobre, salta fino alla 7ª."],
+  "Giovane":[4,"Rientro dichiarato l'11 ottobre: salta fino alla 7ª."],
+  /* --- più lunghi --- */
+  "Adorante":[5,"Rientro dichiarato il 17 ottobre: salta fino all'8ª."],
+  "Sverko":[5,"Rientro dichiarato il 17 ottobre: salta fino all'8ª."],
+  "Pessina":[6,"Rotula: rientro il 28 ottobre, salta fino alla 9ª."],
+  "Venturino":[7,"Tendine rotuleo: rientro il 30 ottobre, salta fino alla 9ª."],
+  "Parisi":[7,"❌ Crociato: rientro il 1° novembre. Non prenderlo."],
+  "Ekhator":[7,"⚠️ PEGGIORATO: rientro dichiarato il 2 novembre, salta due mesi."],
+  "Yildiz":[10,"❌ Piede: rientro confermato al 26 novembre. Fuori dai giochi fino a fine novembre."],
+  "Thuram K.":[14,"❌ AGGRAVATO: la sindrome femoro-rotulea lo ferma fino al 1° GENNAIO 2027. Mezza stagione persa: non prenderlo, e se ce l'hai è uno slot morto fino al mercato di riparazione."],
+  "Konè I.":[16,"❌ Frattura della tibia: rientro il 17 gennaio 2027. Non prenderlo."],
   "Dybala":[0,"Giocatore operato al menisco a marzo 2026: il minutaggio va gestito tutto l'anno, il turnover è una certezza più che un rischio."],
-  /* --- Sassuolo --- */
-  "Konè I.":[18,"❌ Frattura di tibia e perone: rientro previsto a gennaio 2027. Non prenderlo."],
-  "Candè":[1,"Ricostruzione del crociato anteriore destro: rientro dichiarato il 15 settembre."],
-  /* --- Torino --- */
-  "Zapata D.":[1,"Ha saltato le prime due giornate: il rientro è ancora graduale."],
-  /* --- Udinese --- */
-  "Zaniolo":[3,"Stiramento alla coscia: rientro dichiarato il 1° ottobre — salta fino alla 5ª."],
-  "Zanoli":[3,"In riabilitazione dal crociato: rientro dopo la sosta delle nazionali."],
-  /* --- Venezia --- */
-  "Sverko":[9,"❌ Problemi alle anche: rientro a fine ottobre."],
-  "Adorante":[9,"❌ Operato alla schiena: rientro a fine ottobre."]
+  "Neres":[1,"⚠️ Non risulta più negli indisponibili del 25 agosto, ma manca una conferma che sia tornato in gruppo: viene dall'operazione alla caviglia di gennaio e a inizio agosto i tempi erano ancora indefiniti. Da verificare prima di puntarci."],
+  "Kristensen T.":[1,"Non ha ancora giocato: il problema fisico lo tiene fuori dalle prime due, rientro da verificare dopo la sosta."],
+  "Rensch":[1,"Stiramento del flessore: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
+  "Walukiewicz":[1,"Infortunato (con Boloca e Konè): ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
+  "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
@@ -1396,7 +1411,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("31 agosto 2026 — giro pre-asta: listone del 31, fatti della 2ª giornata (8 gare su 10), bollettino infortuni e mercato in chiusura")},
+  date: ${JSON.stringify("8 settembre 2026 — dopo la 3ª giornata: risultati e marcatori, bollettino infortuni con date dichiarate, squalifiche. Statistiche e Quotazioni ferme al 1/9: in attesa dei file nuovi")},
   official: true,
   calendario: ${JSON.stringify(CALENDARIO)},
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
