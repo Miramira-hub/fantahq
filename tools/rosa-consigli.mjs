@@ -65,11 +65,12 @@ for (const id of b.order) {
     for (const x of liberi)
       console.log(`    ${x.k.n.padEnd(18)} ${x.k.t.padEnd(11)} q${String(x.k.qta).padStart(3)}  ` +
         `${x.v >= 0 ? "+" : ""}${x.v.toFixed(2)}  tit ${String(x.k.tit).padStart(3)}%  ${TIER[advice(x.k).tier]}` +
-        (x.inLega ? "" : "  [dopo sync]") + (x.k.pvOra === 0 ? "  ⚠ 0 presenze" : ` (${x.k.pvOra}/2)`));
+        (x.inLega ? "" : "  [dopo sync]") + (x.k.pvOra === 0 ? "  ⚠ 0 presenze" : ` (${x.k.pvOra}/${app.GIORNATE_GIOCATE})`));
   }
 
-  /* gli scambi che convengono: svincolato nettamente sopra il tuo anello debole */
-  console.log(`\nSCAMBI CHE CONVENGONO (svincolato ≥ +0.15 sul tuo anello debole del ruolo)`);
+  /* svincolo-e-prendi: nelle leghe dell'utente gli svincolati si prendono solo a GENNAIO,
+     quindi questa sezione è una lista d'attesa, non un'azione */
+  console.log(`\nDA GENNAIO — svincolato ≥ +0.15 sul tuo anello debole (fino ad allora non si può)`);
   let trovato = false;
   for (const r of ROLES) {
     const d = deboli[r]; if (!d || !d.k) continue;
@@ -81,6 +82,38 @@ for (const id of b.order) {
       console.log(`  ${RUOLO[r]}: dentro ${m.n} (${m.t}, ${valore(m) >= 0 ? "+" : ""}${valore(m).toFixed(2)}, tit ${m.tit}%) — fuori ${d.p.name} (${d.v >= 0 ? "+" : ""}${d.v.toFixed(2)})`);
     }
   }
-  if (!trovato) console.log("  (nessuno scambio nettamente conveniente: la rosa regge)");
+  if (!trovato) console.log("  (nessuno svincolato nettamente migliore)");
+
+  /* ---- SCAMBI CON I RIVALI: quelli che il rivale accetta e che a te convengono ----
+     Uno scambio si fa se lo vogliono tutti e due. Il rivale guarda soprattutto la QUOTA (il
+     nome, il prezzo percepito); noi guardiamo il valore del motore. Lo scambio buono è quello
+     in cui le due misure non sono d'accordo: cedi uno che la quota fa sembrare pari o migliore,
+     ricevi uno che il motore giudica migliore davvero. Solo 1-per-1 nello STESSO ruolo, così
+     gli slot della rosa restano validi. Si scarta chi è infortunato o a rischio panchina. */
+  const nomeMgr = idm => ((st.managers || []).find(m => m.id === idm) || {}).name || "rivale";
+  const mieiK = miei.map(p => ({ p, k: perExt.get(String(p.extId)) })).filter(x => x.k);
+  const loro = st.players.filter(p => p.status === "gone")
+    .map(p => ({ p, k: perExt.get(String(p.extId)) }))
+    .filter(x => x.k && x.k.inj < 2 && x.k.unc < 2 && x.k.tit >= 75);
+  const proposte = [];
+  for (const m of mieiK) {
+    const vm = valore(m.k);
+    const cand = loro.filter(x => x.k.r === m.k.r
+        && x.k.qta <= m.k.qta + 1                       /* per il mercato è alla pari o peggio */
+        && valore(x.k) >= vm + 0.20)                    /* per il motore è nettamente meglio */
+      .sort((a, b) => valore(b.k) - valore(a.k));
+    if (cand.length) proposte.push({ m, vm, best: cand.slice(0, 2) });
+  }
+  proposte.sort((a, b) => (valore(b.best[0].k) - b.vm) - (valore(a.best[0].k) - a.vm));
+  console.log(`\nSCAMBI CON I RIVALI — alla pari per quota, in guadagno per il motore (stesso ruolo, 1 per 1)`);
+  if (!proposte.length) console.log("  (nessuno scambio del genere: la tua rosa è già dove la quota e il motore concordano)");
+  for (const { m, vm, best } of proposte.slice(0, 10)) {
+    const infortunato = (m.k.note || "").startsWith("⚕️") ? "  ⚕️ il tuo è nel bollettino: il rivale potrebbe accorgersene" : "";
+    for (const x of best) {
+      const suo = (x.k.note || "").startsWith("⚕️") ? `  ⚕️ ${x.k.n} è nel bollettino: ${x.k.note.replace(/^⚕️\s*/, "").split(/(?<=\.)\s/)[0]}` : "";
+      console.log(`  ${RUOLO[m.k.r]}: cedi ${m.p.name} (q${m.k.qta}, ${vm >= 0 ? "+" : ""}${vm.toFixed(2)})  →  prendi ${x.k.n} (${x.k.t}, q${x.k.qta}, ` +
+        `${valore(x.k) >= 0 ? "+" : ""}${valore(x.k).toFixed(2)}, tit ${x.k.tit}%) da ${nomeMgr(x.p.owner)}  ·  guadagno +${(valore(x.k) - vm).toFixed(2)}${infortunato}${suo}`);
+    }
+  }
 }
 console.log(`\nNB: i nomi [dopo sync] esistono nel listone nuovo ma non ancora nella lega — entrano con "Aggiorna al database".`);

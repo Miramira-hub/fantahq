@@ -29,7 +29,13 @@ serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
 **Le leghe dell'utente** (dal backup; entrambe 4-3-3, modificatore difesa a reparto,
 formato **scontri diretti**): FantaToDo90 (500 crediti, 10 squadre, sua squadra
 "I Corni del Malocchio") e DreamLeague (700 crediti, 8 squadre, "I Talismani Rotti").
-Una lega "test" nel backup va ignorata. L'utente può mandare anche le classifiche di Leghe
+Una lega "test" nel backup va ignorata.
+⚠️ **Regola delle sue leghe: niente svincoli né acquisti di svincolati fino a GENNAIO;
+fino ad allora si possono fare solo SCAMBI tra squadre** (dalla 6ª giornata). Quindi i
+consigli di mercato in stagione sono scambi: `rosa-consigli.mjs` ha la sezione "SCAMBI CON
+I RIVALI" (1 per 1, stesso ruolo, alla pari per quota e in guadagno per il motore); la lista
+degli svincolati è solo una lista d'attesa per gennaio.
+L'utente può mandare anche le classifiche di Leghe
 Fantacalcio (`Classifica_*.xlsx`, stesso convertitore): la colonna utile è **Pt. Totali**,
 che misura la forza della rosa al netto della fortuna negli accoppiamenti.
 Al 18/9: FantaToDo90 4° per punti ma **2° per fantapunti totali** (301 su 10, dopo 4
