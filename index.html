@@ -2466,9 +2466,14 @@ const dispAuto = k => {
      per la prossima ma torna disponibile se stai guardando più avanti. */
   const via = Math.max(1, (state.giornata||1) - GIORNATE_GIOCATE);
   if(k.stop >= via) return "out";
+  /* Chi NON è nel bollettino di oggi gioca, qualunque sia il suo `inj`: quel numero vale 2
+     anche per la fragilità ereditata dallo storico, e usarlo qui mandava in "dubbio" gente
+     sanissima (Scamacca, alla 5ª). La storia clinica pesa già sulla FM attesa. */
+  if(!(k.note||"").startsWith("⚕️")) return "ok";
   /* Voce nel bollettino senza uno stop dichiarato: è un acciacco, non un forfait. */
-  if(k.stop === 0 && (k.note||"").startsWith("⚕️")) return "dubbio";
-  return k.inj>=3 ? "out" : k.inj===2 ? "dubbio" : "ok";
+  if(k.stop === 0) return "dubbio";
+  /* Stop vero ormai passato: chi rientra da un'assenza lunga resta un dubbio. */
+  return k.inj>=2 ? "dubbio" : "ok";
 };
 const dispDi = p => (state.avail||{})[p.id] || dispAuto(kbFor(p));
 const scoreFormazione = p=>{
@@ -2476,7 +2481,15 @@ const scoreFormazione = p=>{
   if(av==="out") return -99;
   const k = kbFor(p), a = advice(k);
   const base = p.rating>0 ? p.rating : (a.exp || 4 + Math.min(9,p.qta/6));
-  return base + (3-diffDi(p).val)*0.35 - (av==="dubbio"?1.2:0);
+  /* Quanto gioca davvero. Senza questo termine un giocatore mai sceso in campo (Kaiki, 0 su 4)
+     finiva titolare grazie a un turno facile: la FM attesa dice quanto rende QUANDO gioca, non
+     se gioca. Chi non entra lascia il posto alla panchina, quindi il costo è parziale: 1.5
+     punti pieni per chi non gioca mai, niente per chi gioca sempre. */
+  /* Fuori dal bollettino si usa la titolarità pura: `aff` toglie anche la fragilità storica,
+     e Dybala con 4 presenze su 4 risultava affidabile al 64%. Dentro il bollettino, aff. */
+  const nelBollettino = k && (k.note||"").startsWith("⚕️");
+  const gioca = !k ? 0.8 : (nelBollettino ? a.aff : k.tit)/100;
+  return base + (3-diffDi(p).val)*0.35 - (av==="dubbio"?1.2:0) - (1-gioca)*1.5;
 };
 
 function vFormazione(){

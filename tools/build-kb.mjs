@@ -231,7 +231,7 @@ const GK_RANK = {
   "Roma":["Svilar","Gollini","De Marzi"],
   "Sassuolo":["Muric","Turati","Satalino","Russo A."],
   "Torino":["Perri","Mascardi","Siviero"],   // Perri UFFICIALE e nel listone dal 31/8
-  "Udinese":["Okoye","Mrozek","Padelli","Piana"],
+  "Udinese":["Okoye","Mrozek","Padelli",],
   "Venezia":["Stankovic F.","Grandi","Pozzi"]
 };
 const gkRank = p => { const l = GK_RANK[p.t] || []; const i = l.findIndex(n => norm(n) === norm(p.n)); return i < 0 ? 99 : i; };
@@ -697,6 +697,16 @@ const CAMPO_NOTE = {
   "Perri":"Esordio alla 3ª: da qui in poi la porta del Torino è sua (Paleari è uscito dal listone). Ora anche il campo lo conferma.",
   "Mina":"🚨 ANCORA ZERO: 0 presenze su 3, e nessuna spiegazione è mai emersa (né infortunio né squalifica in nessun bollettino). Qualcosa non torna: non pagarlo finché non gioca.",
   "Kessiè":"⚠️ Zero presenze in tre giornate dal suo arrivo. Alla 4ª, con Gaetano squalificato, arriva l'occasione vera: se non gioca nemmeno lì, il segnale è pesante."
+,
+  /* ===== DOPO LA 4ª (18 settembre): le conseguenze del bollettino ===== */
+  "Milinkovic-Savic V.":"🔁 Con MERET fermo fino all'8 ottobre, la porta del Napoli è sua per 5ª, 6ª e 7ª. Da ultimo slot a titolare per tre giornate: se hai Meret, è la copertura naturale.",
+  "Martinez L.":"Con CALHANOGLU fermo fino al 5 ottobre, i RIGORI dell'Inter per 5ª, 6ª e 7ª sono suoi. Già in doppia cifra di bonus: il momento di schierarlo sempre.",
+  "Dimarco":"Con Calhanoglu fuori fino al 5 ottobre eredita tutti i piazzati dell'Inter: punizioni e corner per tre giornate.",
+  "Sarr P.":"Con LOCATELLI fuori fino a FEBBRAIO (e Thuram K. fino a gennaio) la mediana della Juve è da rifare: spazio vero per lui da subito.",
+  "McKennie":"Con Locatelli e Thuram K. fuori per mesi, torna centrale nella mediana della Juve.",
+  /* una CONDIZIONE, non una voce di bollettino: in INJURY il tab Formazione lo trattava da
+     "dubbio" ogni giornata e lo toglieva dai titolari */
+  "Dybala":"Operato al menisco a marzo 2026: il minutaggio va gestito tutto l'anno, qualche turno di riposo è una certezza. Quando c'è, però, è il rifornitore di Malen — 3 assist alla 1ª."
 
 };
 
@@ -717,6 +727,8 @@ const MERCATO_UNC = {  /* fuori dalla Serie A DOPO l'export del listone: il file
    B- = ballottaggio sfavorito · R = riserva chiara. Applicata DOPO il calcolo della
    titolarità dai minuti: le gerarchie nuove contano più della stagione scorsa. */
 const XI_STATUS = {
+  /* --- 18/9: nuovi del listone e portiere del Napoli per tre giornate --- */
+  "Leite":"B-","Libra":"R","Lovric":"R","Milinkovic-Savic V.":"T",
   /* --- svincolati del listone dell'8/9: gerarchie iniziali prudenti --- */
   "El Shaarawy":"B+","Nzola":"B+","Goncalves P.":"B+","Sanchez Ro.":"B-","Rodriguez R.":"B-",
   "Ehizibue":"B-","Fernandez T.":"B-","Sierro":"R","Pompei":"R","Enem":"R",
@@ -838,7 +850,7 @@ const XI_STATUS = {
   "Cacciamani":"T","Gineitis":"B-","Fitz-Jim":"B+","Ilkhan":"R","Njie":"R","Aboukhlal":"R",
   "Ilic":"R","Simeone":"T","Adams C.":"B-","Zapata D.":"B-","Kulenovic":"B-",
   /* Udinese (3-4-2-1 Runjaic) */
-  "Okoye":"T","Padelli":"R","Piana":"R","Solet":"T","Vojvoda":"T","Kristensen T.":"B+",
+  "Okoye":"T","Padelli":"R","Solet":"T","Vojvoda":"T","Kristensen T.":"B+",
   "Kamara H.":"T","Kabasele":"T","Bertola":"B-","Zanoli":"B-","Arizala":"R","Palma":"R",
   "Ebosse":"R","Abankwah":"R","Zaniolo":"T","Ekkelenkamp":"T","Unai Gomez":"B-",
   "Karlstrom":"T","Piotrowski":"B+","Miller L.":"B+","Chakvetadze":"R",
@@ -859,59 +871,75 @@ const XI_ADJ = {
   "R":  t => Math.min(t, 42)
 };
 
-/* ================= INFORTUNATI E SQUALIFICATI — BOLLETTINO DELL'8 SETTEMBRE 2026 =====
+/* ================= INFORTUNATI E SQUALIFICATI — BOLLETTINO DEL 18 SETTEMBRE 2026 =====
    [giornate che salta DI SICURO, nota]. 4+ → inj=3; 2-3 → inj=2; 0-1 → solo nota.
-   Fonte principale: fantacalcio-online (entra in elenco solo chi ha una DATA di rientro
-   dichiarata), incrociata coi fatti della 3ª. Le giornate sono contate sul calendario vero.
-   Squalifiche del giudice sportivo (8/9): Gaetano una giornata. */
+   Fonte: fantacalcio-online (56 voci con data dichiarata; Nuredini, Bah, Israel e Pellegri
+   non sono nel listone), giudice sportivo per la 5ª (Vasquez). Gaetano ha scontato. */
 const INJURY = {
-  /* --- squalificati (giudice sportivo dell'8 settembre) --- */
-  "Gaetano":[1,"⚠️ SQUALIFICATO per la 4ª dal giudice sportivo."],
-  /* --- rientri imminenti (entro la 4ª): solo nota --- */
-  "Havel":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
-  "McKennie":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
-  "Zanoli":[0,"Rientro dichiarato l'11 settembre: dovrebbe esserci per la 4ª."],
-  /* --- una giornata --- */
-  "Cataldi":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
-  "Marusic":[1,"Rientro dichiarato il 16 settembre: salta la 4ª."],
-  "Dele-Bashiru":[1,"Rientro dichiarato il 16 settembre: salta la 4ª."],
-  "Isaksen":[1,"Rientro dichiarato il 17 settembre: salta la 4ª."],
-  "Candè":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
-  "Chakvetadze":[1,"Rientro dichiarato il 15 settembre: salta la 4ª."],
-  "Rovella":[1,"Problema al polpaccio destro: rientro dichiarato il 19 settembre, salta la 4ª e forse la 5ª."],
-  /* --- due giornate --- */
-  "Orsolini":[2,"⚠️ Rientro dichiarato il 22 settembre: salta 4ª e 5ª. Il rigorista del Bologna si ferma sul più bello."],
-  "Palma":[2,"Rientro dichiarato il 22 settembre: salta 4ª e 5ª."],
-  "El Azzouzi O.":[2,"Rientro dichiarato il 24 settembre: salta 4ª e 5ª."],
-  /* --- tre giornate --- */
-  "Buongiorno":[3,"Operato al menisco: rientro confermato al 30 settembre — salta fino alla 6ª."],
-  "Boloca":[3,"Rientro dichiarato il 30 settembre: salta fino alla 6ª."],
-  "Zaniolo":[3,"Stiramento: rientro confermato al 1° ottobre — salta fino alla 6ª."],
-  "Pieragnolo":[3,"Rientro dichiarato il 1° ottobre: salta fino alla 6ª."],
-  /* --- un mese (rientri all'11-12 ottobre: si rivedono dall'8ª) --- */
-  "Hien":[4,"Lesione al tendine: rientro l'11 ottobre, salta fino alla 7ª."],
-  "Sulemana K.":[4,"🆕 Infortunato: rientro dichiarato l'11 ottobre, salta fino alla 7ª."],
-  "Sulemana I.":[4,"Al Sassuolo ancora da infortunato: rientro il 12 ottobre, salta fino alla 7ª."],
-  "Idrissi R.":[4,"Crociato: rientro anticipato all'11 ottobre secondo la fonte, salta fino alla 7ª."],
-  "Addai":[4,"Tendine d'Achille: rientro l'11 ottobre, salta fino alla 7ª."],
-  "McTominay":[4,"🚨 ARITMIA benigna, serve un'ablazione: rientro dichiarato l'11 ottobre. Fuori fino alla 7ª — niente di grave, ma un mese senza il suo motore."],
-  "Marianucci":[4,"Collaterale: rientro l'11 ottobre, salta fino alla 7ª."],
-  "Giovane":[4,"Rientro dichiarato l'11 ottobre: salta fino alla 7ª."],
+  /* --- squalificati per la 5ª (giudice sportivo) --- */
+  "Vasquez":[1,"⚠️ SQUALIFICATO per la 5ª (doppia ammonizione a Frosinone per proteste e condotta)."],
+  /* --- rientro dichiarato al 18-19/9: sono in dubbio per la 5ª, non fuori --- */
+  "Dovbyk":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Zortea":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Oulai":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Grillitsch":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Walukiewicz":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Basic":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Dagasso":[0,"Rientro dichiarato il 18 settembre: in dubbio per la 5ª."],
+  "Rovella":[0,"Polpaccio: rientro dichiarato il 19 settembre, in dubbio per la 5ª."],
+  /* --- saltano la 5ª --- */
+  "Orsolini":[1,"⚠️ Rientro dichiarato il 22 settembre: salta la 5ª. Il rigorista del Bologna torna dalla 6ª."],
+  "Palma":[1,"Rientro dichiarato il 22 settembre: salta la 5ª."],
+  "El Azzouzi O.":[1,"Rientro dichiarato il 24 settembre: salta la 5ª."],
+  "Solet":[1,"🆕 Rientro dichiarato il 24 settembre: salta la 5ª."],
+  /* --- saltano 5ª e 6ª --- */
+  "Buongiorno":[2,"Menisco: rientro il 30 settembre, salta 5ª e 6ª."],
+  "Boloca":[2,"Rientro il 30 settembre: salta 5ª e 6ª."],
+  "Berisha M.":[2,"🆕 Rientro dichiarato il 1° ottobre: salta 5ª e 6ª."],
+  "Geubbels":[2,"🆕 Rientro dichiarato il 1° ottobre: salta 5ª e 6ª."],
+  "Zanoli":[2,"⚠️ Ricaduta: rientro spostato al 1° ottobre, salta 5ª e 6ª."],
+  "Pieragnolo":[2,"Rientro il 1° ottobre: salta 5ª e 6ª."],
+  "Zaniolo":[2,"Stiramento alla 1ª, mai più in campo. La fonte lo ha tolto dall'elenco senza data nuova: vale l'ultima dichiarata, il 1° ottobre — salta 5ª e 6ª. Sparire da un elenco non è un rientro."],
+  /* --- fino alla sosta di ottobre (tornano dall'8ª) --- */
+  "Calhanoglu":[3,"🚨 Fermo fino al 5 ottobre: salta 5ª, 6ª e 7ª. L'Inter perde regia e RIGORI — il dischetto nerazzurro per tre giornate è di Lautaro."],
+  "Meret":[3,"🚨 Fermo fino all'8 ottobre: salta 5ª, 6ª e 7ª. Tocca al secondo portiere del Napoli."],
+  "Cabal":[3,"Rientro l'8 ottobre: salta fino alla 7ª."],
+  "Arizala":[3,"Rientro il 6 ottobre: salta fino alla 7ª."],
+  "Bella-Kotchap":[3,"Rientro il 6 ottobre: salta fino alla 7ª."],
+  "Havel":[3,"Ricaduta: rientro spostato al 10 ottobre."],
+  "Hien":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Sulemana K.":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Idrissi R.":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Addai":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Giovane":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Marianucci":[3,"Rientro dichiarato all'11 ottobre: torna dopo la sosta."],
+  "Sulemana I.":[3,"Rientro il 12 ottobre: torna dopo la sosta."],
+  "McTominay":[3,"🚨 Aritmia, ablazione: rientro l'11 ottobre. Torna dopo la sosta."],
+  "Idzes":[3,"🆕 Rientro dichiarato l'11 ottobre: torna dopo la sosta."],
+  "Boga":[3,"🆕 Rientro dichiarato il 13 ottobre: torna dopo la sosta."],
+  "Santos A.":[3,"🆕 Rientro dichiarato il 15 ottobre."],
+  "Stones":[3,"🆕 Rientro dichiarato il 17 ottobre."],
+  "Adorante":[3,"Rientro il 17 ottobre."],
+  "Sverko":[3,"Rientro il 17 ottobre."],
+  "Piotrowski":[3,"🆕 Rientro dichiarato il 18 ottobre."],
   /* --- più lunghi --- */
-  "Adorante":[5,"Rientro dichiarato il 17 ottobre: salta fino all'8ª."],
-  "Sverko":[5,"Rientro dichiarato il 17 ottobre: salta fino all'8ª."],
-  "Pessina":[6,"Rotula: rientro il 28 ottobre, salta fino alla 9ª."],
-  "Venturino":[7,"Tendine rotuleo: rientro il 30 ottobre, salta fino alla 9ª."],
-  "Parisi":[7,"❌ Crociato: rientro il 1° novembre. Non prenderlo."],
-  "Ekhator":[7,"⚠️ PEGGIORATO: rientro dichiarato il 2 novembre, salta due mesi."],
-  "Yildiz":[10,"❌ Piede: rientro confermato al 26 novembre. Fuori dai giochi fino a fine novembre."],
-  "Thuram K.":[14,"❌ AGGRAVATO: la sindrome femoro-rotulea lo ferma fino al 1° GENNAIO 2027. Mezza stagione persa: non prenderlo, e se ce l'hai è uno slot morto fino al mercato di riparazione."],
-  "Konè I.":[16,"❌ Frattura della tibia: rientro il 17 gennaio 2027. Non prenderlo."],
-  "Dybala":[0,"Giocatore operato al menisco a marzo 2026: il minutaggio va gestito tutto l'anno, il turnover è una certezza più che un rischio."],
+  "Volpato":[4,"🆕 Rientro dichiarato il 21 ottobre: salta anche l'8ª."],
+  "Busio":[5,"🆕 Rientro dichiarato il 27 ottobre."],
+  "Pessina":[5,"Rotula: rientro il 28 ottobre."],
+  "Venturino":[5,"Rientro il 30 ottobre."],
+  "Parisi":[6,"❌ Crociato: rientro il 1° novembre."],
+  "Ekhator":[6,"Rientro il 2 novembre."],
+  "Nicolussi Caviglia":[6,"⚠️ PEGGIORATO: rientro spostato al 2 novembre."],
+  "Yildiz":[9,"❌ Piede: rientro il 26 novembre."],
+  "Franjic":[11,"🆕 ❌ Rientro dichiarato il 10 dicembre."],
+  "Thuram K.":[15,"❌ Fermo fino al 1° gennaio 2027: slot morto fino al mercato di riparazione."],
+  "Konè I.":[17,"❌ Tibia: rientro il 17 gennaio 2027."],
+  "Locatelli":[21,"🚨❌ INFORTUNIO GRAVE: rientro dichiarato l'8 FEBBRAIO 2027. Stagione praticamente finita per il fantacalcio: se ce l'hai, liberalo appena puoi."],
+  "Felici":[21,"🆕 ❌ Rientro dichiarato il 9 febbraio 2027: stagione compromessa."],
+  /* --- voci senza data dichiarata, mantenute --- */
   "Kristensen T.":[1,"Non ha ancora giocato: il problema fisico lo tiene fuori dalle prime due, rientro da verificare dopo la sosta."],
   "Rensch":[1,"Stiramento del flessore: ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
-  "Walukiewicz":[1,"Infortunato (con Boloca e Konè): ha saltato le prime due giornate, rientro da verificare dopo la sosta."],
-  "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."],
+  "Trepy":[2,"Fermo per un incidente domestico: tempi non comunicati."]
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
@@ -1092,7 +1120,8 @@ const ARRIVATI_COL_LISTONE_31 = new Set([
   "Robinho Junior","Tornqvist","Gudmundsson A.","Rowe","Sulemana I.","Kean",
   /* --- svincolati entrati col listone dell'8 settembre --- */
   "Sanchez Ro.","Pompei","Rodriguez R.","Ehizibue","Goncalves P.","El Shaarawy",
-  "Fernandez T.","Sierro","Nzola","Enem"
+  "Fernandez T.","Sierro","Nzola","Enem",
+  "Leite","Libra","Lovric"   /* listone del 18/9 */
 ]);
 
 const TRASFERIMENTI_POST_LISTONE = {
@@ -1105,6 +1134,9 @@ const esc = s => String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"');
 const ROLE_TITLE = { P:"PORTIERI", D:"DIFENSORI", C:"CENTROCAMPISTI", A:"ATTACCANTI" };
 let matched = 0, estimated = 0, withUS = 0;
 const lines = [];
+/* la nota d'infermeria di ogni giocatore, tenuta a parte per il controllo finale: ricavarla
+   dal testo composto voleva dire indovinare dove finisce, e l'indovinello sbagliava */
+const INF_PER_NOME = new Map();
 for (const role of ["P","D","C","A"]) {
   let first = true;
   for (const p of L.filter(x => x.r === role).sort((a,b) => b.q - a.q)) {
@@ -1296,6 +1328,7 @@ for (const role of ["P","D","C","A"]) {
        punto sospeso: allora l'etichetta resta, il separatore no. */
     const coda = !storico ? "" : GIORNATE ? `${testa ? "· " : ""}Ad agosto: ${storico}` : storico;
     const note = [testa, coda].filter(Boolean).join(" ");
+    if (injNote) INF_PER_NOME.set(p.n, injNote);
     /* fm2 = fantamedia della stagione PRECEDENTE (24-25), solo se significativa in
        entrambe le annate: il motore la fonde 65/35 con l'ultima (misurato su 140
        giocatori: errore di previsione -9% rispetto alla sola ultima stagione).
@@ -1365,7 +1398,8 @@ if (GIORNATE) {
     if (!m) continue;
     const nota = m[1];
     const coda = nota.includes("· Ad agosto:") ? nota.split("· Ad agosto:")[1] : "";
-    const inf  = nota.startsWith("⚕️ ") ? nota.slice(0, nota.indexOf("🟢") + 1 || 200) : "";
+    const nomeRiga = (riga.match(/\["[PDCA]","((?:[^"\\]|\\.)*)"/) || [])[1] || "";
+    const inf  = INF_PER_NOME.get(nomeRiga) || "";
     const daControllare = coda + " " + inf;
     /* le attese si confrontano con le giornate della SQUADRA del giocatore: per chi ha il
        posticipo stasera "in dubbio per la 2ª" è ancora il futuro, non il passato */
@@ -1411,7 +1445,7 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("8 settembre 2026 — dopo la 3ª: statistiche complete (campo al 25%), listone dell'8 con gli svincolati dentro e gli esteri fuori, bollettino con date dichiarate")},
+  date: ${JSON.stringify("18 settembre 2026 — dopo la 4ª: statistiche a 4 giornate (campo al 33%), listone del 18, bollettino con 56 date dichiarate, squalificati della 5ª")},
   official: true,
   calendario: ${JSON.stringify(CALENDARIO)},
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
