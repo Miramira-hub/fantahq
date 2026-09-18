@@ -9,16 +9,31 @@
    diverse, sarebbe un bug — non una differenza di opinione.
 
    uso:  node tools/formazione.mjs <rose.csv> [giornata] [modulo]
+         node tools/formazione.mjs <backup.json> [giornata] [modulo] <nomeLega>
          node tools/formazione.mjs rose.csv 2 3-4-3
+         node tools/formazione.mjs "fantahq-backup (4).json" 5 4-3-3 DreamLeague
+   Col backup dell'app (Impostazioni → Esporta backup) non serve passare dal CSV, e il
+   modulo, se omesso, è quello salvato nella lega.
 */
 import fs from "fs";
 import { caricaApp } from "./app.mjs";
 
-const [csvPath, gArg, modArg] = process.argv.slice(2);
+const [csvPath, gArg, modArgIn, legaArg] = process.argv.slice(2);
 if (!csvPath) {
-  console.log("uso: node tools/formazione.mjs <rose.csv> [giornata] [modulo]");
-  console.log("il CSV lo esporta l'app: tab Rosa → Esporta CSV (formato Leghe Fantacalcio)");
+  console.log("uso: node tools/formazione.mjs <rose.csv | backup.json> [giornata] [modulo] [nomeLega]");
+  console.log("il CSV lo esporta l'app: tab Rosa → Esporta CSV; il backup: Impostazioni → Esporta backup");
   process.exit(1);
+}
+/* dal backup si ricava un CSV equivalente in memoria: il resto dello strumento non cambia */
+let csvTesto = null, modArg = modArgIn;
+if (csvPath.toLowerCase().endsWith(".json")) {
+  const b = JSON.parse(fs.readFileSync(csvPath, "utf8"));
+  const nomi = b.order.map(id => b.leagues[id].name);
+  const id = b.order.find(i => legaArg && b.leagues[i].name.toLowerCase() === legaArg.toLowerCase());
+  if (!id) { console.log(`indica la lega come 4° argomento: ${nomi.join(", ")}`); process.exit(1); }
+  const st = b.leagues[id].state;
+  if (!modArg && st.lineup && st.lineup.module) modArg = st.lineup.module;
+  csvTesto = ["$,$,$", ...st.players.filter(p => p.status === "mine").map(p => ["Mia", p.extId, p.paid || 0].join(","))].join("\n");
 }
 
 const app = caricaApp();
@@ -33,7 +48,7 @@ state.lineup.module = modulo;
 
 /* Il CSV ha blocchi separati da "$,$,$" e righe "Fantasquadra,Id,Costo". La PRIMA squadra
    è la tua: è così che l'app lo scrive quando esporti. */
-const righe = fs.readFileSync(csvPath, "utf8").split(/\r?\n/);
+const righe = (csvTesto ?? fs.readFileSync(csvPath, "utf8")).split(/\r?\n/);
 let miaSquadra = null;
 const miei = [];
 for (const r of righe) {

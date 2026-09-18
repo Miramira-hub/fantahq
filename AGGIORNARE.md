@@ -2,6 +2,58 @@
 
 Guida operativa per riprendere il lavoro in una sessione nuova.
 
+## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 18 settembre 2026
+
+**Dove siamo.** Stagione 2026-27, giocate **4 giornate**; la **5ª si gioca 18-20 settembre**.
+Mercato estivo chiuso (1° settembre). Nel database: listone del 18/9 (533 giocatori),
+statistiche a 4 giornate (peso del campo 33%), bollettino infortuni del 18/9 (56 date
+dichiarate), squalificati della 5ª (Vasquez).
+
+**Prossimo giro (dopo la 5ª, circa 21-22 settembre):** l'utente manda dai Download
+`Statistiche_Fantacalcio_Stagione_2026_27 (N).xlsx` e `Quotazioni_… (N).xlsx`, e quando
+serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
+1. convertire con `tools/xlsx-to-json.mjs` (xlsx = zip: estrarre in una cartella e passarla)
+   e **confrontare il listone col precedente** (nuovi / usciti / cambi squadra / quote):
+   anche a mercato italiano chiuso il listone si muove — gli esteri e gli svincolati
+2. bollettino da **fantacalcio-online.com/it/infortunati-serie-a** (date dichiarate) e
+   squalificati del giudice sportivo; `INJURY` si riscrive intera, non si accumula
+3. risultati e marcatori della giornata → fatti in `CAMPO_NOTE` (le chiavi dopo vincono)
+4. `node tools/build-kb.mjs` deve dare **0 avvisi ⚠️**; prove verdi (`prova-schermate`,
+   `prova-formazione`, `prova-download`); audit contraddizioni (sotto)
+5. formazioni, direttamente dal backup:
+   `node tools/formazione.mjs "<backup.json>" <giornata> "" <NomeLega>` (modulo vuoto = quello
+   salvato nella lega); consigli di mercato: `node tools/rosa-consigli.mjs "<backup.json>"`
+6. commit + push, poi `node tools/build-artifact.mjs` e ripubblicazione (vedi *Dopo ogni
+   aggiornamento*)
+
+**Le leghe dell'utente** (dal backup; entrambe 4-3-3, modificatore difesa a reparto):
+FantaToDo90 (500 crediti, 10 squadre) e DreamLeague (700 crediti, 8 squadre). Una lega
+"test" nel backup va ignorata.
+
+**Situazioni aperte da seguire:** Mina (Cagliari) 0 presenze in 4 senza spiegazione in
+nessuna fonte · Kessiè 1 presenza · rigorista della Fiorentina mai designato dopo le
+partenze di Gudmundsson/Kean/Mandragora · staffette Kean-Douvikas (Como) e Piccoli-Dovbyk
+(Bologna) · rigori Inter a Lautaro finché Calhanoglu è fuori (5/10) · Locatelli e Felici
+fuori fino a febbraio · gennaio: riapre il mercato, e lì si rifà una scansione completa.
+
+**Audit contraddizioni** (da rifare a ogni giro, deve dare zero): giocatori con titolarità
+≥ 74, zero presenze, non nel bollettino e non arrivati a mercato in corso. Ognuno o ha una
+spiegazione scritta in nota, o è un dato sbagliato.
+
+**Lezioni pagate care, da non ripetere** (tutte segnalate dall'utente):
+- un trasferimento è vero quando è **depositato**, non quando c'è l'accordo (Fofana,
+  quattro giravolte); verificare sul tabellone ufficiale Sky, non sui live
+- il file delle Quotazioni si esporta **prima** delle ufficialità del pomeriggio: le mosse
+  dell'ultimo giorno vanno in `TRASFERIMENTI_POST_LISTONE` finché il file non le recepisce
+- **sparire da un elenco non è un rientro** (Neres, Zaniolo)
+- i giocatori si controllano **uno per uno** con l'audit, non a campione (Kaiki, Ahanor)
+- scartare gli articoli di stagioni passate: controllare l'anno nel contenuto, non nel titolo
+- **un motore solo**: gli strumenti chiamano `expFM`/`advice`/`scoreFormazione` via
+  `tools/app.mjs`, mai copie; le prove pure
+- `inj` mescola assenza di oggi e fragilità storica: chi non è nel bollettino di oggi non è
+  "in dubbio"; e le condizioni durature (Dybala) stanno in `CAMPO_NOTE`, non in `INJURY`
+- le stringhe con backtick o `${}` non si passano mai via shell: script in un file
+
 ## Struttura
 
 ```
@@ -280,6 +332,10 @@ copre — verifica che le schermate si disegnino, non che un file venga consegna
 2. Ripubblicare l'Artifact **allo stesso indirizzo**, altrimenti se ne crea uno nuovo e
    l'utente perde il link che ha salvato:
    `https://claude.ai/code/artifact/2a71bd11-d815-46e2-b44f-3ebf9cff9c2c`
+   (dalla versione 21 la piattaforma lo mostra anche come
+   `https://claude.ai/artifact/6EzQQowyMhABdBL51pDsfy`: è lo stesso artifact. Ripubblicare
+   con `url` = uno dei due, `capabilities: {downloads: true}`, e l'icona col parametro
+   `icon` — `favicon` è deprecato)
    (generare il file con `node tools/build-artifact.mjs <out.html>` e pubblicarlo passando
    quell'URL come parametro `url`)
    **e passando `capabilities: {downloads: true}`**, altrimenti le esportazioni si rompono
