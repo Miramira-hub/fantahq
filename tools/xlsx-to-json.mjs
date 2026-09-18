@@ -9,7 +9,9 @@ const col = ref => { let s=0; for (const ch of ref) { const c=ch.charCodeAt(0); 
 
 // scegli il foglio con più righe
 let best="", bestN=-1;
-for (const f of fs.readdirSync(`${dir}/xl/worksheets`)) {
+/* solo i fogli: alcuni export (le classifiche di Leghe Fantacalcio) hanno anche la cartella
+   `_rels` qui dentro, e leggerla come file faceva fallire la conversione */
+for (const f of fs.readdirSync(`${dir}/xl/worksheets`).filter(f => f.endsWith(".xml"))) {
   const xml = fs.readFileSync(`${dir}/xl/worksheets/${f}`, "utf8");
   const n = (xml.match(/<row\b/g)||[]).length;
   if (n > bestN) { bestN = n; best = xml; }

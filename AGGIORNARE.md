@@ -26,9 +26,15 @@ serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
 6. commit + push, poi `node tools/build-artifact.mjs` e ripubblicazione (vedi *Dopo ogni
    aggiornamento*)
 
-**Le leghe dell'utente** (dal backup; entrambe 4-3-3, modificatore difesa a reparto):
-FantaToDo90 (500 crediti, 10 squadre) e DreamLeague (700 crediti, 8 squadre). Una lega
-"test" nel backup va ignorata.
+**Le leghe dell'utente** (dal backup; entrambe 4-3-3, modificatore difesa a reparto,
+formato **scontri diretti**): FantaToDo90 (500 crediti, 10 squadre, sua squadra
+"I Corni del Malocchio") e DreamLeague (700 crediti, 8 squadre, "I Talismani Rotti").
+Una lega "test" nel backup va ignorata. L'utente può mandare anche le classifiche di Leghe
+Fantacalcio (`Classifica_*.xlsx`, stesso convertitore): la colonna utile è **Pt. Totali**,
+che misura la forza della rosa al netto della fortuna negli accoppiamenti.
+Al 18/9: FantaToDo90 4° per punti ma **2° per fantapunti totali** (301 su 10, dopo 4
+giornate) — gira bene, i risultati seguiranno; DreamLeague 5° e **ultima per fantapunti**
+(137.5 su 8, dopo 2 giornate) — la rosa va migliorata sugli slot deboli (Kessiè, Lulli).
 
 **Situazioni aperte da seguire:** Mina (Cagliari) 0 presenze in 4 senza spiegazione in
 nessuna fonte · Kessiè 1 presenza · rigorista della Fiorentina mai designato dopo le
