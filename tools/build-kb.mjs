@@ -942,6 +942,7 @@ const INJURY = {
   "Terzic":[0,"Bicipite femorale: da valutare."],
   "Ziolkowski":[0,"Fascite plantare: da valutare."],
   "Ciurria":[0,"Noie fisiche: da valutare."],
+  "Saelemaekers":[0,"⚠️ Distorsione alla caviglia destra in allenamento il 29/9 (esami: niente ossa né legamenti). A rischio per Sassuolo-Milan dell'11/10: da monitorare. Mancava nel bollettino del 4/10, segnalato dall'utente."],
   /* --- saltano la 6ª --- */
   "Hien":[1,"Rientro dichiarato l'11/10 (Atalanta in campo il 12), ma fantacalcio.it e Calciomercato.com lo danno fuori fino a dopo la sosta di novembre: certa la 6ª, il resto è in bilico."],
   "McTominay":[1,"🚨 Ablazione per aritmia: rientro dichiarato l'11/10, il Napoli gioca il 10 col Frosinone. Il club ci prova, ma la data dice dalla 7ª."],
