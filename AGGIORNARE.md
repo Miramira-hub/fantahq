@@ -2,14 +2,17 @@
 
 Guida operativa per riprendere il lavoro in una sessione nuova.
 
-## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 18 settembre 2026
+## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 4 ottobre 2026
 
-**Dove siamo.** Stagione 2026-27, giocate **4 giornate**; la **5ª si gioca 18-20 settembre**.
-Mercato estivo chiuso (1° settembre). Nel database: listone del 18/9 (533 giocatori),
-statistiche a 4 giornate (peso del campo 33%), bollettino infortuni del 18/9 (56 date
-dichiarate), squalificati della 5ª (Vasquez).
+**Dove siamo.** Stagione 2026-27, giocate **5 giornate**; sosta lunga per la Nations League
+dal 24/9 al 6/10. La **6ª si gioca 10-12 ottobre**. Calendario vero (Sky): 7ª 16-19/10 ·
+8ª 23-25/10 · 9ª 27-29/10 (infrasettimanale) · 10ª 31/10-2/11 · 11ª 6-8/11 · sosta ·
+12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12. Nel database: listone del 4/10
+(536 giocatori: nuovi Alaba, Neto, Obric, Esteban; uscito Patric), statistiche a 5 giornate
+(peso del campo 42%), bollettino del 4/10, nessuno squalificato per la 6ª.
+Cambi di panchina: Fiorentina Vanoli (6/9), Bologna Palladino (16/9), Parma Gilardino (27/9).
 
-**Prossimo giro (dopo la 5ª, circa 21-22 settembre):** l'utente manda dai Download
+**Prossimo giro (dopo la 6ª, 13-14 ottobre):** l'utente manda dai Download
 `Statistiche_Fantacalcio_Stagione_2026_27 (N).xlsx` e `Quotazioni_… (N).xlsx`, e quando
 serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
 1. convertire con `tools/xlsx-to-json.mjs` (xlsx = zip: estrarre in una cartella e passarla)
@@ -38,19 +41,30 @@ degli svincolati è solo una lista d'attesa per gennaio.
 L'utente può mandare anche le classifiche di Leghe
 Fantacalcio (`Classifica_*.xlsx`, stesso convertitore): la colonna utile è **Pt. Totali**,
 che misura la forza della rosa al netto della fortuna negli accoppiamenti.
-Al 18/9: FantaToDo90 4° per punti ma **2° per fantapunti totali** (301 su 10, dopo 4
-giornate) — gira bene, i risultati seguiranno; DreamLeague 5° e **ultima per fantapunti**
-(137.5 su 8, dopo 2 giornate) — la rosa va migliorata sugli slot deboli (Kessiè, Lulli).
+Al 4/10: FantaToDo90 **5° per punti ma 3° per fantapunti** (374, a 12 dalla vetta, dopo 5)
+— la rosa c'è, gli scontri diretti sono stati sfortunati; DreamLeague **3° per punti ma 6°
+per fantapunti** (217 su 8, dopo 3) — la classifica è più generosa della rosa.
 
-**Situazioni aperte da seguire:** Mina (Cagliari) 0 presenze in 4 senza spiegazione in
-nessuna fonte · Kessiè 1 presenza · rigorista della Fiorentina mai designato dopo le
-partenze di Gudmundsson/Kean/Mandragora · staffette Kean-Douvikas (Como) e Piccoli-Dovbyk
-(Bologna) · rigori Inter a Lautaro finché Calhanoglu è fuori (5/10) · Locatelli e Felici
-fuori fino a febbraio · gennaio: riapre il mercato, e lì si rifà una scansione completa.
+**Situazioni aperte da seguire:** Gudmundsson A. (spalla, forse due mesi) · Kessiè gioca a
+corrente alternata con Gaetano · rigorista della Fiorentina mai designato (Mastantuono il
+candidato) · staffetta Kean-Douvikas (per ora sempre Douvikas) · Piccoli titolare con
+Palladino · Calhanoglu verso il rientro (rigori a Zielinski, poi Lautaro) · rotazione in porta
+Martinez/Provedel all'Inter · Colombo: date in conflitto (6ª sola o fino al 1/11) · Hien e
+Boga: date ottimistiche su FCO, pessimistiche su fantacalcio.it · gennaio: riapre il mercato.
+
+**Scambi: il motore non basta da solo.** `rosa-consigli.mjs` ora stampa sotto ogni proposta la
+fantamedia vera di quest'anno dei due giocatori e segnala ⚠️ IL CAMPO DICE IL CONTRARIO. Al
+4/10 lo diceva per due terzi delle proposte (Vlasic per Chukwueze era «affare» con Vlasic a 5.4 e Chukwueze a 6.8,
+Orsolini per Rabiot con Rabiot a 8). Si propongono solo quelle con un motivo strutturale
+(infortunio, posto perso) o dove campo e motore concordano. E occhio ai doppioni: Kean
+«conviene» a chi ha già Douvikas, ma sono la stessa maglia.
 
 **Audit contraddizioni** (da rifare a ogni giro, deve dare zero): giocatori con titolarità
 ≥ 74, zero presenze, non nel bollettino e non arrivati a mercato in corso. Ognuno o ha una
-spiegazione scritta in nota, o è un dato sbagliato.
+spiegazione scritta in nota, o è un dato sbagliato. Al 4/10 i quattro casi (Hutchinson,
+Mbangula, Ngonge, Nzola) erano veri — spezzoni senza voto, condizione, mai convocato — e sono
+scesi a B-/R in `XI_STATUS`. Script: `scratchpad` non persiste, quindi eccolo:
+`KBI.filter(k => k.tit >= 74 && !k.pvOra && !k.inj)` via `tools/app.mjs`.
 
 **Lezioni pagate care, da non ripetere** (tutte segnalate dall'utente):
 - un trasferimento è vero quando è **depositato**, non quando c'è l'accordo (Fofana,
@@ -65,6 +79,8 @@ spiegazione scritta in nota, o è un dato sbagliato.
 - `inj` mescola assenza di oggi e fragilità storica: chi non è nel bollettino di oggi non è
   "in dubbio"; e le condizioni durature (Dybala) stanno in `CAMPO_NOTE`, non in `INJURY`
 - le stringhe con backtick o `${}` non si passano mai via shell: script in un file
+- uno scambio «conveniente per il motore» va guardato anche col campo di quest'anno:
+  il motore pesa la stagione intera, e a ottobre proponeva Orsolini per Rabiot (fm 8)
 
 ## Struttura
 

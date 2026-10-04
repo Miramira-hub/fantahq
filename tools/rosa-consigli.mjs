@@ -22,6 +22,9 @@ const app = caricaApp();
 const { KBI, expFM, advice, ROLE_MEAN, ROLES, ROLE_NAMES } = app;
 const perExt = new Map(KBI.filter(k => k.extId).map(k => [String(k.extId), k]));
 const valore = k => +(expFM(k) - ROLE_MEAN[k.r]).toFixed(2);
+const campo = k => k.pvOra ? `fm ${k.fmOra} su ${k.pvOra}` : "mai a voto";
+/* il campo smentisce lo scambio: chi ricevi rende meno di chi cedi, su un campione minimo */
+const contraddice = (mio, suo) => mio.pvOra >= 3 && suo.pvOra >= 3 && suo.fmOra < mio.fmOra - 0.2;
 const TIER = { must:"DA PRENDERE", target:"obiettivo", bet:"scommessa", safe:"usato sicuro",
                watch:"da monitorare", avoid:"da evitare", filler:"riempitivo", nd:"—" };
 const RUOLO = { P:"Por", D:"Dif", C:"Cen", A:"Att" };
@@ -113,6 +116,10 @@ for (const id of b.order) {
       const suo = (x.k.note || "").startsWith("⚕️") ? `  ⚕️ ${x.k.n} è nel bollettino: ${x.k.note.replace(/^⚕️\s*/, "").split(/(?<=\.)\s/)[0]}` : "";
       console.log(`  ${RUOLO[m.k.r]}: cedi ${m.p.name} (q${m.k.qta}, ${vm >= 0 ? "+" : ""}${vm.toFixed(2)})  →  prendi ${x.k.n} (${x.k.t}, q${x.k.qta}, ` +
         `${valore(x.k) >= 0 ? "+" : ""}${valore(x.k).toFixed(2)}, tit ${x.k.tit}%) da ${nomeMgr(x.p.owner)}  ·  guadagno +${(valore(x.k) - vm).toFixed(2)}${infortunato}${suo}`);
+      /* il motore pesa la stagione intera; il campo di quest'anno può dire il contrario, e
+         chi propone uno scambio deve vederlo prima di farlo (Vlasic per Kessiè è un affare
+         sulla carta, ma Vlasic ha 5.4 di fantamedia in 5) */
+      console.log(`      campo 26-27: ${m.p.name} ${campo(m.k)} · ${x.k.n} ${campo(x.k)}${contraddice(m.k, x.k) ? "  ⚠️ IL CAMPO DICE IL CONTRARIO" : ""}`);
     }
   }
 }
