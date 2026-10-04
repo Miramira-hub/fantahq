@@ -18,18 +18,20 @@ import { caricaApp } from "./app.mjs";
 const [backupPath, filtroLega] = process.argv.slice(2);
 if (!backupPath) { console.log("uso: node tools/rosa-consigli.mjs <backup.json> [nomeLega]"); process.exit(1); }
 
-const app = caricaApp();
+const grezzo = fs.readFileSync(backupPath, "utf8");
+/* il backup entra nell'app come se fosse il suo localStorage: gli scambi li calcola
+   tradeIdeas() di index.html, la stessa funzione del tab Scambi, non una copia */
+const app = caricaApp({ storage: { fantahq_v3: grezzo } });
+app.load();
 const { KBI, expFM, advice, ROLE_MEAN, ROLES, ROLE_NAMES } = app;
 const perExt = new Map(KBI.filter(k => k.extId).map(k => [String(k.extId), k]));
 const valore = k => +(expFM(k) - ROLE_MEAN[k.r]).toFixed(2);
 const campo = k => k.pvOra ? `fm ${k.fmOra} su ${k.pvOra}` : "mai a voto";
-/* il campo smentisce lo scambio: chi ricevi rende meno di chi cedi, su un campione minimo */
-const contraddice = (mio, suo) => mio.pvOra >= 3 && suo.pvOra >= 3 && suo.fmOra < mio.fmOra - 0.2;
 const TIER = { must:"DA PRENDERE", target:"obiettivo", bet:"scommessa", safe:"usato sicuro",
                watch:"da monitorare", avoid:"da evitare", filler:"riempitivo", nd:"—" };
 const RUOLO = { P:"Por", D:"Dif", C:"Cen", A:"Att" };
 
-const b = JSON.parse(fs.readFileSync(backupPath, "utf8"));
+const b = JSON.parse(grezzo);
 for (const id of b.order) {
   const { name, state: st } = b.leagues[id];
   if (filtroLega && !name.toLowerCase().includes(filtroLega.toLowerCase())) continue;
@@ -87,40 +89,16 @@ for (const id of b.order) {
   }
   if (!trovato) console.log("  (nessuno svincolato nettamente migliore)");
 
-  /* ---- SCAMBI CON I RIVALI: quelli che il rivale accetta e che a te convengono ----
-     Uno scambio si fa se lo vogliono tutti e due. Il rivale guarda soprattutto la QUOTA (il
-     nome, il prezzo percepito); noi guardiamo il valore del motore. Lo scambio buono è quello
-     in cui le due misure non sono d'accordo: cedi uno che la quota fa sembrare pari o migliore,
-     ricevi uno che il motore giudica migliore davvero. Solo 1-per-1 nello STESSO ruolo, così
-     gli slot della rosa restano validi. Si scarta chi è infortunato o a rischio panchina. */
-  const nomeMgr = idm => ((st.managers || []).find(m => m.id === idm) || {}).name || "rivale";
-  const mieiK = miei.map(p => ({ p, k: perExt.get(String(p.extId)) })).filter(x => x.k);
-  const loro = st.players.filter(p => p.status === "gone")
-    .map(p => ({ p, k: perExt.get(String(p.extId)) }))
-    .filter(x => x.k && x.k.inj < 2 && x.k.unc < 2 && x.k.tit >= 75);
-  const proposte = [];
-  for (const m of mieiK) {
-    const vm = valore(m.k);
-    const cand = loro.filter(x => x.k.r === m.k.r
-        && x.k.qta <= m.k.qta + 1                       /* per il mercato è alla pari o peggio */
-        && valore(x.k) >= vm + 0.20)                    /* per il motore è nettamente meglio */
-      .sort((a, b) => valore(b.k) - valore(a.k));
-    if (cand.length) proposte.push({ m, vm, best: cand.slice(0, 2) });
-  }
-  proposte.sort((a, b) => (valore(b.best[0].k) - b.vm) - (valore(a.best[0].k) - a.vm));
-  console.log(`\nSCAMBI CON I RIVALI — alla pari per quota, in guadagno per il motore (stesso ruolo, 1 per 1)`);
-  if (!proposte.length) console.log("  (nessuno scambio del genere: la tua rosa è già dove la quota e il motore concordano)");
-  for (const { m, vm, best } of proposte.slice(0, 10)) {
-    const infortunato = (m.k.note || "").startsWith("⚕️") ? "  ⚕️ il tuo è nel bollettino: il rivale potrebbe accorgersene" : "";
-    for (const x of best) {
-      const suo = (x.k.note || "").startsWith("⚕️") ? `  ⚕️ ${x.k.n} è nel bollettino: ${x.k.note.replace(/^⚕️\s*/, "").split(/(?<=\.)\s/)[0]}` : "";
-      console.log(`  ${RUOLO[m.k.r]}: cedi ${m.p.name} (q${m.k.qta}, ${vm >= 0 ? "+" : ""}${vm.toFixed(2)})  →  prendi ${x.k.n} (${x.k.t}, q${x.k.qta}, ` +
-        `${valore(x.k) >= 0 ? "+" : ""}${valore(x.k).toFixed(2)}, tit ${x.k.tit}%) da ${nomeMgr(x.p.owner)}  ·  guadagno +${(valore(x.k) - vm).toFixed(2)}${infortunato}${suo}`);
-      /* il motore pesa la stagione intera; il campo di quest'anno può dire il contrario, e
-         chi propone uno scambio deve vederlo prima di farlo (Vlasic per Kessiè è un affare
-         sulla carta, ma Vlasic ha 5.4 di fantamedia in 5) */
-      console.log(`      campo 26-27: ${m.p.name} ${campo(m.k)} · ${x.k.n} ${campo(x.k)}${contraddice(m.k, x.k) ? "  ⚠️ IL CAMPO DICE IL CONTRARIO" : ""}`);
-    }
-  }
+  /* ---- SCAMBI CON I RIVALI: li decide tradeIdeas() dell'app (regole e filtri sono lì) ---- */
+  app.selectLeague(id);
+  app.setGiornata(app.GIORNATE_GIOCATE + 1);
+  const idee = app.tradeIdeas();
+  console.log(`
+SCAMBI CON I RIVALI per la ${app.GIORNATE_GIOCATE + 1}ª — 1 per 1, stesso ruolo, quota alla pari, campo e bollettino controllati`);
+  if (!idee.length) console.log("  (nessuno scambio che convenga davvero)");
+  for (const { m, x, fermo, guadagno } of idee)
+    console.log(`  ${RUOLO[m.k.r]}: cedi ${m.p.name} (q${m.k.qta}, ${campo(m.k)})  →  prendi ${x.k.n} (${x.k.t}, q${x.k.qta}, ${campo(x.k)}, tit ${x.k.tit}%) da ${app.managerName(x.p.owner)}  ·  ` +
+      (fermo ? "il tuo è fermo: un titolare sano vale di più" : `guadagno +${guadagno.toFixed(2)}`));
+
 }
 console.log(`\nNB: i nomi [dopo sync] esistono nel listone nuovo ma non ancora nella lega — entrano con "Aggiorna al database".`);

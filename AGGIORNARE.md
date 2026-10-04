@@ -52,7 +52,8 @@ Palladino · Calhanoglu verso il rientro (rigori a Zielinski, poi Lautaro) · ro
 Martinez/Provedel all'Inter · Colombo: date in conflitto (6ª sola o fino al 1/11) · Hien e
 Boga: date ottimistiche su FCO, pessimistiche su fantacalcio.it · gennaio: riapre il mercato.
 
-**Scambi: il motore non basta da solo.** `rosa-consigli.mjs` ora stampa sotto ogni proposta la
+**Scambi: una funzione sola, `tradeIdeas()` in index.html** (sezione «Spunti di scambio» del tab Scambi; `rosa-consigli.mjs` la chiama caricando il backup in `app.mjs` con `{storage}`). La vecchia versione d'asta cercava pacchetti 2-per-2 fra reparti sbilanciati e a rose fatte non trovava mai niente. Ora: 1 per 1, stesso ruolo, quota alla pari, fuori chi è nel bollettino, chi rende meno del tuo sul campo (≥3 voti) e i doppioni di attacco/porta.
+**Perché il campo:** `rosa-consigli.mjs` ora stampa sotto ogni proposta la
 fantamedia vera di quest'anno dei due giocatori e segnala ⚠️ IL CAMPO DICE IL CONTRARIO. Al
 4/10 lo diceva per due terzi delle proposte (Vlasic per Chukwueze era «affare» con Vlasic a 5.4 e Chukwueze a 6.8,
 Orsolini per Rabiot con Rabiot a 8). Si propongono solo quelle con un motivo strutturale

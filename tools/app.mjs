@@ -26,7 +26,8 @@ const ESPOSTE = ["DATA", "KBI", "KB", "expFM", "advice", "affOf", "chipsOf", "RO
                  "difficoltaTurno", "DIFF_LABEL",
                  /* il motore della formazione, ora fuori dalla vista */
                  "dispAuto", "dispDi", "diffDi", "scoreFormazione", "kbFor",
-                 "downloadFile", "freshState", "mkPlayer", "setGiornata", "movimentiHtml", "managerName", "ensureManagers", "ui", "encState", "decState", "normState", "budgetSpent"];
+                 "downloadFile", "freshState", "mkPlayer", "setGiornata", "movimentiHtml", "managerName", "ensureManagers", "ui", "encState", "decState", "normState", "budgetSpent",
+                 "tradeIdeas", "deptStars", "selectLeague", "load", "mine"];
 
 export function caricaApp(opzioni = {}) {
   const html = fs.readFileSync(`${REPO}/index.html`, "utf8");
@@ -49,6 +50,8 @@ export function caricaApp(opzioni = {}) {
   };
   const localStorage = { _d:{}, getItem(k){return this._d[k] ?? null;},
     setItem(k,v){this._d[k]=String(v);}, removeItem(k){delete this._d[k];} };
+  /* uno stato vero da caricare (il backup dell'utente): così una prova vede le sue leghe */
+  if (opzioni.storage) Object.assign(localStorage._d, opzioni.storage);
   const win = {}; new Function("window", kb)(win);
   if (opzioni.claude) win.claude = opzioni.claude;
 
