@@ -747,6 +747,8 @@ const CAMPO_NOTE = {
   "Alaba":"🆕 UFFICIALE all'UDINESE (24/9) da svincolato, contratto fino a giugno 2027. Qualità vera, ma gli ultimi anni sono stati pieni di infortuni: la tenuta è da verificare.",
   "Neto":"🆕 Tornato alla Juve da svincolato (28/9) dopo il crociato di Grabara: secondo portiere dietro Vicario.",
   "Obric":"🆕 Centrale del 2006 salito dall'Under 23 per l'emergenza in difesa dell'Atalanta (Hien e Kossounou fuori). Spazio breve, poi riserva.",
+  "Moreira":"🔁 Con Saelemaekers operato (fuori almeno quattro mesi) la fascia destra del Milan è sua: 3 gol in 3 presenze, a segno in tre giornate di fila. Da titolare fisso.",
+  "Bartesaghi":"Con Estupinan fermo (ginocchio, dall'Ecuador) tocca a lui a sinistra contro il Sassuolo.",
   "Esteban":"🆕 Punta spagnola del 2006 dalla Primavera: due spezzoni (Monza, Milan) da alternativa a Stulic."
 
 };
@@ -942,7 +944,6 @@ const INJURY = {
   "Terzic":[0,"Bicipite femorale: da valutare."],
   "Ziolkowski":[0,"Fascite plantare: da valutare."],
   "Ciurria":[0,"Noie fisiche: da valutare."],
-  "Saelemaekers":[0,"⚠️ Distorsione alla caviglia destra in allenamento il 29/9 (esami: niente ossa né legamenti). A rischio per Sassuolo-Milan dell'11/10: da monitorare. Mancava nel bollettino del 4/10, segnalato dall'utente."],
   /* --- saltano la 6ª --- */
   "Hien":[1,"Rientro dichiarato l'11/10 (Atalanta in campo il 12), ma fantacalcio.it e Calciomercato.com lo danno fuori fino a dopo la sosta di novembre: certa la 6ª, il resto è in bilico."],
   "McTominay":[1,"🚨 Ablazione per aritmia: rientro dichiarato l'11/10, il Napoli gioca il 10 col Frosinone. Il club ci prova, ma la data dice dalla 7ª."],
@@ -993,6 +994,8 @@ const INJURY = {
   "Holm":[17,"❌ Bicipite femorale: rientro dichiarato il 29 gennaio 2027."],
   "Locatelli":[18,"🚨❌ Menisco suturato: rientro l'8 FEBBRAIO 2027. Stagione praticamente finita per il fantacalcio: da gennaio si libera."],
   "Felici":[18,"❌ Nuovo infortunio al ginocchio: rientro dichiarato il 9 febbraio 2027."],
+  "Saelemaekers":[18,"🚨❌ La distorsione del 29/9 era molto peggio: la caviglia operata nel 2024 ha perso stabilità, si OPERA. Almeno quattro mesi: si rivede nel 2027 (6/10, Gazzetta). A destra gioca Moreira."],
+  "Estupinan":[1,"Distorsione al ginocchio con l'Ecuador: salta di sicuro Sassuolo, tempi da chiarire. A sinistra Bartesaghi."],
   "Grabara":[30,"❌ Crociato: stagione finita (rientro luglio 2027). La Juve ha preso Neto come secondo."],
   "Pompei":[2,"Frattura alla mano, da operare: tempi da valutare."]
 };
