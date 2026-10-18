@@ -21,8 +21,11 @@ serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
 2. bollettino da **fantacalcio-online.com/it/infortunati-serie-a** (date dichiarate) e
    squalificati del giudice sportivo; `INJURY` si riscrive intera, non si accumula
 3. risultati e marcatori della giornata → fatti in `CAMPO_NOTE` (le chiavi dopo vincono)
+3b. **SofaScore della stagione in corso**: nel browser integrato, su sofascore.com,
+   `raccogliStagione("2026-27")` (tools/sofascore-raccogli.js, chiedere il download), poi
+   `node tools/sofascore-importa.mjs` — titolarità recente e `xgo` vivono di questo file
 4. `node tools/build-kb.mjs` deve dare **0 avvisi ⚠️**; prove verdi (`prova-schermate`,
-   `prova-formazione`, `prova-download`); audit contraddizioni (sotto)
+   `prova-formazione`, `prova-download`); audit contraddizioni: `node tools/audit.mjs`
 5. formazioni, direttamente dal backup:
    `node tools/formazione.mjs "<backup.json>" <giornata> "" <NomeLega>` (modulo vuoto = quello
    salvato nella lega); consigli di mercato: `node tools/rosa-consigli.mjs "<backup.json>"`
@@ -221,13 +224,20 @@ storici contengono solo aggregati di stagione, non giornata per giornata, quindi
 backtest non è possibile con i dati che abbiamo. È un indizio col campione dichiarato, non
 un peso calibrato — e il motore lo tratta di conseguenza, con `PESO_CAMPO`.
 
-**Come il campo corregge la stima.** La titolarità è la probabilità di prendere voto, e sul
-campo si misura direttamente (presenze ÷ giornate). Il builder fonde la stima di agosto con
-il dato reale usando un peso che cresce col campionato — `PESO_CAMPO = min(0.80, giornate/12)`.
-Con una giornata sola pesa l'8%, alla quinta il 42%, dalla dodicesima in poi l'80%. Non
-arriva mai al 100% perché le gerarchie cambiano anche a stagione inoltrata. Chi è
-infortunato è escluso dalla correzione: l'assenza la sconta già `inj`, contarla due volte
-lo affosserebbe.
+**Come il campo corregge la stima** (ricalibrato il 18/10 sui dati SofaScore). La titolarità
+è la probabilità di prendere voto. Dal campo si misura così: metà presenze della stagione
+(÷ giornate della squadra), metà presenze (≥15') nelle **ultime 3 partite della squadra**.
+Il peso del campo è `pesoCampo(g) = min(0.85, 0.15 + 0.13·g)`: 41% dopo 2 giornate, 80% dopo
+5, 85% da lì in poi. Prima era `min(0.80, g/12)` (42% alla quinta): il backtest dice che il
+campo conta molto di più, e i minuti in sé non aggiungono niente alle presenze. Chi è **nel
+bollettino** è escluso dalla correzione: le sue assenze sono l'infortunio, già scontato da
+`inj` e `stop`. Con questa regola sono venuti fuori da soli Svilar (fuori dalla 6ª, Gollini in
+porta) e i panchinati veri come Pasalic o Zalewski.
+
+**La produzione di quest'anno (`xgo`).** 3·xG + xA ogni 90' della stagione in corso contro lo
+storico (2025-26 ≥ 900', altrimenti la media del ruolo), pesato minuti/(minuti+600), scala
+0.92, tetto ±0.6 punti di FM: entra in `expFM` accanto a `xgd`. Chi crea e non segna sale
+(Kolo Muani), chi segna sopra quello che crea scende.
 
 ## Schierare (`tools/formazione.mjs`)
 

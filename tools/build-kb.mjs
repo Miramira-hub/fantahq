@@ -103,7 +103,7 @@ if (GIORNATE) {
    dice pochissimo (una squalifica, un turnover, un raffreddore); con dieci dice quasi
    tutto. Cresce piano e si ferma all'80%: un po' di stima serve sempre, perché le
    gerarchie cambiano anche dopo venti giornate. */
-const PESO_CAMPO = GIORNATE ? Math.min(0.80, GIORNATE / 12) : 0;
+/* (dal 18/10 la curva è pesoCampo(), più sotto: ricalibrata sui dati partita per partita) */
 
 /* ---- giornate giocate PER SQUADRA ----
    A metà giornata (i posticipi del lunedì, i rinvii per maltempo o coppe) le squadre non
@@ -118,6 +118,73 @@ for (const v of ST_ORA.values()) {
   if (v.pv > g) GIOR_SQUADRA.set(v.sq, v.pv);
 }
 const giornateDi = t => GIOR_SQUADRA.get(t) ?? GIORNATE;
+
+/* ================= SOFASCORE: la stagione partita per partita =================
+   data/sofascore/ (tools/sofascore-raccogli.js + sofascore-importa.mjs) ha ogni partita con
+   minuti, xG e xA; mappa.json lega l'id SofaScore all'Id ufficiale. Entra nel motore in due
+   punti, entrambi calibrati con tools/backtest-forma.mjs sulle stagioni 23-24 → 25-26:
+   1. TITOLARITÀ: le presenze delle ULTIME 3 giornate della squadra, mischiate con quelle
+      della stagione, predicono chi prende voto meglio di tutto il resto (i minuti in sé no);
+   2. PRODUZIONE: 3·xG + xA ogni 90' di quest'anno, fusi con lo storico col peso
+      minuti/(minuti+600), predicono il bonus futuro meglio dei gol veri (r 0.54 contro 0.49);
+      la scala è quasi 1:1 (pendenza 0.92). La forma delle ultime 5 da sola NO: è rumore. */
+const SOFA_STAGIONE = "2026-27", SOFA_PRIMA = "2025-26";
+function sofaAggrega(st, mappa) {
+  const raw = JSON.parse(fs.readFileSync(`${REPO}/data/sofascore/${st}.json`, "utf8"));
+  const gioc = new Map(), turniSq = new Map();
+  for (const g of raw.giornate) for (const p of g.partite) {
+    for (const t of [p.casa, p.ospite]) { if (!turniSq.has(t)) turniSq.set(t, []); turniSq.get(t).push(g.giornata); }
+    for (const x of p.giocatori) {
+      const id = mappa[x.id]; if (!id) continue;
+      const s = x.st, min = s.minutesPlayed || 0;
+      const v = gioc.get(id) || { min: 0, xg: 0, xa: 0, pres: 0, sq: x.squadra, turni: new Map() };
+      v.min += min; v.xg += s.expectedGoals || 0; v.xa += s.expectedAssists || 0;
+      if (min > 0) v.pres++;
+      v.sq = x.squadra; v.turni.set(g.giornata, (v.turni.get(g.giornata) || 0) + min);
+      gioc.set(id, v);
+    }
+  }
+  return { gioc, turniSq };
+}
+let SOFA = null;
+try {
+  const mappa = JSON.parse(fs.readFileSync(`${REPO}/data/sofascore/mappa.json`, "utf8"));
+  SOFA = { ora: sofaAggrega(SOFA_STAGIONE, mappa), prima: sofaAggrega(SOFA_PRIMA, mappa) };
+  console.log(`SofaScore: ${SOFA.ora.gioc.size} giocatori agganciati nella stagione in corso`);
+} catch (e) { console.warn("ℹ️ data/sofascore assente o incompleto: titolarità e produzione senza dati partita per partita"); }
+/* bonus atteso per ruolo nella stagione prima: base per chi non ha 900' di storico */
+const RATE_RUOLO = {};
+if (SOFA) {
+  const ruolo = new Map(statRows(SOFA_PRIMA).map(r => [r[0], r[1]]));
+  const acc = {};
+  for (const [id, v] of SOFA.prima.gioc) { const r = ruolo.get(id); if (!r || r === "P" || v.min < 900) continue;
+    (acc[r] ??= [0, 0]); acc[r][0] += 3 * v.xg + v.xa; acc[r][1] += v.min; }
+  for (const r in acc) RATE_RUOLO[r] = 90 * acc[r][0] / acc[r][1];
+}
+/* presenze (≥15', la soglia del voto) nelle ultime 3 partite giocate dalla SUA squadra; null
+   se SofaScore non lo conosce */
+function ultime3(id) {
+  const v = SOFA && SOFA.ora.gioc.get(id); if (!v) return null;
+  const turni = (SOFA.ora.turniSq.get(v.sq) || []).slice(-3);
+  if (!turni.length) return null;
+  return 100 * turni.filter(g => (v.turni.get(g) || 0) >= 15).length / turni.length;
+}
+/* peso del campo sulla titolarità: il backtest dà ~0.45 dopo 2 giornate, ~0.9 dopo 5 e 1 da
+   lì in poi, ma contro uno storico NUDO. La stima d'agosto del motore è più forte (gerarchie
+   di XI_STATUS), quindi si resta un po' sotto e ci si ferma all'85%. Era min(0.80, g/12). */
+const pesoCampo = g => Math.min(0.85, 0.15 + 0.13 * g);
+/* xgo: la stagione in corso in xG+xA, in punti di FM a partita */
+function correzioneXg(id, ruolo) {
+  const so = SOFA && SOFA.ora.gioc.get(id);
+  if (!so || ruolo === "P" || so.min < 90 || !so.pres) return 0;
+  const sp = SOFA.prima.gioc.get(id);
+  const rOra = 90 * (3 * so.xg + so.xa) / so.min;
+  const rPrima = sp && sp.min >= 900 ? 90 * (3 * sp.xg + sp.xa) / sp.min : RATE_RUOLO[ruolo];
+  if (rPrima == null) return 0;
+  const peso = so.min / (so.min + 600);
+  const v = 0.92 * peso * (rOra - rPrima) * (so.min / so.pres) / 90;
+  return Math.round(Math.max(-0.6, Math.min(0.6, v)) * 100) / 100;
+}
 
 /* Calendario ufficiale 2026-27: entra nel KB così l'app (e la versione single-file
    dell'Artifact) sa chi incontra chi in ogni giornata. Generato e VALIDATO da
@@ -749,6 +816,7 @@ const CAMPO_NOTE = {
   "Obric":"🆕 Centrale del 2006 salito dall'Under 23 per l'emergenza in difesa dell'Atalanta (Hien e Kossounou fuori). Spazio breve, poi riserva.",
   "Moreira":"🔁 Con Saelemaekers operato (fuori almeno quattro mesi) la fascia destra del Milan è sua: 3 gol in 3 presenze, a segno in tre giornate di fila. Da titolare fisso.",
   "Bartesaghi":"Con Estupinan fermo (ginocchio, dall'Ecuador) tocca a lui a sinistra contro il Sassuolo.",
+  "Gollini":"🔁 Con SVILAR fermo fino alla sosta di novembre (frattura al piede) la porta della Roma è sua: titolare a Como e col Genoa, Gasperini lo ha sostenuto in pubblico. Da ultimo slot a titolare per un mese.",
   "Esteban":"🆕 Punta spagnola del 2006 dalla Primavera: due spezzoni (Monza, Milan) da alternativa a Stulic."
 
 };
@@ -985,6 +1053,7 @@ const INJURY = {
   "Nicolussi Caviglia":[4,"Rientro il 2 novembre: salta fino alla 9ª."],
   "Grillitsch":[4,"Operato: rientro a inizio novembre."],
   /* --- più lunghi --- */
+  "Svilar":[6,"🚨 Frattura da stress al quinto dito del piede (allenamento, 10/10): almeno un mese, si valuta una vite. Rientro dopo la sosta di novembre (verso Roma-Parma del 21-23/11). Ha già saltato Como e Genoa: in porta GOLLINI."],
   "Favasuli":[6,"Lesione di 2° grado al retto femorale con l'Under 21: circa due mesi, metà novembre."],
   "Yildiz":[7,"❌ Frattura al quinto metatarso, operato: rientro il 26 novembre. Torna dopo la sosta di novembre."],
   "Franjic":[9,"❌ Clavicola: rientro dichiarato il 10 dicembre."],
@@ -1408,13 +1477,19 @@ for (const role of ["P","D","C","A"]) {
        Appena prende voto rientra nella correzione come tutti. Imprecisione accettata e
        dichiarata: newT copre anche chi è arrivato PRIMA della 1ª (Kevin Carlos) — per quei
        casi resta il ⚠️ della sezione trappole, che qui non viene toccata. */
-    if (GIORNATE && inj < 3 && !(ARRIVATI_COL_LISTONE_31.has(p.n) && !pvOra)) {
+    /* Chi è NEL BOLLETTINO non si corregge col campo: le sue presenze mancate sono
+       l'infortunio, già scontato da inj e da stop. Con il campo che pesa fino all'85% (prima
+       42% alla 5ª) contarle due volte faceva crollare Walukiewicz, Spence, Pessina. */
+    if (GIORNATE && inj < 3 && !INJURY[p.n] && !(ARRIVATI_COL_LISTONE_31.has(p.n) && !pvOra)) {
       const gSq = Math.max(1, giornateDi(p.t));
-      const daCampo = Math.max(0, Math.min(100, pvOra / gSq * 100));
-      const pesoSq = Math.min(0.80, gSq / 12);
+      const stagione = Math.max(0, Math.min(100, pvOra / gSq * 100));
+      const recenti = ultime3(p.id);                    // ultime 3 della squadra (SofaScore)
+      const daCampo = recenti == null ? stagione : (stagione + recenti) / 2;
+      const pesoSq = pesoCampo(gSq);
       tit = Math.round(tit * (1 - pesoSq) + daCampo * pesoSq);
     }
-    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra},${stop}]`;
+    const xgo = correzioneXg(p.id, p.r);
+    const row = `["${p.r}","${esc(p.n)}","${esc(p.t)}",${p.q},${fm.toFixed(2)},${est},${pres},${gol},${ass},${rig},${tit},${up},${inj},${age},${unc},${newT},"${esc(note)}","${p.id}",${p.fvm||0},${xgd},${fm2},${pvOra},${golOra},${assOra},${fmOra},${mvOra},${stop},${xgo}]`;
     lines.push(first ? `\n/* ===== ${ROLE_TITLE[role]} ===== */\n${row}` : row);
     first = false;
   }
