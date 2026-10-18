@@ -2,17 +2,20 @@
 
 Guida operativa per riprendere il lavoro in una sessione nuova.
 
-## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 4 ottobre 2026
+## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 18 ottobre 2026, sera
 
-**Dove siamo.** Stagione 2026-27, giocate **5 giornate**; sosta lunga per la Nations League
-dal 24/9 al 6/10. La **6ª si gioca 10-12 ottobre**. Calendario vero (Sky): 7ª 16-19/10 ·
-8ª 23-25/10 · 9ª 27-29/10 (infrasettimanale) · 10ª 31/10-2/11 · 11ª 6-8/11 · sosta ·
-12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12. Nel database: listone del 4/10
-(536 giocatori: nuovi Alaba, Neto, Obric, Esteban; uscito Patric), statistiche a 5 giornate
-(peso del campo 42%), bollettino del 4/10, nessuno squalificato per la 6ª.
-Cambi di panchina: Fiorentina Vanoli (6/9), Bologna Palladino (16/9), Parma Gilardino (27/9).
+**Dove siamo.** Giocate **7 giornate** (della 7ª mancano Monza-Cagliari e Parma-Torino, lunedì
+19/10). L'**8ª si gioca 23-25 ottobre**, poi 9ª infrasettimanale 27-29/10. Calendario: 10ª
+31/10-2/11 · 11ª 6-8/11 · sosta · 12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12.
+Nel database: listone del 18/10 (539: nuovi Vasquez D., Darmian, Wiafe), statistiche a 7
+giornate, bollettino del 18/10, SofaScore della stagione al pomeriggio del 18/10 (66 partite).
+Squalificati dell'8ª non ancora comunicati. Panchine: Vanoli (Fiorentina), Palladino
+(Bologna), Gilardino (Parma), **Nicola (Venezia, dal 14/10)**.
+**Rose:** l'utente manda l'export di Leghe Fantacalcio (`<lega>-rosters-*.xlsx`): convertito con
+xlsx-to-json, `node tools/rose-leghe.mjs <ultimo backup> <rose.json> "<Lega>" "<Sua squadra>" <uscita>`
+lo riversa nel backup (le squadre rinominate si riconoscono dai giocatori in comune).
 
-**Prossimo giro (dopo la 6ª, 13-14 ottobre):** l'utente manda dai Download
+**Prossimo giro (dopo l'8ª, 26 ottobre — ma la 9ª è il 27-29: giro corto):** l'utente manda dai Download
 `Statistiche_Fantacalcio_Stagione_2026_27 (N).xlsx` e `Quotazioni_… (N).xlsx`, e quando
 serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
 1. convertire con `tools/xlsx-to-json.mjs` (xlsx = zip: estrarre in una cartella e passarla)

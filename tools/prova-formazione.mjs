@@ -22,10 +22,10 @@ ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) 
 /* bollettino del 4/10: Venturino (operato, stop 4) salta 6ª-9ª, alla 10ª rientra da dubbio */
 ok("Venturino alla 10ª → dubbio, non ok: rientra da un'operazione", dispAuto(k("Venturino"), G+5) === "dubbio");
 ok("Buongiorno fine dicembre → out alla 6ª",  dispAuto(k("Buongiorno"), G2) === "out");
-ok("McTominay rientro 11/10 → out alla 6ª",    dispAuto(k("McTominay"), G2) === "out");
+ok("Busio rientro 27/10 → out alla 8ª",        dispAuto(k("Busio"), G2) === "out");
 /* un'assenza BREVE (stop 1) non lascia strascichi: passata, si torna ok. Il "dubbio da
    rientro" e riservato agli stop seri (inj>=2, vedi Buongiorno alla 6ª). */
-ok("McTominay → ok alla 7ª: assenza breve, nessuno strascico", dispAuto(k("McTominay"), G+2) === "ok");
+ok("Busio → ok alla 9ª: assenza breve, nessuno strascico", dispAuto(k("Busio"), G+2) === "ok");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Conceicao sano → ok",                    dispAuto(k("Conceicao"), G2) === "ok");
 /* chi salta solo la prossima torna disponibile se guardi più avanti */

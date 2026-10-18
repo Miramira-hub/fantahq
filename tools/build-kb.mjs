@@ -329,7 +329,7 @@ const RIG = {
   "Calhanoglu":2, "Martinez L.":1, "Zielinski":1,                       // Inter: unanime
   "Kolo Muani":1, "Locatelli":1, "Yildiz":1,                            // Juve: gerarchia APERTA (Yildiz non più designato)
   "Pulisic":1, "Ramos G.":1,                                // Milan: aperta (Ramos primo per 1 fonte, Pulisic per 2)
-  "Malen":2, "Dybala":1, "Soulè":1, "Castro S.":1,                      // Roma: Malen ha scavalcato Dybala
+  "Malen":2, "Dybala":1, "Soulè":1, "Castro S.":1, "Pellegrini Lo.":1,                      // Roma: Malen ha scavalcato Dybala
   "Scamacca":2, "De Ketelaere":1, "Samardzic":1,                        // Atalanta
   "Orsolini":2, "Dovbyk":1, "Bernardeschi":1,                           // Bologna: Dovbyk insidia (27/32 in carriera)
   "Da Cunha":2, "Paz N.":1, "Douvikas":1, "Baturina":1,                 // Como
@@ -341,6 +341,7 @@ const RIG = {
   "Vlasic":2, "Kulenovic":1, "Zapata D.":1, "Simeone":1,                // Torino: unanime
   "Davis K.":2, "Solet":1, "Zaniolo":1, "Ekkelenkamp":1,                // Udinese: unanime
   "Colombo":2, "Messias":1, "Vitinha O.":1,                             // Genoa
+  "Goncalves P.":1, "Mastantuono":1,                                    // Fiorentina: Vanoli li indica tutti e due, mai assegnati
   "Mina":2, "Fazzini":1,                                  // Cagliari: Esposito ceduto → Mina primo
   "Pessina":2, "Cutrone":1,                                // Monza: Pessina 16/17 in carriera
   "Calò":2, "Raimondo":1, "Ghedjemis":1, "Hasa":1,                      // Frosinone
@@ -817,7 +818,62 @@ const CAMPO_NOTE = {
   "Moreira":"🔁 Con Saelemaekers operato (fuori almeno quattro mesi) la fascia destra del Milan è sua: 3 gol in 3 presenze, a segno in tre giornate di fila. Da titolare fisso.",
   "Bartesaghi":"Con Estupinan fermo (ginocchio, dall'Ecuador) tocca a lui a sinistra contro il Sassuolo.",
   "Gollini":"🔁 Con SVILAR fermo fino alla sosta di novembre (frattura al piede) la porta della Roma è sua: titolare a Como e col Genoa, Gasperini lo ha sostenuto in pubblico. Da ultimo slot a titolare per un mese.",
-  "Esteban":"🆕 Punta spagnola del 2006 dalla Primavera: due spezzoni (Monza, Milan) da alternativa a Stulic."
+  "Esteban":"🆕 Punta spagnola del 2006 dalla Primavera: due spezzoni (Monza, Milan) da alternativa a Stulic.",
+  /* ===== 6ª (10-12/10) e 7ª (16-19/10, mancano Monza-Cagliari e Parma-Torino) ===== */
+  "Calhanoglu":"Tornato: titolare e RIGORE segnato nella 6ª (Inter-Parma 3-0), in panchina a Bologna nella 7ª. Con Lautaro fuori fino al 22/11 il dischetto nerazzurro è di nuovo suo.",
+  "Thuram":"In gol sia nella 6ª sia nella 7ª. Con LAUTARO fuori fino al 22/11 l'attacco dell'Inter passa da lui: il momento di schierarlo sempre.",
+  "Esposito F.P.":"Con LAUTARO fuori fino al 22/11 si libera un posto accanto a Thuram: da qui alla sosta il suo minutaggio sale.",
+  "Bonny":"In gol a Bologna nella 7ª: con Lautaro fermo è la prima alternativa dell'Inter in attacco.",
+  "Carlos Augusto":"In gol con assist a Bologna nella 7ª: fantamedia 8.4 in 5, sulla fascia sinistra dell'Inter fa bonus.",
+  "Sucic P.":"In gol nella 6ª contro il Parma: titolare a centrocampo anche con Calhanoglu rientrato.",
+  "De Bruyne":"⚠️ Due volte rigore nella 6ª e nella 7ª: segnato al Frosinone, SBAGLIATO a Venezia, dove era partito dalla PANCHINA. Tensione con Allegri dopo Villarreal: da guardare le probabili.",
+  "Hojlund":"⚠️ Panchina a Venezia nella 7ª: Allegri ha giocato col 3-4-2-1 e Lucca prima punta. Il Napoli ne ha perse tre su sette: il posto non è più blindato.",
+  "Lucca":"Prima punta del Napoli a Venezia nella 7ª, con Hojlund in panchina: da seguire se la scelta si ripete.",
+  "Lang":"In gol nella 6ª, poi in panchina a Venezia nella 7ª.",
+  "McTominay":"✅ Rientrato: titolare per 90' a Venezia nella 7ª dopo l'ablazione.",
+  "Meret":"Titolare in campionato: Allegri ha diviso i ruoli, Meret in Serie A e Milinkovic-Savic in Champions.",
+  "Milinkovic-Savic V.":"Portiere di Champions del Napoli: in campionato gioca Meret.",
+  "Malen":"Espulso a Como nella 6ª, ha scontato la squalifica nella 7ª: torna per Napoli-Roma dell'8ª.",
+  "Gollini":"🔁 Titolare a Como (0-0) e col Genoa (2-0, porta inviolata): con Svilar fuori fino al 10/11 la porta della Roma è sua.",
+  "Lulli":"In gol col Genoa nella 7ª.",
+  "Castro S.":"In gol col Genoa nella 7ª, senza Dybala e Malen.",
+  "Pellegrini Lo.":"Titolare a Como e primo rigorista della Roma quando mancano Malen e Dybala.",
+  "Raimondo":"💥 TRIPLETTA al Sassuolo nella 7ª (Frosinone-Sassuolo 4-2): il Frosinone neopromosso è sesto e lui ne è il bomber.",
+  "Calò":"In gol anche nella 7ª: rigorista e regista del Frosinone.",
+  "Berardi":"In gol a Frosinone nella 7ª.",
+  "Krstovic":"💥 DOPPIETTA al Venezia nella 6ª, in gol anche a San Siro nella 7ª: 4 gol nelle ultime tre. Il listone lo ha portato da 16 a 19.",
+  "Kessiè":"In gol al Venezia nella 6ª, poi fermo per il polpaccio fino alla 9ª-10ª.",
+  "Ramos G.":"RIGORE segnato a Carnesecchi nella 7ª (Milan-Atalanta 3-2): il dischetto del Milan è suo.",
+  "Rabiot":"In gol sia nella 6ª sia nella 7ª: 4 gol in 7, il centrocampista più in forma del Milan.",
+  "Gila":"In gol all'Atalanta nella 7ª: difensore con bonus.",
+  "Modric":"⚠️ Partito dalla panchina a Sassuolo nella 6ª.",
+  "Isaksen":"In gol sia nella 6ª sia nella 7ª (Juve-Lazio 0-3): la Lazio è prima con l'Inter.",
+  "Tavares N.":"Gol nella 6ª, assist nella 7ª: il quinto sinistro della Lazio capolista.",
+  "Pinamonti":"⚠️ Partito dalla panchina nella 6ª e nella 7ª: gioca Noslin. Ha segnato da subentrato al Monza.",
+  "Noslin":"Titolare nella Lazio capolista: due assist al Monza nella 6ª.",
+  "Zaccagni":"Assist per Provstgaard nella 7ª a Torino: la Lazio vola e il suo capitano tira anche i rigori.",
+  "Woltemade":"⚠️ Ancora panchina contro la Lazio nella 7ª, entrato a inizio ripresa: la Juve resta di Kolo Muani.",
+  "Kolo Muani":"Primo gol in campionato a Cagliari nella 6ª. Spalletti lo ha confermato titolare.",
+  "Maldini":"In gol anche contro la Juve nella 6ª: 4 gol, il Cagliari va.",
+  "Skorupski":"⚠️ Ballottaggio vero: fuori a Lecce nella 6ª (giocava Pessina), di nuovo titolare con l'Inter nella 7ª. Palladino decide in settimana.",
+  "Pessina Mas.":"Titolare a Lecce nella 6ª al posto di Skorupski: il Bologna ha un ballottaggio in porta.",
+  "Piccoli":"Titolare anche con Inter e Lecce, ma uscito al 30' con l'Inter dopo uno scontro con Akanji: condizioni da verificare. È entrato Enem, non Dovbyk.",
+  "Enem":"Gol a Lecce nella 6ª, entrato per Piccoli con l'Inter: davanti a Dovbyk nelle scelte di Palladino.",
+  "Douvikas":"In gol a Firenze nella 7ª e titolare in tutte e sette: con Kean fermo per la tibia la maglia è sua.",
+  "Paz N.":"In gol a Firenze nella 7ª.",
+  "Mastantuono":"Frattura al quarto metacarpo della mano sinistra, operato il 13/10: ha giocato lo stesso col Como. Vanoli indica lui e Goncalves per i rigori, mai assegnati.",
+  "Goncalves P.":"Titolare col Como nella 7ª: per Vanoli è uno dei due tiratori della Fiorentina, con Mastantuono.",
+  "Osmajic":"In gol alla Fiorentina nella 6ª: 3 gol per l'attaccante del Genoa.",
+  "Adams A.":"Gol-vittoria al Napoli nella 7ª, nella prima di NICOLA (arrivato il 14/10 al posto di Stroppa).",
+  "Gaetano":"In gol a San Siro nella 7ª.",
+  "Ekkelenkamp":"In gol a Torino nella 6ª, ma l'Udinese ha perso cinque partite di fila e Runjaic traballa.",
+  "Kulenovic":"In gol anche contro l'Udinese nella 6ª: il listone lo porta da 6 a 9.",
+  "N'Dri":"In gol a Udine nella 7ª (0-3).",
+  "Gaspar K.":"In gol a Udine nella 7ª.",
+  "Hutchinson":"Entrato al 53' contro l'Atalanta nella 7ª: comincia a vedere il campo, ma da alternativa.",
+  "Vasquez D.":"🆕 Portiere aggiunto dalla Roma dopo l'infortunio di Svilar: terzo dietro Gollini.",
+  "Darmian":"🆕 Al Bologna da svincolato: esperienza per la difesa di Palladino, ruolo da rotazione.",
+  "Wiafe":"🆕 Nuovo nel listone col Genoa.",
 
 };
 
@@ -987,86 +1043,89 @@ const XI_ADJ = {
    Fonte: fantacalcio-online (56 voci con data dichiarata; Nuredini, Bah, Israel e Pellegri
    non sono nel listone), giudice sportivo per la 5ª (Vasquez). Gaetano ha scontato. */
 const INJURY = {
-  /* Bollettino del 4 OTTOBRE 2026 (fantacalcio-online: solo voci con data dichiarata;
-     integrato con gli indisponibili di fantacalcio.it per chi non ha una data).
-     Calendario vero (Sky): 6ª 10-12/10 · 7ª 16-19/10 · 8ª 23-25/10 · 9ª 27-29/10 ·
-     10ª 31/10-2/11 · 11ª 6-8/11 · sosta · 12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 ·
-     15ª 11-12/12. Oltre la 15ª le giornate sono stimate (una a settimana).
-     Il numero = giornate saltate DI SICURO dalla 6ª: rientro dentro la finestra della
-     giornata = dubbio (0). Nessuno squalificato per la 6ª (nessun espulso alla 5ª). */
-  /* --- dubbi per la 6ª: rientro dichiarato a ridosso della partita --- */
-  "Calhanoglu":[0,"Stiramento all'adduttore (15/9): uscito dal bollettino, punta a rientrare col Parma il 10/10 ma con prudenza. Se non parte titolare, piazzati a Dimarco e rigori a Zielinski/Lautaro."],
-  "Meret":[0,"Rientra dopo la sosta (data dichiarata 8/10) e torna titolare fisso: niente alternanza con Milinkovic-Savic."],
-  "Cabal":[0,"Rientro dichiarato l'8 ottobre: in dubbio per la 6ª."],
-  "Kolo Muani":[0,"Frattura a un dito della mano, rientro dichiarato il 5/10: per Cagliari-Juve (11/10) dovrebbe esserci, eventualmente con protezione."],
-  "Dovbyk":[0,"Affaticamento (ha saltato il Torino alla 5ª), rientro dichiarato il 5/10: disponibile per la 6ª, ma con Palladino parte dietro Piccoli."],
-  "Spence":[0,"Rientro dichiarato il 5 ottobre: disponibile per la 6ª."],
-  "Havel":[0,"Rientro dichiarato il 10 ottobre, il giorno di Genoa-Fiorentina: in dubbio."],
-  "Idzes":[0,"Rientro dichiarato l'11 ottobre, il giorno di Sassuolo-Milan: in dubbio."],
-  "Adams C.":[0,"Adduttore, rientro dichiarato l'11 ottobre: Torino-Udinese è il 12, in dubbio."],
-  "Sulemana K.":[0,"Rientro dichiarato l'11 ottobre: Atalanta-Venezia è il 12, in dubbio."],
-  "Sulemana I.":[0,"Rientro dichiarato il 12 ottobre, il giorno di Atalanta-Venezia: in dubbio."],
-  "Kevin Carlos":[0,"Problema al retto femorale annunciato da Pisacane il 3/10: da valutare per la Juve."],
-  "Zambo Anguissa":[0,"Fastidio all'adduttore: da valutare."],
-  "Berisha M.":[0,"Sovraccarico: da valutare."],
-  "Terzic":[0,"Bicipite femorale: da valutare."],
-  "Ziolkowski":[0,"Fascite plantare: da valutare."],
-  "Ciurria":[0,"Noie fisiche: da valutare."],
-  /* --- saltano la 6ª --- */
-  "Hien":[1,"Rientro dichiarato l'11/10 (Atalanta in campo il 12), ma fantacalcio.it e Calciomercato.com lo danno fuori fino a dopo la sosta di novembre: certa la 6ª, il resto è in bilico."],
-  "McTominay":[1,"🚨 Ablazione per aritmia: rientro dichiarato l'11/10, il Napoli gioca il 10 col Frosinone. Il club ci prova, ma la data dice dalla 7ª."],
-  "Giovane":[1,"Ernia inguinale operata: rientro l'11/10, il Napoli gioca il 10. Torna dalla 7ª."],
-  "Marianucci":[1,"Rientro l'11/10, il Napoli gioca il 10. Torna dalla 7ª."],
-  "Idrissi R.":[1,"Rientro dichiarato l'11 ottobre (Cagliari in campo l'11 sera): salta la 6ª."],
-  "Addai":[1,"Tendine d'Achille operato: rientro l'11/10, il giorno di Como-Roma. Salta la 6ª."],
-  "Boga":[1,"Rientro dichiarato il 13 ottobre (fantacalcio.it dice metà novembre): salta la 6ª, poi in bilico."],
-  "Santos A.":[1,"Rientro dichiarato il 15 ottobre: salta la 6ª."],
-  "Stones":[1,"Rientro dichiarato il 17 ottobre: salta la 6ª, in dubbio per la 7ª."],
-  "Adorante":[1,"Rientro il 17 ottobre: salta la 6ª."],
-  "Sverko":[1,"Rientro il 17 ottobre: salta la 6ª."],
-  "Piotrowski":[1,"Ablazione per aritmia: rientro dichiarato il 18 ottobre, salta la 6ª."],
-  "Rovella":[1,"Polpaccio: fuori fino a metà ottobre, salta la 6ª."],
-  "Cristante":[1,"Infezione al ginocchio: salta Como e Real Madrid. Al suo posto De Roon."],
-  "Meichtry":[1,"Anca: fuori per il prossimo turno."],
-  "Trepy":[1,"Tempi senza data: metà ottobre."],
-  "Boloca":[1,"Ginocchio: metà ottobre, senza data."],
-  "Candè":[1,"Crociato: metà ottobre, senza data."],
-  "Walukiewicz":[1,"Contusione: metà ottobre, senza data."],
-  "Colombo":[1,"⚠️ Caviglia: il Genoa dice stop precauzionale per la Fiorentina; fantacalcio-online però gli dà rientro il 1° novembre. Certa solo la 6ª, ma il rigorista del Genoa è in bilico."],
-  /* --- saltano 6ª e 7ª --- */
-  "Gudmundsson A.":[2,"🚨 Infortunio alla SPALLA: fantacalcio.it dice metà ottobre-inizio novembre, per Gattuso i tempi sono «due mesi, spero meno». Certe 6ª e 7ª, realisticamente anche di più."],
-  "Volpato":[2,"Rientro dichiarato il 21 ottobre: salta 6ª e 7ª."],
-  "Raspadori":[2,"Bicipite femorale: rientro dichiarato il 21 ottobre, salta 6ª e 7ª."],
-  "Odgaard":[2,"Flessori: rientro dichiarato il 21 ottobre, salta 6ª e 7ª."],
-  "Zaniolo":[2,"Bicipite femorale: seconda metà di ottobre (senza data). Mai più visto dopo la 1ª."],
-  "Gueye":[2,"Caviglia: seconda metà di ottobre, senza data."],
-  "Cataldi":[2,"Quadricipite: seconda metà di ottobre, senza data."],
-  /* --- fino all'8ª-9ª --- */
-  "Busio":[3,"Rientro dichiarato il 27 ottobre: salta 6ª, 7ª e 8ª."],
-  "Deiola":[3,"Menisco operato: rientro il 28 ottobre, salta fino all'8ª."],
-  "Pessina":[3,"Rotula: rientro il 28 ottobre, salta fino all'8ª."],
-  "Kossounou":[3,"Flessori: rientro dichiarato il 29 ottobre (altre fonti: dopo la sosta di novembre)."],
-  "Pieragnolo":[3,"Crociato: fine ottobre, senza data."],
-  "Venturino":[4,"Rientro il 30 ottobre: salta fino alla 9ª."],
-  "Parisi":[4,"❌ Crociato: rientro il 1° novembre, salta fino alla 9ª."],
-  "Ekhator":[4,"Rientro il 2 novembre: salta fino alla 9ª."],
-  "Nicolussi Caviglia":[4,"Rientro il 2 novembre: salta fino alla 9ª."],
-  "Grillitsch":[4,"Operato: rientro a inizio novembre."],
+  /* Bollettino del 18 OTTOBRE 2026, sera (fantacalcio-online: solo voci con data dichiarata;
+     fantacalcio.it per chi non ha una data; convocati e tabellini della 7ª per i rientri).
+     Calendario (Sky): 8ª 23-25/10 · 9ª 27-29/10 · 10ª 31/10-2/11 · 11ª 6-8/11 · sosta ·
+     12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12; oltre, stimate.
+     Il numero = giornate saltate DI SICURO dall'8ª: rientro dentro la finestra = dubbio (0).
+     7ª non finita (Monza-Cagliari e Parma-Torino il 19/10): squalificati dell'8ª ancora da
+     comunicare. Malen, Elmas e Lucchesi hanno scontato la squalifica alla 7ª. */
+  /* --- dubbi per l'8ª --- */
+  "Dybala":[0,"⚠️ Polpaccio: prova a esserci per Roma-Napoli dell'8ª. Da guardare nelle probabili. Operato al menisco a marzo: il minutaggio resta da gestire."],
+  "Kean":[0,"Problema alla tibia, rientro dichiarato il 20/10: da valutare per l'8ª."],
+  "Cristante":[0,"Ginocchio (o lombalgia, le fonti divergono): rientro dichiarato il 26/10, ma fantacalcio.it è ottimista per Roma-Napoli."],
+  "Atta":[0,"Sovraccarico all'addome: da valutare per l'8ª."],
+  "Cancellieri":[0,"Rientro previsto per l'8ª."],
+  "Bella-Kotchap":[0,"Prova a esserci all'8ª."],
+  "Tourè I.":[0,"Prova a rientrare all'8ª."],
+  "Zeballos":[0,"Da valutare per l'8ª."],
+  "Ciurria":[0,"Da valutare."],
+  "Maye":[0,"Da valutare."],
+  "Elphege":[0,"Appendicite: da valutare."],
+  "Fortini":[0,"Adduttore: da valutare."],
+  /* --- saltano l'8ª --- */
+  "Kossounou":[1,"Flessori: rientro dichiarato il 29/10, ma fantacalcio.it parla di lesione al bicipite femorale e di seconda metà di novembre."],
+  "Jones C.":[1,"Adduttore: rientro dichiarato il 29/10."],
+  "Pessina":[1,"Rotula operata: rientro dichiarato il 28/10 (fantacalcio.it: metà novembre)."],
+  "Busio":[1,"Flessori: rientro dichiarato il 27/10."],
+  "Kessiè":[2,"Polpaccio: fuori fino alla 9ª-10ª giornata."],
+  "Scalvini":[1,"Flessori: fine ottobre, senza data."],
+  "Sulemana K.":[1,"Collaterale del ginocchio: seconda metà di ottobre, senza data."],
+  "Rovella":[1,"Polpaccio: non convocato per la Juve, seconda metà di ottobre."],
+  "Marusic":[1,"Coscia: non convocato, seconda metà di ottobre."],
+  "Idzes":[1,"Quadricipite: seconda metà di ottobre, senza data."],
+  "Trepy":[1,"Fine ottobre, senza data."],
+  "Berisha M.":[1,"Sovraccarico: fine ottobre, senza data."],
+  "Meichtry":[1,"Anca: seconda metà di ottobre."],
+  "Havel":[1,"Operato alla caviglia: seconda metà di ottobre."],
+  "Zaniolo":[1,"Bicipite femorale: ha saltato Udinese-Lecce, fine ottobre."],
+  "Adorante":[1,"Schiena: seconda metà di ottobre."],
+  "Sverko":[1,"Anca: fine ottobre."],
+  /* --- saltano 8ª e 9ª --- */
+  "Gudmundsson A.":[2,"🚨 Spalla: non convocato per la Juve, «ancora qualche settimana». Fine ottobre-inizio novembre: certe 8ª e 9ª."],
+  "Orsolini":[2,"🚨 Lesione di 1° grado al bicipite femorale destro (11/10): circa tre settimane, prima metà di novembre. Il rigorista del Bologna torna verso la 10ª."],
+  "Raspadori":[2,"Bicipite femorale: rientro dichiarato il 31/10."],
+  "Idrissi R.":[2,"Crociato: rientro dichiarato il 30/10."],
+  "Birligea":[2,"Quadricipite: rientro dichiarato il 31/10."],
+  "Grillitsch":[2,"Operato: rientro dichiarato il 2/11."],
+  "Colombo":[2,"Caviglia: rientro il 1° novembre, salta l'8ª e la 9ª. Il rigorista del Genoa manca."],
+  "Venturino":[2,"Ginocchio operato: rientro il 30/10."],
+  "Ekhator":[2,"Rientro il 2 novembre."],
+  "Ilic":[2,"Retto femorale: inizio novembre."],
+  "Almqvist":[2,"Polpaccio: rientro dichiarato il 30/10."],
+  "Nicolussi Caviglia":[2,"Coscia operata: rientro dichiarato il 2/11 (fantacalcio.it: da dicembre)."],
+  "Boloca":[2,"Menisco: rientro il 30/10."],
+  "Pieragnolo":[2,"Crociato: rientro il 30/10."],
+  "Zanoli":[2,"Crociato: rientro dichiarato il 31/10."],
+  "Parisi":[2,"❌ Crociato: rientro dichiarato il 1/11 (fantacalcio.it: da dicembre)."],
+  "Buongiorno":[8,"❌ Operato al menisco: rientro a gennaio (fantacalcio-online diceva 31/10, ma le notizie del club dicono gennaio)."],
+  "Neres":[2,"Semimembranoso: prima metà di novembre."],
+  "Pompei":[2,"Frattura alla mano: tempi da valutare."],
+  /* --- fino alla sosta di novembre --- */
+  "Diao":[3,"Coscia: rientro dichiarato l'8/11, salta 8ª, 9ª e 10ª."],
+  "Pavard":[3,"Adduttori: rientro dichiarato il 5/11."],
+  "Vergara":[3,"Soleo: rientro dichiarato l'8/11."],
+  "Konè M.":[3,"🚨 Ginocchio/bicipite femorale: rientro dichiarato l'8/11, salta 8ª, 9ª e 10ª."],
+  "Ziolkowski":[3,"Fascite plantare: metà novembre."],
+  "Bayo V.":[3,"Bicipite femorale: metà novembre."],
+  "Martinez L.":[4,"🚨❌ Flessori della coscia sinistra: rientro dichiarato il 22/11. Salta 8ª, 9ª, 10ª e 11ª: torna dopo la sosta. I rigori dell'Inter tornano a Calhanoglu."],
+  "Hien":[4,"Semimembranoso: rientro dichiarato il 9/11, dopo la sosta."],
+  "Svilar":[4,"🚨 Frattura da stress al quinto dito del piede: rientro dichiarato il 10/11, dopo la sosta. In porta GOLLINI."],
+  "Kone B.":[4,"Flessore: rientro dichiarato il 22/11."],
+  "Favasuli":[6,"Retto femorale: fino a metà dicembre."],
   /* --- più lunghi --- */
-  "Svilar":[6,"🚨 Frattura da stress al quinto dito del piede (allenamento, 10/10): almeno un mese, si valuta una vite. Rientro dopo la sosta di novembre (verso Roma-Parma del 21-23/11). Ha già saltato Como e Genoa: in porta GOLLINI."],
-  "Favasuli":[6,"Lesione di 2° grado al retto femorale con l'Under 21: circa due mesi, metà novembre."],
-  "Yildiz":[7,"❌ Frattura al quinto metatarso, operato: rientro il 26 novembre. Torna dopo la sosta di novembre."],
-  "Franjic":[9,"❌ Clavicola: rientro dichiarato il 10 dicembre."],
-  "Buongiorno":[10,"❌ Menisco: le fonti ora dicono fine dicembre."],
-  "Thuram K.":[13,"❌ Operato al ginocchio: fermo fino al 1° gennaio 2027. Slot morto fino al mercato di riparazione."],
-  "Konè I.":[15,"❌ Tibia: rientro il 17 gennaio 2027."],
-  "Holm":[17,"❌ Bicipite femorale: rientro dichiarato il 29 gennaio 2027."],
-  "Locatelli":[18,"🚨❌ Menisco suturato: rientro l'8 FEBBRAIO 2027. Stagione praticamente finita per il fantacalcio: da gennaio si libera."],
-  "Felici":[18,"❌ Nuovo infortunio al ginocchio: rientro dichiarato il 9 febbraio 2027."],
-  "Saelemaekers":[18,"🚨❌ La distorsione del 29/9 era molto peggio: la caviglia operata nel 2024 ha perso stabilità, si OPERA. Almeno quattro mesi: si rivede nel 2027 (6/10, Gazzetta). A destra gioca Moreira."],
-  "Estupinan":[1,"Distorsione al ginocchio con l'Ecuador: salta di sicuro Sassuolo, tempi da chiarire. A sinistra Bartesaghi."],
-  "Grabara":[30,"❌ Crociato: stagione finita (rientro luglio 2027). La Juve ha preso Neto come secondo."],
-  "Pompei":[2,"Frattura alla mano, da operare: tempi da valutare."]
+  "Yildiz":[5,"❌ Frattura al quinto metatarso, operato: rientro il 26/11 (fantacalcio.it: inizio dicembre)."],
+  "Franjic":[7,"❌ Clavicola: rientro dichiarato il 10 dicembre."],
+  "Gueye":[10,"❌ Caviglia operata: rientro il 5 gennaio 2027."],
+  "Thuram K.":[10,"❌ Ginocchio: fermo fino al 1° gennaio 2027. Slot morto fino al mercato di riparazione."],
+  "Konè I.":[11,"❌ Frattura di tibia e perone: rientro il 17 gennaio 2027."],
+  "Holm":[13,"❌ Operato al bicipite femorale: rientro il 29 gennaio 2027 (fantacalcio.it: fine febbraio)."],
+  "Saelemaekers":[15,"🚨❌ Caviglia operata il 13/10: rientro dichiarato l'8 febbraio 2027. A destra gioca Moreira."],
+  "Locatelli":[15,"🚨❌ Menisco: rientro l'8 febbraio 2027. Da gennaio si libera."],
+  "Felici":[15,"❌ Crociato: rientro dichiarato il 9 febbraio 2027 (fantacalcio.it: da marzo)."],
+  "Gabbia":[17,"❌ Flessore con interessamento del tendine: da fine febbraio."],
+  "Leysen F.":[25,"❌ Crociato (11/10): da aprile."],
+  "Grabara":[30,"❌ Crociato: stagione finita. Svincolato in DreamLeague."]
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
@@ -1106,7 +1165,7 @@ const TEAMS = {
   "Sassuolo":{atk:3,def:3,coach:"Aquilani",cn:"Propositivo, cerca il bel gioco"},
   "Lecce":{atk:2,def:3,coach:"Di Francesco",cn:"4-3-3 offensivo ma materiale da salvezza"},
   "Monza":{atk:3,def:3,coach:"Juric",cn:"3-4-3 a uomo: il suo Torino fu 4ª difesa (17 subiti)"},
-  "Venezia":{atk:2,def:3,coach:"Stroppa",cn:"Neopromossa accorta"},
+  "Venezia":{atk:2,def:3,coach:"Nicola",cn:"Dal 14/10 al posto di Stroppa (esonerato): specialista delle salvezze, ha vinto la prima col Napoli"},
   "Frosinone":{atk:2,def:2,coach:"Alvini",cn:"Neopromossa, obiettivo salvezza"}
 };
 
