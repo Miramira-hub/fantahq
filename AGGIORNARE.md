@@ -378,3 +378,27 @@ copre — verifica che le schermate si disegnino, non che un file venga consegna
 - Prezzi: la somma dei prezzi dei giocatori assegnati deve avvicinarsi a `budget × squadre`
 - `node tools/prova-schermate.mjs`, `prova-download.mjs` e `prova-formazione.mjs` verdi
 - Aprire l'app e girare tutti i tab senza errori in console
+
+## Dati partita per partita (SofaScore)
+
+Dal 18/10/2026 in `data/sofascore/` ci sono **tutte le partite di Serie A 2023-24, 2024-25,
+2025-26 e della stagione in corso**: per ogni giocatore minuti, voto SofaScore, gol, assist,
+xG, xA, tiri, occasioni. Servono a quello che i totali di stagione non permettevano: misurare
+la forma e i minuti veri.
+
+- **Raccolta:** l'API di SofaScore risponde 403 a chi non è un browser, quindi si gira
+  `tools/sofascore-raccogli.js` DENTRO una pagina di sofascore.com (browser integrato,
+  `javascript_tool`): `raccogliStagione("2026-27")` scarica `sofascore-2026-27.json` nei
+  Download (una richiesta ogni 0,7 s; il download va chiesto all'utente). Il browser
+  integrato blocca le chiamate verso localhost: niente server locale, si passa dal file.
+- **Import e aggancio:** `node tools/sofascore-importa.mjs` copia i file in `data/sofascore/`
+  e aggancia ogni id SofaScore all'Id ufficiale (cognome, squadra della stessa stagione,
+  iniziale, portieri a parte). I casi che le regole non risolvono stanno in
+  `data/sofascore/mappa-manuale.json` (null = omonimo da non agganciare). Deve dare 0 "DA GUARDARE".
+- **Backtest:** `node tools/backtest-forma.mjs`. Al 18/10, su 2024-25, 2025-26 e inizio 2026-27:
+  - **produzione** (gol+assist/90 nelle 5 giornate dopo): il mix *stagione prima xG+xA* +
+    *quest'anno xG+xA* (quest'anno pesa minuti/(minuti+900)) fa r = 0.52 contro 0.45 della
+    sola stagione prima (quello che usa il motore). Le **ultime 5 partite da sole sono
+    peggio** (0.43): la "forma" breve è rumore, la stagione in corso in xG no.
+  - **minuti**: i minuti delle ultime 3 giornate (mischiati con quelli della stagione)
+    predicono i minuti futuri con r = 0.72, la stagione prima con 0.32. Vale già dopo la 5ª.
