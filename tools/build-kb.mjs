@@ -330,8 +330,8 @@ const RIG = {
   "Kolo Muani":1, "Locatelli":1, "Yildiz":1,                            // Juve: gerarchia APERTA (Yildiz non più designato)
   "Pulisic":1, "Ramos G.":1,                                // Milan: aperta (Ramos primo per 1 fonte, Pulisic per 2)
   "Malen":2, "Dybala":1, "Soulè":1, "Castro S.":1, "Pellegrini Lo.":1,                      // Roma: Malen ha scavalcato Dybala
-  "Scamacca":2, "De Ketelaere":1, "Samardzic":1,                        // Atalanta
-  "Orsolini":2, "Dovbyk":1, "Bernardeschi":1,                           // Bologna: Dovbyk insidia (27/32 in carriera)
+  "Scamacca":2, "De Ketelaere":1, "Samardzic":1, "Ederson D.S.":1,                        // Atalanta
+  "Orsolini":2, "Dovbyk":1, "Bernardeschi":2,                           // Bologna: Dovbyk insidia (27/32 in carriera)
   "Da Cunha":2, "Paz N.":1, "Douvikas":1, "Baturina":1,                 // Como
   /* Fiorentina SENZA rigorista designato: Gudmundsson alla Lazio, Kean al Como e Mandragora al Torino. Si saprà solo dal campo: nessun bonus-rigori viola è pagabile oggi. */                         // Fiorentina: ballottaggio col Kean
   "Zaccagni":2, "Cataldi":1, "Taylor K.":1,                             // Lazio: unanime
@@ -874,6 +874,37 @@ const CAMPO_NOTE = {
   "Vasquez D.":"🆕 Portiere aggiunto dalla Roma dopo l'infortunio di Svilar: terzo dietro Gollini.",
   "Darmian":"🆕 Al Bologna da svincolato: esperienza per la difesa di Palladino, ruolo da rotazione.",
   "Wiafe":"🆕 Nuovo nel listone col Genoa.",
+  /* ===== 7ª (posticipi del 19/10) e 8ª (23-25/10); probabili della 9ª del 26/10 ===== */
+  "Douvikas":"💥 DOPPIETTA al Sassuolo nell'8ª, unica punta con Kean fuori: titolare in tutte e otto, 4 gol. Per la 9ª a Torino è dato al 60%, Kean ancora non convocato.",
+  "McTominay":"💥 DOPPIETTA alla Roma nell'8ª (3-3): tornato dall'ablazione e subito decisivo.",
+  "Krstovic":"💥 Altra DOPPIETTA nell'8ª (4-4 col Frosinone): 6 gol nelle ultime quattro. Nelle probabili della 9ª è lui la punta, Scamacca al 40%.",
+  "Scamacca":"⚠️ Nelle probabili della 9ª (a Firenze) parte dietro Krstovic, che segna a raffica: 40% di giocare dall'inizio.",
+  "Varela G.":"Gol anche a Torino e DOPPIETTA al Cagliari: il Monza ha in lui un bomber vero.",
+  "Simeone":"💥 DOPPIETTA a Parma nella 7ª (0-3) e assist nell'8ª: si è sbloccato.",
+  "Bernardeschi":"RIGORE segnato a Cagliari nell'8ª: con Orsolini fuori il dischetto del Bologna è suo.",
+  "Zielinski":"RIGORE segnato all'Inter-Fiorentina nell'8ª (procurato da Thuram): con Lautaro fuori, e Calhanoglu uscito, il dischetto era suo.",
+  "Ederson D.S.":"RIGORE segnato al Frosinone nell'8ª: nell'Atalanta tira anche lui. Titolare nelle probabili della 9ª.",
+  "Provedel":"Titolare con la Fiorentina nell'8ª e dato titolare anche a Venezia nella 9ª: turnover deciso da Chivu, Martinez torna nel derby.",
+  "Martinez Jo.":"⚠️ Fuori per turnover nell'8ª e nella 9ª (gioca Provedel), torna nel derby.",
+  "Esposito F.P.":"Titolare con Thuram nell'8ª e dato titolare a Venezia nella 9ª: con Lautaro fuori fino al 22/11 il posto è suo.",
+  "Pulisic":"In gol a Udine nell'8ª, ma ⚠️ nelle probabili della 9ª col Bologna parte Cissé: Pulisic al 40%.",
+  "Hutchinson":"In gol a Udine nell'8ª e titolare nelle probabili della 9ª: con Saelemaekers e Rabiot fuori si è preso il posto.",
+  "Cissè A.":"Titolare nelle probabili della 9ª col Bologna, davanti a Pulisic.",
+  "Balerdi":"💥 DOPPIETTA a Napoli nell'8ª (3-3): un difensore che fa bonus.",
+  "Soulè":"In gol a Napoli nell'8ª e titolare nelle probabili della 9ª.",
+  "Gollini":"🔁 Titolare anche a Napoli nell'8ª: con Svilar fuori almeno fino al 7-8/11 la porta della Roma è sua.",
+  "Milinkovic-Savic V.":"Dato titolare a Monza nella 9ª: Allegri alterna i portieri, la gerarchia col Napoli non è chiara.",
+  "Meret":"⚠️ Titolare con la Roma nell'8ª, ma per Monza le probabili danno Milinkovic-Savic.",
+  "Lang":"Titolare nelle probabili del Napoli a Monza nella 9ª.",
+  "Mancini":"Titolare nelle probabili della Roma col Cagliari.",
+  "Schmid":"💥 DOPPIETTA a Bergamo nell'8ª (Atalanta-Frosinone 4-4).",
+  "Calò":"In gol anche a Bergamo nell'8ª.",
+  "Taylor K.":"In gol al Parma nell'8ª.",
+  "Kolo Muani":"Titolare a Lecce con Woltemade nell'8ª e anche nelle probabili della 9ª a Genova.",
+  "Woltemade":"✅ Titolare a Lecce nell'8ª in coppia con Kolo Muani, e di nuovo nelle probabili della 9ª: Spalletti ora li fa giocare insieme.",
+  "Douglas Luiz":"Gol e assist a Lecce nell'8ª.",
+  "McKennie":"In gol a Lecce nell'8ª.",
+  "Ellertsson":"Gol-vittoria del Genoa al Venezia nell'8ª.",
 
 };
 
@@ -1077,7 +1108,7 @@ const INJURY = {
   "Rabiot":[1,"⚠️ Polpaccio: salta Milan-Bologna, punta al derby di sabato (10ª)."],
   "Ramos G.":[1,"Soleo: rientro dichiarato il 31/10. Il rigorista del Milan salta la 9ª."],
   "Moreira":[1,"Rientro dichiarato il 31/10: salta la 9ª."],
-  "Loftus-Cheek":[1,"Flessore: forfait certo per la 9ª."],
+  "Loftus-Cheek":[3,"Lesione al flessore (Udinese-Milan): fuori fino alla sosta."],
   "Terracciano":[1,"Noie fisiche: forfait per la 9ª."],
   "Solet":[1,"⚠️ Gamba: non ci sarà mercoledì a Parma, tempi da valutare."],
   "Dybala":[1,"⚠️ Polpaccio destro: rientro dichiarato il 2/11. Salta la 9ª, in dubbio per la 10ª."],
@@ -1118,7 +1149,7 @@ const INJURY = {
   "Kolasinac":[2,"Rientro dichiarato il 3/11."],
   "Chalobah T.":[2,"Ginocchio: rientro dichiarato il 3/11."],
   "Diao":[2,"Coscia: rientro dichiarato l'8/11."],
-  "Mandragora":[2,"Flessori: rientro dichiarato il 4/11."],
+  "Mandragora":[3,"Lesione al bicipite femorale nell'8ª: salta il Como, rientra dopo la sosta."],
   "Pavard":[2,"Adduttori: rientro il 5/11."],
   "Konè M.":[2,"Ginocchio: rientro dichiarato l'8/11."],
   "Coulibaly L.":[2,"Rientro dichiarato il 3/11."],
