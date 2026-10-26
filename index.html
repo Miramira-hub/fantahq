@@ -319,6 +319,10 @@ const KBI = KB.map((r,i)=>({ i, r:r[0], n:r[1], t:r[2], qta:r[3], fm:r[4], est:r
   xgo:+r[27]||0 }));
 /* quante giornate si sono giocate: il massimo delle presenze in giro */
 const GIORNATE_GIOCATE = KBI.reduce((m,k)=>Math.max(m,k.pvOra||0), 0);   // KBI, non KB: KB e l array grezzo
+/* Da quale giornata conta il bollettino (lo dichiara il builder). Le statistiche arrivano
+   sempre in ritardo sulle notizie: il 26/10 il bollettino contava dalla 9ª con le statistiche
+   ancora alla 7ª, e "prossima = ultima giocata + 1" sbagliava di una giornata chi è fuori. */
+const BOLLETTINO_DA = DATA.bollettinoDa || GIORNATE_GIOCATE + 1;
 /* giornate giocate PER SQUADRA: coi posticipi e i rinvii le squadre non sono mai allineate,
    e confrontare le presenze di un giocatore col conteggio globale punirebbe chi ha una gara
    in meno per colpa del calendario. Il massimo dentro la rosa e il denominatore giusto. */
@@ -380,7 +384,8 @@ function normState(st){                 // ripara uno state caricato da vecchi s
      solo: il valore parte da 1 e nessuno pensa a spostarlo, così a settembre il tab
      Formazione mostrerebbe ancora gli avversari della 1ª. Al caricamento si porta avanti
      alla prossima da giocare; poi la tendina resta libera per tutta la sessione. */
-  if(st.giornata <= GIORNATE_GIOCATE) st.giornata = Math.min(38, GIORNATE_GIOCATE + 1);
+  const prossima = Math.max(GIORNATE_GIOCATE + 1, BOLLETTINO_DA);   // il bollettino può essere avanti alle statistiche
+  if(st.giornata < prossima) st.giornata = Math.min(38, prossima);
   st.managers = Array.isArray(st.managers) ? st.managers : [];
   st.lineup = st.lineup || { module:"3-4-3" };
   if(!Array.isArray(st.players)) st.players = freshState().players;
@@ -2472,7 +2477,7 @@ const dispAuto = k => {
   /* Quante giornate mancano da qui a quella che stai preparando: 1 = la prossima. Chi il
      bollettino ferma per almeno quel numero non c'è. Un giocatore fermo 1 giornata è OUT
      per la prossima ma torna disponibile se stai guardando più avanti. */
-  const via = Math.max(1, (state.giornata||1) - GIORNATE_GIOCATE);
+  const via = Math.max(1, (state.giornata||1) - BOLLETTINO_DA + 1);
   if(k.stop >= via) return "out";
   /* Chi NON è nel bollettino di oggi gioca, qualunque sia il suo `inj`: quel numero vale 2
      anche per la fragilità ereditata dallo storico, e usarlo qui mandava in "dubbio" gente

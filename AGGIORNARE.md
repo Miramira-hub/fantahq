@@ -22,6 +22,8 @@ serve un consiglio sulle rose anche `fantahq-backup (N).json`. Poi, in ordine:
    e **confrontare il listone col precedente** (nuovi / usciti / cambi squadra / quote):
    anche a mercato italiano chiuso il listone si muove — gli esteri e gli svincolati
 2. bollettino da **fantacalcio-online.com/it/infortunati-serie-a** (date dichiarate) e
+   **aggiornare `BOLLETTINO_DA`** in build-kb (la giornata da cui contano i numeri: le
+   statistiche possono essere indietro, il 26/10 erano alla 7ª col bollettino della 9ª) e
    squalificati del giudice sportivo; `INJURY` si riscrive intera, non si accumula
 3. risultati e marcatori della giornata → fatti in `CAMPO_NOTE` (le chiavi dopo vincono)
 3b. **SofaScore della stagione in corso**: nel browser integrato, su sofascore.com,

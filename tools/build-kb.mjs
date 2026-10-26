@@ -1042,90 +1042,126 @@ const XI_ADJ = {
    [giornate che salta DI SICURO, nota]. 4+ → inj=3; 2-3 → inj=2; 0-1 → solo nota.
    Fonte: fantacalcio-online (56 voci con data dichiarata; Nuredini, Bah, Israel e Pellegri
    non sono nel listone), giudice sportivo per la 5ª (Vasquez). Gaetano ha scontato. */
+/* La giornata da cui contano i numeri di INJURY: va nel kb e l'app ci conta sopra. Non si
+   deduce dalle statistiche, che arrivano dopo le notizie (il 26/10: bollettino della 9ª,
+   statistiche ancora alla 7ª). Aggiornarla OGNI volta che si riscrive INJURY. */
+const BOLLETTINO_DA = 9;
+/* la riga "dati del..." che l'app mostra: si aggiorna insieme al bollettino */
+const DATA_DESCRIZIONE = "26 ottobre 2026 — bollettino per la 9ª (infrasettimanale 27-29/10), statistiche e listone del 18/10";
 const INJURY = {
-  /* Bollettino del 18 OTTOBRE 2026, sera (fantacalcio-online: solo voci con data dichiarata;
-     fantacalcio.it per chi non ha una data; convocati e tabellini della 7ª per i rientri).
-     Calendario (Sky): 8ª 23-25/10 · 9ª 27-29/10 · 10ª 31/10-2/11 · 11ª 6-8/11 · sosta ·
-     12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12; oltre, stimate.
-     Il numero = giornate saltate DI SICURO dall'8ª: rientro dentro la finestra = dubbio (0).
-     7ª non finita (Monza-Cagliari e Parma-Torino il 19/10): squalificati dell'8ª ancora da
-     comunicare. Malen, Elmas e Lucchesi hanno scontato la squalifica alla 7ª. */
-  /* --- dubbi per l'8ª --- */
-  "Dybala":[0,"⚠️ Polpaccio: prova a esserci per Roma-Napoli dell'8ª. Da guardare nelle probabili. Operato al menisco a marzo: il minutaggio resta da gestire."],
-  "Kean":[0,"Problema alla tibia, rientro dichiarato il 20/10: da valutare per l'8ª."],
-  "Cristante":[0,"Ginocchio (o lombalgia, le fonti divergono): rientro dichiarato il 26/10, ma fantacalcio.it è ottimista per Roma-Napoli."],
-  "Atta":[0,"Sovraccarico all'addome: da valutare per l'8ª."],
-  "Cancellieri":[0,"Rientro previsto per l'8ª."],
-  "Bella-Kotchap":[0,"Prova a esserci all'8ª."],
-  "Tourè I.":[0,"Prova a rientrare all'8ª."],
-  "Zeballos":[0,"Da valutare per l'8ª."],
-  "Ciurria":[0,"Da valutare."],
+  /* Bollettino del 26 OTTOBRE 2026 (fantacalcio-online: 67 voci con data dichiarata;
+     fantacalcio.it per i tempi vaghi e per i forfait annunciati della 9ª).
+     Calendario: 9ª 27-29/10 (infrasettimanale: Torino-Como mar, quasi tutte mer,
+     Fiorentina-Atalanta gio) · 10ª 31/10-2/11 · 11ª 6-8/11 · sosta · 12ª 21-23/11 ·
+     13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12; oltre, stimate.
+     Il numero = giornate saltate DI SICURO dalla 9ª: rientro dentro la finestra = dubbio (0).
+     ⚠️ fantacalcio-online mette Gudmundsson A. e Mandragora alla Fiorentina: è un loro errore,
+     il listone li dà a Lazio e Torino. */
+  /* --- squalificati --- */
+  "Gaspar K.":[2,"⚠️ SQUALIFICATO per la 9ª e la 10ª (espulso nell'8ª)."],
+  /* --- dubbi per la 9ª --- */
+  "Kessiè":[0,"Polpaccio: prova in extremis per Fiorentina-Atalanta di giovedì."],
+  "Scalvini":[0,"Caviglia: rientro dichiarato il 27/10."],
+  "Deiola":[0,"Menisco: rientro dichiarato il 28/10. Diffidato."],
+  "Atta":[0,"Addome: verso il forfait per giovedì."],
+  "Jones C.":[0,"Adduttore: rientro dichiarato il 29/10."],
+  "Stones":[0,"Flessori: da valutare per mercoledì."],
+  "Ehizibue":[0,"Noie fisiche: da valutare."],
   "Maye":[0,"Da valutare."],
-  "Elphege":[0,"Appendicite: da valutare."],
   "Fortini":[0,"Adduttore: da valutare."],
-  /* --- saltano l'8ª --- */
-  "Kossounou":[1,"Flessori: rientro dichiarato il 29/10, ma fantacalcio.it parla di lesione al bicipite femorale e di seconda metà di novembre."],
-  "Jones C.":[1,"Adduttore: rientro dichiarato il 29/10."],
-  "Pessina":[1,"Rotula operata: rientro dichiarato il 28/10 (fantacalcio.it: metà novembre)."],
-  "Busio":[1,"Flessori: rientro dichiarato il 27/10."],
-  "Kessiè":[2,"Polpaccio: fuori fino alla 9ª-10ª giornata."],
-  "Scalvini":[1,"Flessori: fine ottobre, senza data."],
-  "Sulemana K.":[1,"Collaterale del ginocchio: seconda metà di ottobre, senza data."],
-  "Rovella":[1,"Polpaccio: non convocato per la Juve, seconda metà di ottobre."],
-  "Marusic":[1,"Coscia: non convocato, seconda metà di ottobre."],
-  "Idzes":[1,"Quadricipite: seconda metà di ottobre, senza data."],
-  "Trepy":[1,"Fine ottobre, senza data."],
-  "Berisha M.":[1,"Sovraccarico: fine ottobre, senza data."],
-  "Meichtry":[1,"Anca: seconda metà di ottobre."],
-  "Havel":[1,"Operato alla caviglia: seconda metà di ottobre."],
-  "Zaniolo":[1,"Bicipite femorale: ha saltato Udinese-Lecce, fine ottobre."],
-  "Adorante":[1,"Schiena: seconda metà di ottobre."],
-  "Sverko":[1,"Anca: fine ottobre."],
-  /* --- saltano 8ª e 9ª --- */
-  "Gudmundsson A.":[2,"🚨 Spalla: non convocato per la Juve, «ancora qualche settimana». Fine ottobre-inizio novembre: certe 8ª e 9ª."],
-  "Orsolini":[2,"🚨 Lesione di 1° grado al bicipite femorale destro (11/10): circa tre settimane, prima metà di novembre. Il rigorista del Bologna torna verso la 10ª."],
-  "Raspadori":[2,"Bicipite femorale: rientro dichiarato il 31/10."],
-  "Idrissi R.":[2,"Crociato: rientro dichiarato il 30/10."],
-  "Birligea":[2,"Quadricipite: rientro dichiarato il 31/10."],
-  "Grillitsch":[2,"Operato: rientro dichiarato il 2/11."],
-  "Colombo":[2,"Caviglia: rientro il 1° novembre, salta l'8ª e la 9ª. Il rigorista del Genoa manca."],
-  "Venturino":[2,"Ginocchio operato: rientro il 30/10."],
-  "Ekhator":[2,"Rientro il 2 novembre."],
-  "Ilic":[2,"Retto femorale: inizio novembre."],
-  "Almqvist":[2,"Polpaccio: rientro dichiarato il 30/10."],
-  "Nicolussi Caviglia":[2,"Coscia operata: rientro dichiarato il 2/11 (fantacalcio.it: da dicembre)."],
-  "Boloca":[2,"Menisco: rientro il 30/10."],
-  "Pieragnolo":[2,"Crociato: rientro il 30/10."],
-  "Zanoli":[2,"Crociato: rientro dichiarato il 31/10."],
-  "Parisi":[2,"❌ Crociato: rientro dichiarato il 1/11 (fantacalcio.it: da dicembre)."],
-  "Buongiorno":[8,"❌ Operato al menisco: rientro a gennaio (fantacalcio-online diceva 31/10, ma le notizie del club dicono gennaio)."],
-  "Neres":[2,"Semimembranoso: prima metà di novembre."],
-  "Pompei":[2,"Frattura alla mano: tempi da valutare."],
+  "Zanoli":[0,"A rischio per Parma-Udinese."],
+  "Busio":[0,"Flessori: rientro dichiarato il 27/10."],
+  "Adorante":[0,"Schiena: tentativo da fine ottobre."],
+  /* --- saltano la 9ª --- */
+  "Gila":[1,"⚠️ Caviglia: rientro dichiarato il 31/10, fantacalcio.it lo dà a rischio per mercoledì. Salta la 9ª."],
+  "Rabiot":[1,"⚠️ Polpaccio: salta Milan-Bologna, punta al derby di sabato (10ª)."],
+  "Ramos G.":[1,"Soleo: rientro dichiarato il 31/10. Il rigorista del Milan salta la 9ª."],
+  "Moreira":[1,"Rientro dichiarato il 31/10: salta la 9ª."],
+  "Loftus-Cheek":[1,"Flessore: forfait certo per la 9ª."],
+  "Terracciano":[1,"Noie fisiche: forfait per la 9ª."],
+  "Solet":[1,"⚠️ Gamba: non ci sarà mercoledì a Parma, tempi da valutare."],
+  "Dybala":[1,"⚠️ Polpaccio destro: rientro dichiarato il 2/11. Salta la 9ª, in dubbio per la 10ª."],
+  "Boga":[1,"Bicipite femorale: rientro dichiarato il 30/10."],
+  "Ekhator":[1,"Rientro il 2/11."],
+  "Gudmundsson A.":[1,"🚨 Spalla: rientro dichiarato il 2/11, ma fantacalcio.it dice metà novembre."],
+  "Kossounou":[1,"Flessori: rientro dichiarato il 29/10, ma fantacalcio.it dice seconda metà di novembre."],
+  "Raspadori":[1,"Bicipite femorale: rientro dichiarato il 31/10."],
+  "Bellanova":[1,"Inguine: out giovedì, tempi da valutare."],
+  "Idrissi R.":[1,"Crociato: rientro il 30/10."],
+  "Winks":[1,"Lombalgia: punta alla 10ª."],
+  "Liberali":[1,"Gamba: rientro forse alla 10ª."],
+  "Kean":[1,"Tibia: non convocato per Torino, punta alla 10ª."],
+  "Pongracic":[1,"Bicipite femorale: out giovedì."],
+  "Parisi":[1,"❌ Crociato: rientro dichiarato il 1/11 (fantacalcio.it: da dicembre)."],
+  "Birligea":[1,"Quadricipite: rientro il 31/10."],
+  "Grillitsch":[1,"Rientro il 2/11."],
+  "Colombo":[1,"Caviglia: rientro il 1/11."],
+  "Sow":[1,"Rientro il 2/11."],
+  "Venturino":[1,"Ginocchio operato: rientro il 30/10."],
+  "Havel":[1,"Caviglia operata: da inizio novembre."],
+  "Marusic":[1,"Coscia: da fine ottobre."],
+  "Rovella":[1,"Polpaccio: da fine ottobre."],
+  "Berisha M.":[1,"Rientro il 30/10."],
+  "Pessina":[1,"Rotula operata: rientro dichiarato il 28/10, fantacalcio.it dice metà novembre."],
+  "Almqvist":[1,"Polpaccio: rientro il 30/10."],
+  "Nicolussi Caviglia":[1,"Coscia operata: rientro dichiarato il 2/11 (fantacalcio.it: da dicembre)."],
+  "Elphege":[1,"Appendicite: out mercoledì."],
+  "Boloca":[1,"Rientro il 30/10."],
+  "Pieragnolo":[1,"Crociato: rientro il 30/10."],
+  "Idzes":[1,"Quadricipite: da fine ottobre."],
+  "Piotrowski":[1,"Aritmia: rientro il 30/10."],
+  "Sverko":[1,"Anche: rientro il 31/10."],
+  "Correia T.":[1,"Flessore: out mercoledì."],
+  /* --- saltano 9ª e 10ª --- */
+  "Orsolini":[2,"Flessori: rientro dichiarato il 3/11, torna per l'11ª."],
+  "Piccoli":[2,"⚠️ Flessori della coscia destra (dopo lo scontro con Akanji): rientro dichiarato il 7/11."],
+  "Kolasinac":[2,"Rientro dichiarato il 3/11."],
+  "Chalobah T.":[2,"Ginocchio: rientro dichiarato il 3/11."],
+  "Diao":[2,"Coscia: rientro dichiarato l'8/11."],
+  "Mandragora":[2,"Flessori: rientro dichiarato il 4/11."],
+  "Pavard":[2,"Adduttori: rientro il 5/11."],
+  "Konè M.":[2,"Ginocchio: rientro dichiarato l'8/11."],
+  "Coulibaly L.":[2,"Rientro dichiarato il 3/11."],
+  "Ilkhan":[2,"Adduttore: rientro il 5/11."],
+  "Rodriguez R.":[2,"Flessori: prima metà di novembre."],
+  "Chukwueze":[2,"Anca: controlli a inizio novembre."],
   /* --- fino alla sosta di novembre --- */
-  "Diao":[3,"Coscia: rientro dichiarato l'8/11, salta 8ª, 9ª e 10ª."],
-  "Pavard":[3,"Adduttori: rientro dichiarato il 5/11."],
-  "Vergara":[3,"Soleo: rientro dichiarato l'8/11."],
-  "Konè M.":[3,"🚨 Ginocchio/bicipite femorale: rientro dichiarato l'8/11, salta 8ª, 9ª e 10ª."],
+  "Martinez L.":[3,"🚨❌ Flessori: rientro dichiarato il 22/11, torna dopo la sosta. I rigori dell'Inter sono di Calhanoglu."],
+  "Svilar":[3,"🚨 Frattura al dito del piede: rientro dichiarato il 10/11. In porta GOLLINI."],
+  "Hien":[3,"Semimembranoso: rientro il 9/11."],
+  "Pompei":[3,"Frattura alla mano: rientro il 22/11."],
+  "Kone B.":[3,"Flessore: rientro il 22/11."],
+  "Celik":[3,"Coscia: rientro dichiarato il 18/11."],
+  "Conceicao":[3,"🚨 Spalla: rientro dichiarato il 22/11. Torna dopo la sosta."],
+  "Laerke":[3,"Collo: rientro il 21/11."],
+  "Ilic":[3,"Rientro dichiarato il 9/11, ma fantacalcio.it dice fine marzo."],
   "Ziolkowski":[3,"Fascite plantare: metà novembre."],
+  "Neres":[3,"Ginocchio: rientro il 10/11."],
+  "Spinazzola":[3,"⚠️ Bicipite femorale: da metà novembre."],
+  "Luis Henrique":[3,"Adduttore: da metà novembre."],
+  "Alaba":[3,"Polpaccio: rientro il 22/11."],
   "Bayo V.":[3,"Bicipite femorale: metà novembre."],
-  "Martinez L.":[4,"🚨❌ Flessori della coscia sinistra: rientro dichiarato il 22/11. Salta 8ª, 9ª, 10ª e 11ª: torna dopo la sosta. I rigori dell'Inter tornano a Calhanoglu."],
-  "Hien":[4,"Semimembranoso: rientro dichiarato il 9/11, dopo la sosta."],
-  "Svilar":[4,"🚨 Frattura da stress al quinto dito del piede: rientro dichiarato il 10/11, dopo la sosta. In porta GOLLINI."],
-  "Kone B.":[4,"Flessore: rientro dichiarato il 22/11."],
-  "Favasuli":[6,"Retto femorale: fino a metà dicembre."],
   /* --- più lunghi --- */
-  "Yildiz":[5,"❌ Frattura al quinto metatarso, operato: rientro il 26/11 (fantacalcio.it: inizio dicembre)."],
-  "Franjic":[7,"❌ Clavicola: rientro dichiarato il 10 dicembre."],
-  "Gueye":[10,"❌ Caviglia operata: rientro il 5 gennaio 2027."],
-  "Thuram K.":[10,"❌ Ginocchio: fermo fino al 1° gennaio 2027. Slot morto fino al mercato di riparazione."],
-  "Konè I.":[11,"❌ Frattura di tibia e perone: rientro il 17 gennaio 2027."],
-  "Holm":[13,"❌ Operato al bicipite femorale: rientro il 29 gennaio 2027 (fantacalcio.it: fine febbraio)."],
-  "Saelemaekers":[15,"🚨❌ Caviglia operata il 13/10: rientro dichiarato l'8 febbraio 2027. A destra gioca Moreira."],
+  "Gonzalez N.":[4,"🚨 Soleo: rientro dichiarato il 24/11."],
+  "Yildiz":[4,"❌ Piede operato: rientro il 26/11 (fantacalcio.it: inizio dicembre)."],
+  "Favasuli":[4,"Rientro il 30/11."],
+  "Badiashile":[4,"Retto femorale: da fine novembre."],
+  "Santos A.":[5,"Bicipite femorale: da dicembre."],
+  "Franjic":[6,"❌ Clavicola: rientro il 10/12."],
+  "Rodriguez Je.":[8,"🚨❌ Problema muscolare: rientro dichiarato il 21/12."],
+  "Buongiorno":[8,"❌ Menisco operato: rientro a gennaio (fantacalcio-online dice 31/10, fantacalcio.it fine dicembre)."],
+  "Pellegrini Lo.":[8,"❌ Semitendinoso: da fine dicembre."],
+  "Pierotti":[8,"❌ Malleolo: da gennaio."],
+  "Thuram K.":[8,"❌ Ginocchio: fermo fino al 1° gennaio 2027."],
+  "Gueye":[9,"❌ Caviglia operata: rientro il 5 gennaio 2027."],
+  "Gabbia":[11,"❌ Caviglia: rientro il 13 gennaio 2027."],
+  "Konè I.":[12,"❌ Frattura di tibia e perone: rientro il 17 gennaio 2027."],
+  "Holm":[13,"❌ Rientro il 29 gennaio 2027."],
+  "Saelemaekers":[15,"🚨❌ Caviglia operata: rientro l'8 febbraio 2027. A destra gioca Moreira."],
   "Locatelli":[15,"🚨❌ Menisco: rientro l'8 febbraio 2027. Da gennaio si libera."],
-  "Felici":[15,"❌ Crociato: rientro dichiarato il 9 febbraio 2027 (fantacalcio.it: da marzo)."],
-  "Gabbia":[17,"❌ Flessore con interessamento del tendine: da fine febbraio."],
-  "Leysen F.":[25,"❌ Crociato (11/10): da aprile."],
-  "Grabara":[30,"❌ Crociato: stagione finita. Svincolato in DreamLeague."]
+  "Felici":[15,"❌ Ginocchio: rientro il 9 febbraio 2027."],
+  "Leysen F.":[25,"❌ Crociato: rientro a maggio 2027."],
+  "Grabara":[30,"❌ Crociato: stagione finita."]
 };
 
 /* ================= MINUTI/PRODUZIONE ESTERO 25-26 dei nuovi arrivi =================
@@ -1637,8 +1673,9 @@ const out = `/* FantaHQ — database giocatori e squadre. STAGIONE 2026-27 (list
    Titolarità: minuti reali 25-26 corretti con le PROBABILI FORMAZIONI 2026-27 (XI_STATUS)
    e gli infortuni attuali (INJURY) del builder. */
 window.FANTAHQ_DATA = {
-  date: ${JSON.stringify("18 settembre 2026 — dopo la 4ª: statistiche a 4 giornate (campo al 33%), listone del 18, bollettino con 56 date dichiarate, squalificati della 5ª")},
+  date: ${JSON.stringify(DATA_DESCRIZIONE)},
   official: true,
+  bollettinoDa: ${BOLLETTINO_DA},
   calendario: ${JSON.stringify(CALENDARIO)},
   teams: ${JSON.stringify(TEAMS, null, 2).replace(/\n/g, "\n  ")},
   kb: [
