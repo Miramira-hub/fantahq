@@ -39,7 +39,15 @@ const manuale = fs.existsSync(path.join(DIR, "mappa-manuale.json"))
 
 const mappa = {};          // sofaId → fantaId
 const daGuardare = [];
-for (const f of fs.readdirSync(SORG).filter(f => /^sofascore-\d{4}-\d{2}( \(\d+\))?\.json$/.test(f)).sort()) {
+/* Chrome non sovrascrive: il download nuovo diventa "sofascore-2026-27 (1).json" accanto al
+   vecchio. Per ogni stagione vale il file PIÙ RECENTE (l'ordine alfabetico metteva il vecchio
+   per ultimo, e vinceva lui). */
+const recenti = new Map();
+for (const f of fs.readdirSync(SORG).filter(f => /^sofascore-\d{4}-\d{2}( \(\d+\))?\.json$/.test(f))) {
+  const st = f.match(/\d{4}-\d{2}/)[0], t = fs.statSync(path.join(SORG, f)).mtimeMs;
+  if (!recenti.has(st) || recenti.get(st).t < t) recenti.set(st, { f, t });
+}
+for (const f of [...recenti.keys()].sort().map(st => recenti.get(st).f)) {
   const raw = JSON.parse(fs.readFileSync(path.join(SORG, f), "utf8"));
   const st = raw.stagione;
   fs.writeFileSync(path.join(DIR, `${st}.json`), JSON.stringify(raw));
