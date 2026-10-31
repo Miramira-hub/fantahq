@@ -4,7 +4,7 @@ Guida operativa per riprendere il lavoro in una sessione nuova.
 
 ## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 31 ottobre 2026
 
-**Dove siamo.** Giocate **9 giornate**, la **10ª si gioca 31/10-2/11**. Bollettino e probabili del 31/10 (`BOLLETTINO_DA = 10`). Dati fermi: statistiche e listone al 18/10 (7ª), SofaScore all’8ª, rose al 18/10: alla prossima pausa chiederli. Panchine: Vanoli (Fiorentina), Palladino
+**Dove siamo.** Giocate **9 giornate**, la **10ª si gioca 31/10-2/11**. Bollettino e probabili del 31/10 (`BOLLETTINO_DA = 10`). Statistiche e listone dopo la 9ª (31/10); ancora indietro SofaScore (8ª) e rose (18/10): chiederli al prossimo giro. Panchine: Vanoli (Fiorentina), Palladino
 (Bologna), Gilardino (Parma), **Nicola (Venezia, dal 14/10)**.
 **Rose:** l'utente manda l'export di Leghe Fantacalcio (`<lega>-rosters-*.xlsx`): convertito con
 xlsx-to-json, `node tools/rose-leghe.mjs <ultimo backup> <rose.json> "<Lega>" "<Sua squadra>" <uscita>`
