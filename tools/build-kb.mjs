@@ -1087,7 +1087,7 @@ const XI_ADJ = {
    statistiche ancora alla 7ª). Aggiornarla OGNI volta che si riscrive INJURY. */
 const BOLLETTINO_DA = 10;
 /* la riga "dati del..." che l'app mostra: si aggiorna insieme al bollettino */
-const DATA_DESCRIZIONE = "31 ottobre 2026 — bollettino e probabili della 10ª; statistiche e listone del 18/10, SofaScore fino all'8ª";
+const DATA_DESCRIZIONE = "31 ottobre 2026 — statistiche e listone dopo la 9ª, bollettino e probabili della 10ª; SofaScore fino all'8ª";
 const INJURY = {
   /* Bollettino del 31 OTTOBRE 2026 (fantacalcio.it: indisponibili e probabili aggiornate;
      fantacalcio-online per le date, spesso ottimistiche). Calendario: 10ª 31/10-2/11 · 11ª 6-8/11 ·
