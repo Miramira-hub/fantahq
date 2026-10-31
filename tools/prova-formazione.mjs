@@ -25,15 +25,15 @@ ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) 
 /* bollettino del 4/10: Venturino (operato, stop 4) salta 6ª-9ª, alla 10ª rientra da dubbio */
 ok("Piccoli dopo lo stop di 2 → dubbio, non ok: rientra da un infortunio vero", dispAuto(k("Piccoli"), G+3) === "dubbio");
 ok("Buongiorno fine dicembre → out alla 6ª",  dispAuto(k("Buongiorno"), G2) === "out");
-ok("Gila stop 1 → out alla prossima",          dispAuto(k("Gila"), G2) === "out");
+ok("Solet stop 1 → out alla prossima",         dispAuto(k("Solet"), G2) === "out");
 /* un'assenza BREVE (stop 1) non lascia strascichi: passata, si torna ok. Il "dubbio da
    rientro" e riservato agli stop seri (inj>=2, vedi Buongiorno alla 6ª). */
-ok("Gila → ok due giornate dopo: assenza breve, nessuno strascico", dispAuto(k("Gila"), G+2) === "ok");
+ok("Solet → ok due giornate dopo: assenza breve, nessuno strascico", dispAuto(k("Solet"), G+2) === "ok");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Krstovic sano → ok",                     dispAuto(k("Krstovic"), G2) === "ok");
 /* chi salta solo la prossima torna disponibile se guardi più avanti */
 ok("Kabasele alla 3ª → di nuovo ok",         dispAuto(k("Kabasele"), G + 2) === "ok");
-ok("Yildiz alla 5ª → ancora out",            dispAuto(k("Yildiz"), G + 4) === "out");
+ok("Lobotka stop 6 → ancora out quattro giornate dopo", dispAuto(k("Lobotka"), G + 4) === "out");
 
 let ko = 0;
 for (const [n,c] of casi) { console.log(`  ${c?"ok  ":"KO  "}${n}`); if(!c) ko++; }

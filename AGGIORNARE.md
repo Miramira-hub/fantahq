@@ -2,14 +2,9 @@
 
 Guida operativa per riprendere il lavoro in una sessione nuova.
 
-## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 18 ottobre 2026, sera
+## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 31 ottobre 2026
 
-**Dove siamo.** Giocate **7 giornate** (della 7ª mancano Monza-Cagliari e Parma-Torino, lunedì
-19/10). L'**8ª si gioca 23-25 ottobre**, poi 9ª infrasettimanale 27-29/10. Calendario: 10ª
-31/10-2/11 · 11ª 6-8/11 · sosta · 12ª 21-23/11 · 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12.
-Nel database: listone del 18/10 (539: nuovi Vasquez D., Darmian, Wiafe), statistiche a 7
-giornate, bollettino del 18/10, SofaScore della stagione al pomeriggio del 18/10 (66 partite).
-Squalificati dell'8ª non ancora comunicati. Panchine: Vanoli (Fiorentina), Palladino
+**Dove siamo.** Giocate **9 giornate**, la **10ª si gioca 31/10-2/11**. Bollettino e probabili del 31/10 (`BOLLETTINO_DA = 10`). Dati fermi: statistiche e listone al 18/10 (7ª), SofaScore all’8ª, rose al 18/10: alla prossima pausa chiederli. Panchine: Vanoli (Fiorentina), Palladino
 (Bologna), Gilardino (Parma), **Nicola (Venezia, dal 14/10)**.
 **Rose:** l'utente manda l'export di Leghe Fantacalcio (`<lega>-rosters-*.xlsx`): convertito con
 xlsx-to-json, `node tools/rose-leghe.mjs <ultimo backup> <rose.json> "<Lega>" "<Sua squadra>" <uscita>`
