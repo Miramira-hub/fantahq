@@ -906,7 +906,7 @@ const CAMPO_NOTE = {
   "McKennie":"In gol a Lecce nell'8ª.",
   "Ellertsson":"Gol-vittoria del Genoa al Venezia nell'8ª.",
   /* ===== probabili della 10ª (31/10) ===== */
-  "Corvi":"⚠️ Ha perso il posto: Gilardino ha scelto DAFFARA, clean sheet nella 9ª e confermato nelle probabili della 10ª (Corvi al 5%).",
+  "Corvi":"⚠️ Titolare per otto giornate su otto, poi nella 9ª Gilardino ha fatto esordire DAFFARA (Parma-Udinese 0-0), dopo aver dichiarato dubbi fra i due. Nelle probabili di Bergamo è confermato Daffara (80%): posto a rischio, non ancora perso per sempre.",
   "Daffara":"Nuovo titolare del Parma: clean sheet nella 9ª, confermato a Bergamo nella 10ª.",
   "Mancini":"⚠️ Non è infortunato, ma per Udine parte dalla panchina: la Roma gioca con Ghilardi, Balerdi e Hermoso.",
   "Marianucci":"In allerta a Torino per sostituire Rrahmani, non al meglio (45%).",
