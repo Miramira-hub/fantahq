@@ -23,12 +23,12 @@ ok("Leao ceduto all'estero → fuori dal db",  k("Leao") === undefined);
 ok("Berardi tornato (gol alla 2ª) → ok",      dispAuto(k("Berardi"), G2) === "ok");
 ok("Buongiorno rientro 30/9 → out alla 3ª",   dispAuto(k("Buongiorno"), G+2) === "out");
 /* bollettino del 4/10: Venturino (operato, stop 4) salta 6ª-9ª, alla 10ª rientra da dubbio */
-ok("Piccoli dopo lo stop di 2 → dubbio, non ok: rientra da un infortunio vero", dispAuto(k("Piccoli"), G+3) === "dubbio");
+ok("Raimondo dopo lo stop di 4 → dubbio, non ok: rientra da un infortunio vero", dispAuto(k("Raimondo"), G+5) === "dubbio");
 ok("Buongiorno fine dicembre → out alla 6ª",  dispAuto(k("Buongiorno"), G2) === "out");
-ok("Solet stop 1 → out alla prossima",         dispAuto(k("Solet"), G2) === "out");
+ok("Zaccagni stop 1 → out alla prossima",      dispAuto(k("Zaccagni"), G2) === "out");
 /* un'assenza BREVE (stop 1) non lascia strascichi: passata, si torna ok. Il "dubbio da
    rientro" e riservato agli stop seri (inj>=2, vedi Buongiorno alla 6ª). */
-ok("Solet → ok due giornate dopo: assenza breve, nessuno strascico", dispAuto(k("Solet"), G+2) === "ok");
+ok("Zaccagni → ok due giornate dopo: assenza breve, nessuno strascico", dispAuto(k("Zaccagni"), G+2) === "ok");
 ok("Malen sano → ok",                        dispAuto(k("Malen"), G2) === "ok");
 ok("Krstovic sano → ok",                     dispAuto(k("Krstovic"), G2) === "ok");
 /* chi salta solo la prossima torna disponibile se guardi più avanti */
