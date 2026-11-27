@@ -2,9 +2,9 @@
 
 Guida operativa per riprendere il lavoro in una sessione nuova.
 
-## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 20 novembre 2026
+## ▶ PUNTO DELLA SITUAZIONE (aggiornare a ogni giro) — 27 novembre 2026
 
-**Dove siamo.** Giocate **11 giornate**, la **12ª si gioca 21-23/11** dopo la sosta. Bollettino e probabili del 20/11 (`BOLLETTINO_DA = 12`). Limite noto: chi rientra da un infortunio ed esce dal bollettino ha le ultime 3 a zero e il motore lo sottovaluta (Svilar dietro Gollini il 20/11): le probabili correggono. Statistiche e listone dopo la 9ª, SofaScore all’8ª: indietro di due giornate, chiederli. Rose del 18/10 ancora valide (nessuno scambio al 31/10). Panchine: Vanoli (Fiorentina), Palladino
+**Dove siamo.** Giocate **12 giornate**, la **13ª si gioca 27-30/11**. Bollettino e probabili del 27/11 (`BOLLETTINO_DA = 13`). Limite noto: chi rientra da un infortunio ed esce dal bollettino ha le ultime 3 a zero e il motore lo sottovaluta (Svilar dietro Gollini il 20/11): le probabili correggono. Statistiche e listone dopo la 9ª, SofaScore all’8ª: indietro di tre giornate, chiederli. Rose del 18/10 ancora valide (nessuno scambio al 31/10). Panchine: Vanoli (Fiorentina), Palladino
 (Bologna), Gilardino (Parma), **Nicola (Venezia, dal 14/10)**.
 **Rose:** l'utente manda l'export di Leghe Fantacalcio (`<lega>-rosters-*.xlsx`): convertito con
 xlsx-to-json, `node tools/rose-leghe.mjs <ultimo backup> <rose.json> "<Lega>" "<Sua squadra>" <uscita>`
