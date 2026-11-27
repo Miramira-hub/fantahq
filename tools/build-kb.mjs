@@ -567,7 +567,7 @@ const MERCATO_NOTE = {
   "Barella":"Titolare inamovibile del 3-5-2 di Chivu, presente in ogni formazione tipo. ⚠️ Ma i piazzati sono tutti di Calhanoglu e Dimarco: a quota 17 compri regolarità e voti alti, non bonus.",
   "Mancini":"Titolare inamovibile del trio difensivo di Gasperini da due stagioni: 4 gol e 2 assist nel 25-26 con 97% di titolarità. ⚠️ Tanti cartellini: è il difensore che più spesso ti toglie mezzo punto.",
   "Pavlovic":"Titolare nel terzetto Gila-Gabbia-Pavlovic in tutte le formazioni tipo di Amorim: 5 gol da difensore nel 25-26, il dato che giustifica la quota 14.",
-  "N'Dicka":"Titolare inamovibile della difesa di Gasperini (97% di titolarità, 3 gol): la certezza silenziosa del reparto, senza i cartellini di Mancini.",
+  "Ndicka":"Titolare inamovibile della difesa di Gasperini (97% di titolarità, 3 gol): la certezza silenziosa del reparto, senza i cartellini di Mancini.",
   "Kalulu":"Titolare a destra nella difesa di Spalletti in tutte le formazioni tipo, 37 presenze e 4 assist nel 25-26. Celik è arrivato a zero ma è il dodicesimo, non un'insidia vera.",
   "De Gea":"Titolare indiscusso della Fiorentina (37 presenze, 93% di titolarità). ⚠️ Ma FM 5.00 tonda e una difesa da rating 3: a quota 13 stai pagando il nome più della resa.",
   "Taylor K.":"Titolare in mediana nel 4-3-3 di Gattuso in entrambe le formazioni tipo, ed è la seconda scelta sui rigori dietro Zaccagni: il pacchetto piazzati gli dà un margine che la FM da sola non mostra.",
@@ -1068,7 +1068,7 @@ const XI_STATUS = {
   "Diallo O.":"R","Ordonez C.":"B-","Cremaschi":"R","Pellegrino M.":"B+","Frigan":"B-",
   "Elphege":"B-","Tourè E.":"T",   // Pellegrino ceduto alla Fiorentina: Tourè e la punta titolare del Parma
   /* Roma (3-4-2-1 Gasperini) */
-  "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","N'Dicka":"T",
+  "Svilar":"T","De Marzi":"R","Gollini":"R","Wesley":"T","Mancini":"T","Ndicka":"T",
   "Hermoso":"T","Koulierakis":"B+","Molina N.":"B+","Rensch":"R","Ghilardi":"B-",   // Molina UFFICIALE: quinto destro titolare, Rensch chiuso
   "Ziolkowski":"R","Konè M.":"T","Cristante":"T","Pisilli":"B-","Malen":"T",
   "Dybala":"T","Castro S.":"B-","Soulè":"B+","Pellegrini Lo.":"B-",
@@ -1112,7 +1112,7 @@ const XI_ADJ = {
    statistiche ancora alla 7ª). Aggiornarla OGNI volta che si riscrive INJURY. */
 const BOLLETTINO_DA = 13;
 /* la riga "dati del..." che l'app mostra: si aggiorna insieme al bollettino */
-const DATA_DESCRIZIONE = "27 novembre 2026 — bollettino e probabili della 13ª; statistiche e listone dopo la 9ª, SofaScore fino all'8ª";
+const DATA_DESCRIZIONE = "27 novembre 2026 — statistiche e listone aggiornati, bollettino e probabili della 13ª; SofaScore fino all'8ª";
 const INJURY = {
   /* Bollettino del 27 NOVEMBRE 2026, sera (fantacalcio.it indisponibili e probabili della 13ª;
      fantacalcio-online per le date). Calendario: 13ª 27-30/11 · 14ª 4-7/12 · 15ª 11-12/12;
